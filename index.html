@@ -481,6 +481,8 @@ body {
   border: 1px solid var(--border);
   transition: var(--transition);
   cursor: pointer;
+  color: inherit;
+  text-decoration: none;
 }
 
 .news-item:hover {
@@ -990,24 +992,51 @@ body {
 
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
-  .app-container { flex-direction: column; }
+  .app-container {
+    flex-direction: row;
+    align-items: stretch;
+    max-width: none;
+  }
   .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
+    width: 176px;
+    min-width: 176px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
     flex-direction: column;
     padding: 0;
-    overflow: visible;
+    overflow: hidden;
   }
   .sidebar.collapsed {
-    width: 100%;
+    width: 58px;
+    min-width: 58px;
   }
   .menu-toggle {
     border-bottom: 1px solid var(--border);
   }
-  .sidebar-brand { display: none; }
-  .nav-list { display: flex; gap: 4px; padding: 8px 12px; flex-wrap: wrap; }
-  .nav-btn { font-size: 13px; padding: 10px 14px; white-space: nowrap; }
+  .sidebar-brand {
+    display: flex;
+    padding: 16px 14px;
+  }
+  .sidebar-brand .logo {
+    font-size: 18px;
+  }
+  .sidebar-brand .subtitle {
+    font-size: 11px;
+  }
+  .nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    flex-wrap: nowrap;
+  }
+  .nav-btn {
+    font-size: 13px;
+    padding: 11px 12px;
+    white-space: nowrap;
+    justify-content: flex-start;
+  }
   .sidebar-footer {
     display: block;
     padding: 10px 12px 12px;
@@ -1017,16 +1046,23 @@ body {
     display: block;
   }
   .sidebar.collapsed .nav-btn .nav-label {
-    display: inline;
+    display: none;
+  }
+  .sidebar.collapsed .sidebar-brand .logo-text,
+  .sidebar.collapsed .sidebar-brand .subtitle {
+    display: none;
   }
   .cloud-actions {
-    flex-direction: row;
+    flex-direction: column;
     margin-bottom: 0;
   }
   .cloud-tip {
     display: none;
   }
-  .main-content { padding: 20px 16px; }
+  .main-content {
+    padding: 22px 16px;
+    min-width: 0;
+  }
   .settings-grid { grid-template-columns: 1fr; }
   .ingredients-layout { grid-template-columns: 1fr; }
   .deconstructor-layout { grid-template-columns: 1fr; }
@@ -2131,6 +2167,17 @@ const NEWS_POOL = [
 
 let newsData = [];
 
+function buildNewsLink(item) {
+  const keyword = encodeURIComponent(`${item.category} ${item.title}`);
+  if (item.source === '小红书') {
+    return `https://www.xiaohongshu.com/search_result?keyword=${keyword}`;
+  }
+  if (item.source === '抖音') {
+    return `https://www.douyin.com/search/${keyword}`;
+  }
+  return `https://www.baidu.com/s?wd=${keyword}`;
+}
+
 function initNews() {
   const lastRefresh = localStorage.getItem(STORAGE_KEYS.lastNewsRefresh);
   const today = new Date().toDateString();
@@ -2156,6 +2203,7 @@ function generateNews() {
     source: item.source,
     category: item.category,
     time: new Date(today.getTime() - i * 3600 * 1000 * Math.random() * 48).toISOString().slice(0,10),
+    url: buildNewsLink(item),
   }));
   localStorage.setItem('xiafei_workstation_news', JSON.stringify(newsData));
   localStorage.setItem(STORAGE_KEYS.lastNewsRefresh, today.toDateString());
@@ -2192,17 +2240,19 @@ function renderNews(filter) {
     let badgeClass = 'badge-other';
     if (n.source === '小红书') badgeClass = 'badge-xiaohongshu';
     else if (n.source === '抖音') badgeClass = 'badge-douyin';
+    const link = n.url || buildNewsLink(n);
     return `
-      <div class="news-item">
+      <a class="news-item" href="${escapeAttr(link)}" target="_blank" rel="noopener noreferrer" title="打开${n.source}搜索结果">
         <span class="news-source-badge ${badgeClass}">${n.source}</span>
         <div class="news-info">
           <div class="news-title">${n.title}</div>
           <div class="news-meta">
             <span>🏷️ ${n.category}</span>
             <span>🕐 ${n.time}</span>
+            <span>↗ 点击查看</span>
           </div>
         </div>
-      </div>`;
+      </a>`;
   }).join('');
 }
 
