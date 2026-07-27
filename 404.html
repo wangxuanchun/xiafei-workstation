@@ -1093,13 +1093,8 @@ body {
     </div>
     <ul class="nav-list">
       <li class="nav-item">
-        <button class="nav-btn active" data-tab="news">
-          <span class="nav-icon">📡</span> <span class="nav-label">情报站</span>
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-btn" data-tab="deconstructor">
-          <span class="nav-icon">🔍</span> <span class="nav-label">拆解器</span>
+        <button class="nav-btn active" data-tab="memo">
+          <span class="nav-icon">📝</span> <span class="nav-label">备忘录</span>
         </button>
       </li>
       <li class="nav-item">
@@ -1113,13 +1108,18 @@ body {
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-btn" data-tab="cloud">
-          <span class="nav-icon">☁️</span> <span class="nav-label">云端配置</span>
+        <button class="nav-btn" data-tab="news">
+          <span class="nav-icon">📡</span> <span class="nav-label">情报站</span>
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-btn" data-tab="memo">
-          <span class="nav-icon">📝</span> <span class="nav-label">备忘录</span>
+        <button class="nav-btn" data-tab="deconstructor">
+          <span class="nav-icon">🔍</span> <span class="nav-label">拆解器</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-btn" data-tab="cloud">
+          <span class="nav-icon">☁️</span> <span class="nav-label">云端配置</span>
         </button>
       </li>
     </ul>
@@ -1136,7 +1136,7 @@ body {
   <main class="main-content">
 
     <!-- ========== Tab 1: 情报站 ========== -->
-    <section class="tab-panel active" id="tab-news">
+    <section class="tab-panel" id="tab-news">
       <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <div>
           <h2>📡 行业情报站</h2>
@@ -1332,7 +1332,7 @@ body {
     </section>
 
     <!-- ========== Tab 6: 备忘录 ========== -->
-    <section class="tab-panel" id="tab-memo">
+    <section class="tab-panel active" id="tab-memo">
       <div class="section-header">
         <h2>📝 备忘录</h2>
         <p>记录灵感、待办与财务，数据自动保存在本地浏览器</p>
@@ -1401,6 +1401,16 @@ const defaultIngredients = [
   { id:'IG014', name:'椰浆',            unitPrice: 15.0, unit:'升',   stock: 3000,  stockUnit:'ml' },
   { id:'IG015', name:'芒果果茸',        unitPrice: 25.0, unit:'500g', stock: 2500,  stockUnit:'g' },
   { id:'IG016', name:'百香果果茸',      unitPrice: 30.0, unit:'500g', stock: 2000,  stockUnit:'g' },
+  { id:'IG017', name:'', unitPrice: 0, unit:'500g', stock: 0, stockUnit:'g' },
+  { id:'IG018', name:'', unitPrice: 0, unit:'500g', stock: 0, stockUnit:'g' },
+  { id:'IG019', name:'', unitPrice: 0, unit:'500g', stock: 0, stockUnit:'g' },
+  { id:'IG020', name:'', unitPrice: 0, unit:'500g', stock: 0, stockUnit:'g' },
+  { id:'IG021', name:'', unitPrice: 0, unit:'500g', stock: 0, stockUnit:'g' },
+  { id:'IG022', name:'', unitPrice: 0, unit:'500g', stock: 0, stockUnit:'g' },
+  { id:'IG023', name:'', unitPrice: 0, unit:'500g', stock: 0, stockUnit:'g' },
+  { id:'IG024', name:'', unitPrice: 0, unit:'500g', stock: 0, stockUnit:'g' },
+  { id:'IG025', name:'', unitPrice: 0, unit:'500g', stock: 0, stockUnit:'g' },
+  { id:'IG026', name:'', unitPrice: 0, unit:'500g', stock: 0, stockUnit:'g' },
 ];
 
 let selectedIngredients = {}; // { id: { name, unitPrice, unit, usage } }
@@ -1435,7 +1445,12 @@ let autoCloudSyncTimer = null;
 function loadIngredients() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.ingredients) || 'null');
-    return Array.isArray(saved) ? saved : JSON.parse(JSON.stringify(defaultIngredients));
+    if (Array.isArray(saved)) {
+      const existingIds = new Set(saved.map(item => item.id));
+      const blanks = defaultIngredients.filter(item => /^IG0(17|18|19|20|21|22|23|24|25|26)$/.test(item.id) && !existingIds.has(item.id));
+      return [...saved, ...JSON.parse(JSON.stringify(blanks))];
+    }
+    return JSON.parse(JSON.stringify(defaultIngredients));
   } catch(e) {
     return JSON.parse(JSON.stringify(defaultIngredients));
   }
@@ -2262,6 +2277,25 @@ function refreshNews() {
 }
 
 /* 覆盖原 renderNews 函数逻辑，使用 newsData 变量 */
+function renderNewsCard(n) {
+  let badgeClass = 'badge-other';
+  if (n.source === '小红书') badgeClass = 'badge-xiaohongshu';
+  else if (n.source === '抖音') badgeClass = 'badge-douyin';
+  const link = buildNewsLink(n);
+  return `
+    <a class="news-item" href="${escapeAttr(link)}" onclick="openNewsLink(event, '${escapeAttr(n.source)}', '${escapeAttr(n.title)}', '${escapeAttr(n.category)}', '${escapeAttr(link)}')" title="优先打开${n.source}App，失败后打开备用搜索">
+      <span class="news-source-badge ${badgeClass}">${n.source}</span>
+      <div class="news-info">
+        <div class="news-title">${n.title}</div>
+        <div class="news-meta">
+          <span>🏷️ ${n.category}</span>
+          <span>🕐 ${n.time}</span>
+          <span>↗ 打开平台</span>
+        </div>
+      </div>
+    </a>`;
+}
+
 function renderNews(filter) {
   const list = document.getElementById('newsList');
   const filtered = filter === 'all' ? newsData : newsData.filter(n => n.category === filter);
@@ -2269,24 +2303,13 @@ function renderNews(filter) {
     list.innerHTML = '<div class="news-empty"><span class="empty-icon">📭</span>暂无相关资讯</div>';
     return;
   }
-  list.innerHTML = filtered.map(n => {
-    let badgeClass = 'badge-other';
-    if (n.source === '小红书') badgeClass = 'badge-xiaohongshu';
-    else if (n.source === '抖音') badgeClass = 'badge-douyin';
-    const link = buildNewsLink(n);
-    return `
-      <a class="news-item" href="${escapeAttr(link)}" onclick="openNewsLink(event, '${escapeAttr(n.source)}', '${escapeAttr(n.title)}', '${escapeAttr(n.category)}', '${escapeAttr(link)}')" title="优先打开${n.source}App，失败后打开备用搜索">
-        <span class="news-source-badge ${badgeClass}">${n.source}</span>
-        <div class="news-info">
-          <div class="news-title">${n.title}</div>
-          <div class="news-meta">
-            <span>🏷️ ${n.category}</span>
-            <span>🕐 ${n.time}</span>
-            <span>↗ 打开平台</span>
-          </div>
-        </div>
-      </a>`;
-  }).join('');
+  const xhs = filtered.filter(n => n.source === '小红书');
+  const douyin = filtered.filter(n => n.source === '抖音');
+  const group = (title, items) => items.length ? `
+    <div style="margin:14px 0 10px;font-size:15px;font-weight:800;color:var(--brown-deep);">${title}</div>
+    ${items.map(renderNewsCard).join('')}
+  ` : '';
+  list.innerHTML = group('📕 小红书热点', xhs) + group('🎵 抖音热点', douyin);
 }
 
 initNews();
