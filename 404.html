@@ -1077,6 +1077,11 @@ body {
         </button>
       </li>
       <li class="nav-item">
+        <button class="nav-btn" data-tab="cloud">
+          <span class="nav-icon">☁️</span> <span class="nav-label">云端配置</span>
+        </button>
+      </li>
+      <li class="nav-item">
         <button class="nav-btn" data-tab="memo">
           <span class="nav-icon">📝</span> <span class="nav-label">备忘录</span>
         </button>
@@ -1106,36 +1111,6 @@ body {
         </button>
       </div>
 
-
-      <div class="settings-panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-          <div>
-            <h3 style="font-size:16px;color:var(--brown-deep);margin-bottom:2px;">☁️ 云端与AI设置</h3>
-            <p style="font-size:12px;color:var(--brown-light);">配置后，手机可离线记录；联网时同步到 Supabase，并通过 DeepSeek 代理增强拆解器。</p>
-          </div>
-          <span class="offline-pill" id="networkStatus">检测网络中</span>
-        </div>
-        <div class="settings-grid">
-          <label>Supabase URL
-            <input class="input-field" id="supabaseUrl" placeholder="https://xxxx.supabase.co">
-          </label>
-          <label>Supabase Anon Key
-            <input class="input-field" id="supabaseKey" placeholder="eyJhbGciOi...">
-          </label>
-          <label>工作区 ID
-            <input class="input-field" id="workspaceId" placeholder="default">
-          </label>
-          <label>DeepSeek 代理地址
-            <input class="input-field" id="deepseekProxyUrl" placeholder="https://你的云函数域名/api/deepseek">
-          </label>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
-          <button class="btn btn-primary btn-sm" onclick="saveCloudSettings()">保存配置</button>
-          <button class="btn btn-secondary btn-sm" onclick="syncNow()">立即同步</button>
-          <button class="btn btn-secondary btn-sm" onclick="installPwaHint()">手机安装提示</button>
-        </div>
-        <div class="sync-status" id="syncStatus">当前为本地模式：未配置 Supabase 时，数据只能保存在当前设备。</div>
-      </div>
 
       <div class="filter-bar" id="filterBar">
         <button class="filter-chip active" data-filter="all">全部</button>
@@ -1282,7 +1257,45 @@ body {
       </div>
     </section>
 
-    <!-- ========== Tab 5: 备忘录 ========== -->
+    <!-- ========== Tab 5: 云端配置 ========== -->
+    <section class="tab-panel" id="tab-cloud">
+      <div class="section-header">
+        <h2>☁️ 云端配置</h2>
+        <p>管理 Supabase 云同步、手机离线安装和 DeepSeek 代理设置</p>
+      </div>
+
+      <div class="settings-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+          <div>
+            <h3 style="font-size:16px;color:var(--brown-deep);margin-bottom:2px;">☁️ 云端与AI设置</h3>
+            <p style="font-size:12px;color:var(--brown-light);">配置后，手机可离线记录；联网时同步到 Supabase，并通过 DeepSeek 代理增强拆解器。</p>
+          </div>
+          <span class="offline-pill" id="networkStatus">检测网络中</span>
+        </div>
+        <div class="settings-grid">
+          <label>Supabase URL
+            <input class="input-field" id="supabaseUrl" placeholder="https://xxxx.supabase.co">
+          </label>
+          <label>Supabase Anon Key
+            <input class="input-field" id="supabaseKey" placeholder="eyJhbGciOi...">
+          </label>
+          <label>工作区 ID
+            <input class="input-field" id="workspaceId" placeholder="default">
+          </label>
+          <label>DeepSeek 代理地址
+            <input class="input-field" id="deepseekProxyUrl" placeholder="https://你的云函数域名/api/deepseek">
+          </label>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+          <button class="btn btn-primary btn-sm" onclick="saveCloudSettings()">保存配置</button>
+          <button class="btn btn-secondary btn-sm" onclick="syncNow()">立即同步</button>
+          <button class="btn btn-secondary btn-sm" onclick="installPwaHint()">手机安装提示</button>
+        </div>
+        <div class="sync-status" id="syncStatus">当前为本地模式：未配置 Supabase 时，数据只能保存在当前设备。</div>
+      </div>
+    </section>
+
+    <!-- ========== Tab 6: 备忘录 ========== -->
     <section class="tab-panel" id="tab-memo">
       <div class="section-header">
         <h2>📝 备忘录</h2>
