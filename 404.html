@@ -2168,14 +2168,47 @@ const NEWS_POOL = [
 let newsData = [];
 
 function buildNewsLink(item) {
-  const keyword = encodeURIComponent(`${item.category} ${item.title}`);
+  const rawKeyword = `${item.category} ${item.title}`;
+  const keyword = encodeURIComponent(rawKeyword);
   if (item.source === '小红书') {
-    return `https://www.xiaohongshu.com/search_result?keyword=${keyword}`;
+    return `https://www.baidu.com/s?wd=${encodeURIComponent('site:xiaohongshu.com ' + rawKeyword)}`;
   }
   if (item.source === '抖音') {
-    return `https://www.douyin.com/search/${keyword}`;
+    return `https://www.douyin.com/search/${keyword}?source=switch_tab`;
   }
   return `https://www.baidu.com/s?wd=${keyword}`;
+}
+
+function buildNewsAppLink(item) {
+  const keyword = encodeURIComponent(`${item.category} ${item.title}`);
+  if (item.source === '小红书') {
+    return `xhsdiscover://search/result?keyword=${keyword}`;
+  }
+  if (item.source === '抖音') {
+    return `snssdk1128://search?keyword=${keyword}`;
+  }
+  return '';
+}
+
+function openNewsLink(event, source, title, category, fallbackUrl) {
+  event.preventDefault();
+  const item = { source, title, category };
+  const appUrl = buildNewsAppLink(item);
+  const fallback = fallbackUrl || buildNewsLink(item);
+
+  if (!appUrl) {
+    window.open(fallback, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  const start = Date.now();
+  window.location.href = appUrl;
+
+  setTimeout(() => {
+    if (Date.now() - start < 1800) {
+      window.open(fallback, '_blank', 'noopener,noreferrer');
+    }
+  }, 1200);
 }
 
 function initNews() {
@@ -2240,16 +2273,16 @@ function renderNews(filter) {
     let badgeClass = 'badge-other';
     if (n.source === '小红书') badgeClass = 'badge-xiaohongshu';
     else if (n.source === '抖音') badgeClass = 'badge-douyin';
-    const link = n.url || buildNewsLink(n);
+    const link = buildNewsLink(n);
     return `
-      <a class="news-item" href="${escapeAttr(link)}" target="_blank" rel="noopener noreferrer" title="打开${n.source}搜索结果">
+      <a class="news-item" href="${escapeAttr(link)}" onclick="openNewsLink(event, '${escapeAttr(n.source)}', '${escapeAttr(n.title)}', '${escapeAttr(n.category)}', '${escapeAttr(link)}')" title="优先打开${n.source}App，失败后打开备用搜索">
         <span class="news-source-badge ${badgeClass}">${n.source}</span>
         <div class="news-info">
           <div class="news-title">${n.title}</div>
           <div class="news-meta">
             <span>🏷️ ${n.category}</span>
             <span>🕐 ${n.time}</span>
-            <span>↗ 点击查看</span>
+            <span>↗ 打开平台</span>
           </div>
         </div>
       </a>`;
