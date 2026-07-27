@@ -1,4 +1,4 @@
-const CACHE_NAME = 'xiafei-workstation-v5';
+const CACHE_NAME = 'xiafei-workstation-v6';
 const OFFLINE_ASSETS = [
   './',
   './index.html',
