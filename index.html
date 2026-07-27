@@ -1,0 +1,2395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#8BA87D">
+<link rel="manifest" href="./manifest.json">
+<title>🍰 夏菲工作台</title>
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --bg-cream: #FDF8F3;
+  --bg-warm: #FFF5EC;
+  --card-bg: #FFFFFF;
+  --matcha: #8BA87D;
+  --matcha-light: #E8F0E4;
+  --matcha-dark: #6B8A5E;
+  --caramel: #C9A87C;
+  --caramel-light: #F5EDE3;
+  --brown-deep: #4A3728;
+  --brown-mid: #8B7355;
+  --brown-light: #B8A088;
+  --border: #E8D5C0;
+  --tag-cream: #F0E6D8;
+  --tag-pink: #F8E8E0;
+  --tag-blue: #E0ECF0;
+  --shadow-sm: 0 2px 8px rgba(74,55,40,0.06);
+  --shadow-md: 0 4px 16px rgba(74,55,40,0.10);
+  --shadow-lg: 0 8px 32px rgba(74,55,40,0.12);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --font-main: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-main);
+  background: var(--bg-cream);
+  color: var(--brown-deep);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== App Layout ===== */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+  width: 220px;
+  background: var(--bg-warm);
+  border-right: 1px solid var(--border);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 10;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 64px;
+}
+
+.sidebar.collapsed .sidebar-brand .logo-text,
+.sidebar.collapsed .sidebar-brand .subtitle,
+.sidebar.collapsed .nav-btn .nav-label,
+.sidebar.collapsed .sidebar-footer {
+  display: none;
+}
+
+.sidebar.collapsed .nav-btn {
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.sidebar.collapsed .nav-icon {
+  width: auto;
+}
+
+/* ===== Menu Toggle Button ===== */
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--brown-deep);
+  gap: 10px;
+}
+
+.menu-toggle:hover {
+  background: var(--caramel-light);
+}
+
+.menu-toggle .hamburger {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.menu-toggle .hamburger span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--brown-deep);
+  border-radius: 2px;
+  transition: var(--transition);
+}
+
+.menu-toggle .toggle-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brown-mid);
+  font-family: var(--font-main);
+}
+
+.sidebar.collapsed .menu-toggle {
+  padding: 14px 0;
+}
+
+.sidebar.collapsed .menu-toggle .toggle-label {
+  display: none;
+}
+
+.sidebar-brand {
+  padding: 18px 24px 18px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar.collapsed .sidebar-brand {
+  padding: 18px 0;
+  justify-content: center;
+}
+
+.sidebar-brand .logo {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--brown-deep);
+  letter-spacing: -0.3px;
+}
+
+.sidebar-brand .subtitle {
+  font-size: 12px;
+  color: var(--brown-light);
+  margin-top: 4px;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0 12px;
+  flex: 1;
+}
+
+.nav-item {
+  margin-bottom: 4px;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-family: var(--font-main);
+  color: var(--brown-mid);
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+}
+
+.nav-btn:hover {
+  background: var(--caramel-light);
+  color: var(--brown-deep);
+}
+
+.nav-btn.active {
+  background: var(--matcha);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.nav-icon {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--brown-light);
+  margin-top: auto;
+}
+
+.cloud-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cloud-btn {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: var(--brown-deep);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-main);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.cloud-btn:hover {
+  background: var(--matcha-light);
+  border-color: var(--matcha);
+  color: var(--matcha-dark);
+}
+
+.cloud-tip {
+  line-height: 1.5;
+}
+
+
+.settings-panel {
+  margin: 14px 0 18px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.settings-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brown-mid);
+}
+
+.sync-status {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--matcha-light);
+  color: var(--matcha-dark);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.offline-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--caramel-light);
+  color: var(--brown-mid);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ===== Main Content ===== */
+.main-content {
+  flex: 1;
+  padding: 32px 36px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.tab-panel {
+  display: none;
+  animation: fadeSlideIn 0.35s ease;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.section-header {
+  margin-bottom: 28px;
+}
+
+.section-header h2 {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--brown-deep);
+  letter-spacing: -0.3px;
+}
+
+.section-header p {
+  font-size: 14px;
+  color: var(--brown-mid);
+  margin-top: 6px;
+}
+
+/* ===== Common Components ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-family: var(--font-main);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-primary {
+  background: var(--matcha);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--matcha-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background: var(--caramel-light);
+  color: var(--brown-deep);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-family: var(--font-main);
+  color: var(--brown-deep);
+  background: var(--card-bg);
+  transition: var(--transition);
+  outline: none;
+  resize: vertical;
+}
+
+.input-field:focus {
+  border-color: var(--matcha);
+  box-shadow: 0 0 0 3px rgba(139,168,125,0.15);
+}
+
+.input-field::placeholder {
+  color: var(--brown-light);
+}
+
+.tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.tag-cream { background: var(--tag-cream); color: var(--brown-mid); }
+.tag-pink  { background: var(--tag-pink); color: #C47A6A; }
+.tag-blue  { background: var(--tag-blue); color: #6A8FA8; }
+.tag-green { background: var(--matcha-light); color: var(--matcha-dark); }
+
+/* ===== Tab 1: 情报站 ===== */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.filter-chip {
+  padding: 10px 20px;
+  border: 2px solid var(--border);
+  border-radius: 24px;
+  background: var(--card-bg);
+  font-size: 14px;
+  font-family: var(--font-main);
+  color: var(--brown-mid);
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 500;
+}
+
+.filter-chip:hover {
+  border-color: var(--caramel);
+  color: var(--brown-deep);
+}
+
+.filter-chip.active {
+  background: var(--matcha);
+  color: #fff;
+  border-color: var(--matcha);
+}
+
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.news-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 20px;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.news-item:hover {
+  border-color: var(--caramel);
+  box-shadow: var(--shadow-sm);
+  transform: translateX(4px);
+}
+
+.news-source-badge {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.badge-xiaohongshu { background: #FFE8E8; color: #E24A4A; }
+.badge-douyin      { background: #E8ECFF; color: #3C4CAD; }
+.badge-other       { background: var(--tag-cream); color: var(--brown-mid); }
+
+.news-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.news-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--brown-deep);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.news-meta {
+  font-size: 12px;
+  color: var(--brown-light);
+  margin-top: 6px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.news-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--brown-light);
+  font-size: 15px;
+}
+
+.news-empty .empty-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+/* ===== Tab 2: 拆解器 ===== */
+.deconstructor-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .deconstructor-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.deconstructor-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.deconstructor-input-area textarea {
+  min-height: 280px;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.analysis-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  animation: cardReveal 0.5s ease;
+}
+
+@keyframes cardReveal {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.analysis-card-header {
+  background: linear-gradient(135deg, var(--matcha), var(--matcha-dark));
+  color: #fff;
+  padding: 18px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.analysis-dimension {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+.analysis-dimension:last-child {
+  border-bottom: none;
+}
+
+.analysis-dimension:hover {
+  background: var(--bg-cream);
+}
+
+.dim-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--matcha-dark);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dim-content {
+  font-size: 14px;
+  color: var(--brown-mid);
+  line-height: 1.7;
+  padding-left: 4px;
+}
+
+.analysis-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--brown-light);
+  text-align: center;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-warm);
+}
+
+.analysis-placeholder .ph-icon {
+  font-size: 56px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+/* ===== Tab 3: 原料库 ===== */
+.ingredients-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1000px) {
+  .ingredients-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.ingredient-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: var(--card-bg);
+}
+
+.ingredient-table thead {
+  background: var(--bg-warm);
+}
+
+.ingredient-table th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--brown-deep);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+.ingredient-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--brown-mid);
+  vertical-align: middle;
+}
+
+.ingredient-table tbody tr {
+  transition: var(--transition);
+}
+
+.ingredient-table tbody tr:hover {
+  background: var(--bg-cream);
+}
+
+.ingredient-table tbody tr.selected {
+  background: var(--matcha-light);
+}
+
+.stock-low {
+  color: #D4786A;
+  font-weight: 700;
+}
+
+.stock-ok {
+  color: var(--matcha-dark);
+  font-weight: 600;
+}
+
+/* ===== Editable Ingredient Cells ===== */
+.ingredient-table input.edit-input {
+  width: 100%;
+  min-width: 80px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: var(--font-main);
+  color: var(--brown-deep);
+  background: transparent;
+  outline: none;
+  transition: var(--transition);
+}
+
+.ingredient-table input.edit-input:hover {
+  border-color: var(--border);
+  background: var(--bg-warm);
+}
+
+.ingredient-table input.edit-input:focus {
+  border-color: var(--matcha);
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(139,168,125,0.15);
+}
+
+.ingredient-table input.edit-input.price-input {
+  text-align: right;
+  font-weight: 600;
+  color: var(--caramel);
+}
+
+.ingredient-table input.edit-input.stock-input {
+  text-align: right;
+  font-weight: 600;
+}
+
+.calc-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  padding: 24px;
+  position: sticky;
+  top: 100px;
+}
+
+.calc-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--brown-deep);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.calc-item:last-child {
+  border-bottom: none;
+}
+
+.calc-item-name {
+  flex: 1;
+  font-size: 14px;
+  color: var(--brown-deep);
+  font-weight: 500;
+}
+
+.calc-item input {
+  width: 80px;
+  padding: 8px 10px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: var(--font-main);
+  text-align: right;
+  outline: none;
+  transition: var(--transition);
+}
+
+.calc-item input:focus {
+  border-color: var(--matcha);
+}
+
+.calc-item-unit {
+  font-size: 12px;
+  color: var(--brown-light);
+  width: 30px;
+}
+
+.calc-result {
+  margin-top: 20px;
+  padding: 20px;
+  background: var(--matcha-light);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.calc-result .total-cost {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--brown-deep);
+}
+
+.calc-result .total-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--caramel);
+  margin-top: 4px;
+}
+
+.calc-result .label {
+  font-size: 12px;
+  color: var(--brown-mid);
+  margin-top: 2px;
+}
+
+.calc-empty {
+  text-align: center;
+  padding: 30px 0;
+  color: var(--brown-light);
+  font-size: 14px;
+}
+
+/* ===== Tab 4: 备忘录 ===== */
+.memo-layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .memo-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.memo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.memo-form .input-field {
+  font-size: 14px;
+}
+
+.tag-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag-selector .tag {
+  border: 2px solid transparent;
+}
+
+.tag-selector .tag.selected {
+  border-color: var(--matcha);
+  box-shadow: 0 0 0 2px rgba(139,168,125,0.2);
+}
+
+.memo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.memo-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 18px 20px;
+  transition: var(--transition);
+  animation: fadeSlideIn 0.3s ease;
+}
+
+.memo-card:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.memo-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.memo-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--brown-deep);
+}
+
+.memo-card-body {
+  font-size: 14px;
+  color: var(--brown-mid);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.memo-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.memo-time {
+  font-size: 12px;
+  color: var(--brown-light);
+}
+
+.memo-delete {
+  background: none;
+  border: none;
+  color: #D4786A;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font-main);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.memo-delete:hover {
+  background: #FFF0ED;
+}
+
+.memo-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--brown-light);
+  font-size: 15px;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--brown-light); }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--brown-deep);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 1000;
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+  box-shadow: var(--shadow-lg);
+}
+
+@keyframes toastIn  { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+@keyframes toastOut { from { opacity: 1; transform: translateX(-50%) translateY(0); } to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .app-container { flex-direction: column; }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    flex-direction: column;
+    padding: 0;
+    overflow: visible;
+  }
+  .sidebar.collapsed {
+    width: 100%;
+  }
+  .menu-toggle {
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-brand { display: none; }
+  .nav-list { display: flex; gap: 4px; padding: 8px 12px; flex-wrap: wrap; }
+  .nav-btn { font-size: 13px; padding: 10px 14px; white-space: nowrap; }
+  .sidebar-footer {
+    display: block;
+    padding: 10px 12px 12px;
+    border-top: 1px solid var(--border);
+  }
+  .sidebar.collapsed .sidebar-footer {
+    display: block;
+  }
+  .sidebar.collapsed .nav-btn .nav-label {
+    display: inline;
+  }
+  .cloud-actions {
+    flex-direction: row;
+    margin-bottom: 0;
+  }
+  .cloud-tip {
+    display: none;
+  }
+  .main-content { padding: 20px 16px; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .ingredients-layout { grid-template-columns: 1fr; }
+  .deconstructor-layout { grid-template-columns: 1fr; }
+  .memo-layout { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar" id="sidebar">
+    <!-- 菜单按钮 -->
+    <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+      <div class="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <span class="toggle-label">菜单</span>
+    </button>
+    <div class="sidebar-brand">
+      <span style="font-size:22px;">🍰</span>
+      <div>
+        <div class="logo logo-text">夏菲工作台</div>
+        <div class="subtitle">Dessert、Coffee、Life</div>
+      </div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item">
+        <button class="nav-btn active" data-tab="news">
+          <span class="nav-icon">📡</span> <span class="nav-label">情报站</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-btn" data-tab="deconstructor">
+          <span class="nav-icon">🔍</span> <span class="nav-label">拆解器</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-btn" data-tab="ingredients">
+          <span class="nav-icon">📦</span> <span class="nav-label">原料库</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-btn" data-tab="products">
+          <span class="nav-icon">🧁</span> <span class="nav-label">产品库</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-btn" data-tab="cloud">
+          <span class="nav-icon">☁️</span> <span class="nav-label">云端配置</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-btn" data-tab="memo">
+          <span class="nav-icon">📝</span> <span class="nav-label">备忘录</span>
+        </button>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="cloud-actions">
+        <button class="cloud-btn" onclick="uploadCloud()">☁️ 上传云端</button>
+        <button class="cloud-btn" onclick="downloadCloud()">⬇️ 下载云端</button>
+      </div>
+      <div class="cloud-tip">云端配置后，手机可在电脑关机时继续上传数据</div>
+    </div>
+  </aside>
+
+  <!-- ===== Main Content ===== -->
+  <main class="main-content">
+
+    <!-- ========== Tab 1: 情报站 ========== -->
+    <section class="tab-panel active" id="tab-news">
+      <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h2>📡 行业情报站</h2>
+          <p>追踪蛋糕、甜品、饮品、咖啡领域的热门趋势与灵感</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="refreshNews()" id="refreshBtn" style="flex-shrink:0;">
+          🔄 刷新热点
+        </button>
+      </div>
+
+
+      <div class="filter-bar" id="filterBar">
+        <button class="filter-chip active" data-filter="all">全部</button>
+        <button class="filter-chip" data-filter="蛋糕">🍰 蛋糕</button>
+        <button class="filter-chip" data-filter="甜品">🍮 甜品</button>
+        <button class="filter-chip" data-filter="饮品">🥤 饮品</button>
+        <button class="filter-chip" data-filter="咖啡">☕ 咖啡</button>
+      </div>
+
+      <div class="news-list" id="newsList"></div>
+    </section>
+
+    <!-- ========== Tab 2: 拆解器 ========== -->
+    <section class="tab-panel" id="tab-deconstructor">
+      <div class="section-header">
+        <h2>🔍 内容拆解器</h2>
+        <p>粘贴热门文案或口播稿，一键拆解爆款内容的底层逻辑</p>
+      </div>
+
+      <div class="deconstructor-layout">
+        <div class="deconstructor-input-area">
+          <textarea class="input-field" id="deconInput" placeholder="在这里粘贴你要拆解的文案、口播稿或视频脚本...&#10;&#10;例如：&#10;「开店3年，我终于找到了提拉米苏的终极配方...」&#10;&#10;支持粘贴整段文字，系统会自动分析内容结构、情绪点和发布策略。"></textarea>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-primary" id="btnAnalyze" onclick="runAnalysis()">
+              🔍 开始拆解
+            </button>
+            <button class="btn btn-secondary" onclick="clearDeconstructor()">
+              清空
+            </button>
+          </div>
+        </div>
+
+        <div id="analysisResult">
+          <div class="analysis-placeholder">
+            <span class="ph-icon">📋</span>
+            <p>粘贴内容后点击"开始拆解"<br>AI 将自动分析 5 个维度</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Tab 3: 原料库 ========== -->
+    <section class="tab-panel" id="tab-ingredients">
+      <div class="section-header">
+        <h2>📦 原料库 & 配方计算器</h2>
+        <p>管理原料库存，勾选原料计算配方总成本与建议零售价</p>
+      </div>
+
+      <div class="ingredients-layout">
+        <div class="table-wrapper">
+          <table class="ingredient-table">
+            <thead>
+              <tr>
+                <th>选择</th>
+                <th>原料名称</th>
+                <th>进货价 (元/500g 或 元/升)</th>
+                <th>建议售价</th>
+                <th>库存量</th>
+              </tr>
+            </thead>
+            <tbody id="ingredientTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="calc-card" id="calcCard">
+          <h3>🧮 配方计算器</h3>
+          <div id="calcItems">
+            <div class="calc-empty">👆 请在左侧表格中勾选原料</div>
+          </div>
+          <div id="calcResult" style="display:none;">
+            <div class="calc-result">
+              <div class="label">配方总成本</div>
+              <div class="total-cost" id="totalCost">¥0.00</div>
+              <div class="label">建议零售价（成本 × 3）</div>
+              <div class="total-price" id="suggestedPrice">¥0.00</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Tab 4: 产品库 ========== -->
+    <section class="tab-panel" id="tab-products">
+      <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h2>🧁 产品库</h2>
+          <p>管理所有成品：配方构成、成本、建议售价、库存</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addProduct()" style="flex-shrink:0;">
+          ➕ 新增产品
+        </button>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="ingredient-table">
+          <thead>
+            <tr>
+              <th>产品名称</th>
+              <th>配方构成</th>
+              <th>总成本</th>
+              <th>建议售价</th>
+              <th>库存(份)</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="productTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 产品编辑弹窗 -->
+      <div id="productModal" style="display:none;position:fixed;inset:0;background:rgba(74,55,40,0.5);z-index:999;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+          <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <h3 style="font-size:18px;font-weight:700;color:var(--brown-deep);" id="productModalTitle">新增产品</h3>
+            <button onclick="closeProductModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--brown-light);">✕</button>
+          </div>
+          <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
+            <div>
+              <label style="font-size:13px;font-weight:600;color:var(--brown-deep);margin-bottom:6px;display:block;">产品名称</label>
+              <input class="input-field" id="prodName" placeholder="例如：提拉米苏">
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <label style="font-size:13px;font-weight:600;color:var(--brown-deep);">配方原料</label>
+                <button class="btn btn-secondary btn-sm" onclick="addProdIngredientRow()">+ 添加原料</button>
+              </div>
+              <div id="prodIngredientsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+            <div>
+              <label style="font-size:13px;font-weight:600;color:var(--brown-deep);margin-bottom:6px;display:block;">库存（份）</label>
+              <input class="input-field" id="prodStock" type="number" min="0" value="0">
+            </div>
+            <div id="prodCostPreview" style="padding:14px;background:var(--matcha-light);border-radius:10px;text-align:center;">
+              <div style="font-size:12px;color:var(--brown-mid);">预估总成本</div>
+              <div style="font-size:24px;font-weight:800;color:var(--brown-deep);" id="prodCostText">¥0.00</div>
+              <div style="font-size:12px;color:var(--caramel);margin-top:2px;">建议售价：<span id="prodPriceText">¥0.00</span>（成本×3）</div>
+            </div>
+          </div>
+          <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;">
+            <button class="btn btn-secondary" onclick="closeProductModal()">取消</button>
+            <button class="btn btn-primary" onclick="saveProduct()">保存</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Tab 5: 云端配置 ========== -->
+    <section class="tab-panel" id="tab-cloud">
+      <div class="section-header">
+        <h2>☁️ 云端配置</h2>
+        <p>管理 Supabase 云同步、手机离线安装和 DeepSeek 代理设置</p>
+      </div>
+
+      <div class="settings-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+          <div>
+            <h3 style="font-size:16px;color:var(--brown-deep);margin-bottom:2px;">☁️ 云端与AI设置</h3>
+            <p style="font-size:12px;color:var(--brown-light);">配置后，手机可离线记录；联网时同步到 Supabase，并通过 DeepSeek 代理增强拆解器。</p>
+          </div>
+          <span class="offline-pill" id="networkStatus">检测网络中</span>
+        </div>
+        <div class="settings-grid">
+          <label>Supabase URL
+            <input class="input-field" id="supabaseUrl" placeholder="https://xxxx.supabase.co">
+          </label>
+          <label>Supabase Anon Key
+            <input class="input-field" id="supabaseKey" placeholder="eyJhbGciOi...">
+          </label>
+          <label>工作区 ID
+            <input class="input-field" id="workspaceId" placeholder="default">
+          </label>
+          <label>DeepSeek 代理地址
+            <input class="input-field" id="deepseekProxyUrl" placeholder="https://你的云函数域名/api/deepseek">
+          </label>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+          <button class="btn btn-primary btn-sm" onclick="saveCloudSettings()">保存配置</button>
+          <button class="btn btn-secondary btn-sm" onclick="syncNow()">立即同步</button>
+          <button class="btn btn-secondary btn-sm" onclick="installPwaHint()">手机安装提示</button>
+        </div>
+        <div class="sync-status" id="syncStatus">当前为本地模式：未配置 Supabase 时，数据只能保存在当前设备。</div>
+      </div>
+    </section>
+
+    <!-- ========== Tab 6: 备忘录 ========== -->
+    <section class="tab-panel" id="tab-memo">
+      <div class="section-header">
+        <h2>📝 备忘录</h2>
+        <p>记录灵感、待办与财务，数据自动保存在本地浏览器</p>
+      </div>
+
+      <div class="memo-layout">
+        <div class="card memo-form" id="memoForm">
+          <input class="input-field" id="memoTitle" placeholder="笔记标题" maxlength="100">
+          <textarea class="input-field" id="memoBody" placeholder="笔记正文..." rows="5"></textarea>
+          <div class="tag-selector" id="tagSelector">
+            <span class="tag tag-pink selected" data-tag="灵感">💡 灵感</span>
+            <span class="tag tag-cream" data-tag="待办">✅ 待办</span>
+            <span class="tag tag-blue" data-tag="财务">💰 财务</span>
+          </div>
+          <button class="btn btn-primary" onclick="addMemo()">✏️ 添加笔记</button>
+        </div>
+
+        <div class="memo-list" id="memoList"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===== Toast Container ===== -->
+<div id="toastContainer"></div>
+
+<script>
+/* =================================================================
+   DATA & STATE
+   ================================================================= */
+
+// --- 情报站模拟数据 ---
+const mockNews = [
+  { id:1, title:'2026夏季奶油蛋糕裱花趋势：极简韩式风格回归，淡奶油配方升级', source:'小红书', category:'蛋糕', time:'2026-07-26' },
+  { id:2, title:'瑞幸新款生椰拿铁配方拆解：椰乳比例与萃取参数的黄金组合', source:'抖音', category:'咖啡', time:'2026-07-26' },
+  { id:3, title:'芒果百香果慕斯爆单秘诀：水果供应商选择与成本控制指南', source:'小红书', category:'甜品', time:'2026-07-25' },
+  { id:4, title:'手冲咖啡水温控制终极指南：不同烘焙度对应最佳冲煮温度表', source:'抖音', category:'咖啡', time:'2026-07-25' },
+  { id:5, title:'饮品店夏季新品研发思路：从茶底选择到小料搭配全流程', source:'小红书', category:'饮品', time:'2026-07-24' },
+  { id:6, title:'巴斯克芝士蛋糕2.0版本：加入白巧克力与柠檬皮的全新口感', source:'小红书', category:'蛋糕', time:'2026-07-24' },
+  { id:7, title:'奶茶店转向精品咖啡赛道：设备投入与人员培训成本分析', source:'抖音', category:'饮品', time:'2026-07-23' },
+  { id:8, title:'法式慕斯镜面淋面技巧：温度控制与吉利丁比例的精确计算', source:'小红书', category:'甜品', time:'2026-07-23' },
+  { id:9, title:'社区咖啡馆差异化经营案例：日销200杯的秘密在于这3个细节', source:'抖音', category:'咖啡', time:'2026-07-22' },
+  { id:10, title:'无麸质烘焙原料替代方案：杏仁粉、椰子粉、米粉的配比实验', source:'小红书', category:'蛋糕', time:'2026-07-22' },
+  { id:11, title:'夏季冷萃茶饮配方合集：栀子花乌龙、蜜桃乌龙、桂花龙井冷泡法', source:'抖音', category:'饮品', time:'2026-07-21' },
+  { id:12, title:'提拉米苏手指饼干自制教程：从零开始的经典意大利甜品复刻', source:'小红书', category:'甜品', time:'2026-07-21' },
+];
+
+let currentNewsFilter = 'all';
+
+// --- 原料库数据 ---
+const defaultIngredients = [
+  { id:'IG001', name:'低筋面粉',        unitPrice: 8.5,  unit:'500g', stock: 12000, stockUnit:'g' },
+  { id:'IG002', name:'高筋面粉',        unitPrice: 9.0,  unit:'500g', stock: 8000,  stockUnit:'g' },
+  { id:'IG003', name:'细砂糖',          unitPrice: 6.5,  unit:'500g', stock: 15000, stockUnit:'g' },
+  { id:'IG004', name:'无盐黄油',        unitPrice: 28.0, unit:'500g', stock: 5000,  stockUnit:'g' },
+  { id:'IG005', name:'淡奶油(动物性)',  unitPrice: 32.0, unit:'升',   stock: 3000,  stockUnit:'ml' },
+  { id:'IG006', name:'奶油芝士',        unitPrice: 35.0, unit:'500g', stock: 4000,  stockUnit:'g' },
+  { id:'IG007', name:'马斯卡彭芝士',    unitPrice: 48.0, unit:'500g', stock: 2000,  stockUnit:'g' },
+  { id:'IG008', name:'可可粉',          unitPrice: 22.0, unit:'500g', stock: 3000,  stockUnit:'g' },
+  { id:'IG009', name:'抹茶粉(烘焙级)',  unitPrice: 45.0, unit:'500g', stock: 1500,  stockUnit:'g' },
+  { id:'IG010', name:'吉利丁片',        unitPrice: 18.0, unit:'500g', stock: 800,   stockUnit:'g' },
+  { id:'IG011', name:'阿拉比卡咖啡豆',  unitPrice: 60.0, unit:'500g', stock: 6000,  stockUnit:'g' },
+  { id:'IG012', name:'全脂牛奶',        unitPrice: 12.0, unit:'升',   stock: 10000, stockUnit:'ml' },
+  { id:'IG013', name:'燕麦奶',          unitPrice: 18.0, unit:'升',   stock: 4000,  stockUnit:'ml' },
+  { id:'IG014', name:'椰浆',            unitPrice: 15.0, unit:'升',   stock: 3000,  stockUnit:'ml' },
+  { id:'IG015', name:'芒果果茸',        unitPrice: 25.0, unit:'500g', stock: 2500,  stockUnit:'g' },
+  { id:'IG016', name:'百香果果茸',      unitPrice: 30.0, unit:'500g', stock: 2000,  stockUnit:'g' },
+];
+
+let selectedIngredients = {}; // { id: { name, unitPrice, unit, usage } }
+
+// --- 产品库默认数据 ---
+const defaultProducts = [
+  { id:'P001', name:'经典提拉米苏', recipe:[{ingredientId:'IG007', amount:250},{ingredientId:'IG005', amount:150},{ingredientId:'IG003', amount:60},{ingredientId:'IG010', amount:10}], stock: 12 },
+  { id:'P002', name:'巴斯克芝士蛋糕', recipe:[{ingredientId:'IG006', amount:200},{ingredientId:'IG003', amount:50},{ingredientId:'IG001', amount:20}], stock: 8 },
+  { id:'P003', name:'生椰拿铁', recipe:[{ingredientId:'IG011', amount:18},{ingredientId:'IG014', amount:200},{ingredientId:'IG012', amount:50}], stock: 30 },
+  { id:'P004', name:'抹茶千层', recipe:[{ingredientId:'IG009', amount:15},{ingredientId:'IG001', amount:100},{ingredientId:'IG005', amount:300},{ingredientId:'IG003', amount:80}], stock: 5 },
+];
+
+let products = [];
+let editingProductId = null;
+let tempProdIngredients = [];
+
+// --- 本地/沙盒同步存储 ---
+const STORAGE_KEYS = {
+  ingredients: 'xiafei_workstation_ingredients',
+  products: 'xiafei_workstation_products',
+  memos: 'xiafei_workstation_memos',
+  cloudSnapshot: 'xiafei_workstation_cloud_snapshot',
+  lastNewsRefresh: 'xiafei_workstation_last_news_refresh',
+  cloudSettings: 'xiafei_cloud_settings',
+  pendingQueue: 'xiafei_pending_sync_queue',
+};
+
+// 填入真实接口后，上传/下载云端按钮会优先调用接口；为空时使用沙盒同步快照。
+const CLOUD_API_URL = ''; // 旧版占位：保留兼容，实际云同步使用 Supabase 设置
+let autoCloudSyncTimer = null;
+
+function loadIngredients() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.ingredients) || 'null');
+    return Array.isArray(saved) ? saved : JSON.parse(JSON.stringify(defaultIngredients));
+  } catch(e) {
+    return JSON.parse(JSON.stringify(defaultIngredients));
+  }
+}
+
+function saveIngredients() {
+  localStorage.setItem(STORAGE_KEYS.ingredients, JSON.stringify(ingredients));
+  scheduleAutoCloudSync();
+}
+
+let ingredients = loadIngredients();
+
+function loadProducts() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.products) || 'null');
+    return Array.isArray(saved) ? saved : JSON.parse(JSON.stringify(defaultProducts));
+  } catch(e) {
+    return JSON.parse(JSON.stringify(defaultProducts));
+  }
+}
+
+function saveProducts() {
+  localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(products));
+  scheduleAutoCloudSync();
+}
+
+products = loadProducts();
+
+function calcProductCost(product) {
+  let total = 0;
+  if (!product.recipe) return 0;
+  for (const r of product.recipe) {
+    const ing = ingredients.find(i => i.id === r.ingredientId);
+    if (!ing) continue;
+    const pricePerUnit = ing.unit === '升' ? ing.unitPrice / 1000 : ing.unitPrice / 500;
+    total += pricePerUnit * r.amount;
+  }
+  return total;
+}
+
+function collectWorkspaceData() {
+  return {
+    appName: '夏菲工作台',
+    version: '1.3.0',
+    updatedAt: new Date().toISOString(),
+    ingredients,
+    products,
+    memos: loadMemos(),
+  };
+}
+
+function applyWorkspaceData(data) {
+  if (!data || typeof data !== 'object') return false;
+  if (Array.isArray(data.ingredients)) {
+    ingredients = data.ingredients;
+    localStorage.setItem(STORAGE_KEYS.ingredients, JSON.stringify(ingredients));
+  }
+  if (Array.isArray(data.products)) {
+    products = data.products;
+    localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(products));
+  }
+  if (Array.isArray(data.memos)) {
+    memos = data.memos;
+    localStorage.setItem(STORAGE_KEYS.memos, JSON.stringify(memos));
+  }
+  selectedIngredients = {};
+  renderIngredientTable();
+  renderCalculator();
+  renderProductTable();
+  renderMemos();
+  updateSyncStatus('已应用云端数据');
+  return true;
+}
+
+function getCloudSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.cloudSettings) || '{}');
+    return {
+      supabaseUrl: saved.supabaseUrl || '',
+      supabaseKey: saved.supabaseKey || '',
+      workspaceId: saved.workspaceId || 'default',
+      deepseekProxyUrl: saved.deepseekProxyUrl || '',
+    };
+  } catch(e) {
+    return { supabaseUrl: '', supabaseKey: '', workspaceId: 'default', deepseekProxyUrl: '' };
+  }
+}
+
+function saveCloudSettings() {
+  const settings = {
+    supabaseUrl: document.getElementById('supabaseUrl').value.trim(),
+    supabaseKey: document.getElementById('supabaseKey').value.trim(),
+    workspaceId: document.getElementById('workspaceId').value.trim() || 'default',
+    deepseekProxyUrl: document.getElementById('deepseekProxyUrl').value.trim(),
+  };
+  localStorage.setItem(STORAGE_KEYS.cloudSettings, JSON.stringify(settings));
+  updateSyncStatus(settings.supabaseUrl && settings.supabaseKey ? '云端配置已保存' : '已保存；但 Supabase 信息不完整，仍是本地模式');
+  showToast('配置已保存');
+}
+
+function loadCloudSettingsToForm() {
+  const settings = getCloudSettings();
+  const fields = {
+    supabaseUrl: settings.supabaseUrl,
+    supabaseKey: settings.supabaseKey,
+    workspaceId: settings.workspaceId,
+    deepseekProxyUrl: settings.deepseekProxyUrl,
+  };
+  Object.entries(fields).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+  });
+  updateNetworkStatus();
+  updateSyncStatus(settings.supabaseUrl && settings.supabaseKey ? '已配置云端：联网时会自动同步' : '当前为本地模式：未配置 Supabase 时，数据只能保存在当前设备');
+}
+
+function updateNetworkStatus() {
+  const el = document.getElementById('networkStatus');
+  if (!el) return;
+  el.textContent = navigator.onLine ? '在线' : '离线';
+  el.style.background = navigator.onLine ? 'var(--matcha-light)' : '#FFF0ED';
+  el.style.color = navigator.onLine ? 'var(--matcha-dark)' : '#D4786A';
+}
+
+function updateSyncStatus(message) {
+  const el = document.getElementById('syncStatus');
+  if (el) el.textContent = message;
+}
+
+function hasSupabaseConfig() {
+  const s = getCloudSettings();
+  return !!(s.supabaseUrl && s.supabaseKey && s.workspaceId);
+}
+
+async function supabaseRequest(method, body) {
+  const s = getCloudSettings();
+  if (!hasSupabaseConfig()) throw new Error('未配置 Supabase');
+  const base = s.supabaseUrl.replace(/\/$/, '');
+  const url = `${base}/rest/v1/xiafei_workspaces${method === 'GET' ? `?id=eq.${encodeURIComponent(s.workspaceId)}&select=*` : ''}`;
+  const headers = {
+    'apikey': s.supabaseKey,
+    'Authorization': `Bearer ${s.supabaseKey}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'resolution=merge-duplicates,return=representation',
+  };
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!response.ok) throw new Error(`Supabase 请求失败：${response.status}`);
+  return response.json();
+}
+
+async function uploadToSupabase(silent = false) {
+  const s = getCloudSettings();
+  const data = collectWorkspaceData();
+  await supabaseRequest('POST', {
+    id: s.workspaceId,
+    data,
+    updated_at: new Date().toISOString(),
+  });
+  localStorage.setItem(STORAGE_KEYS.cloudSnapshot, JSON.stringify(data));
+  if (!silent) showToast('已上传到 Supabase 云端');
+  updateSyncStatus(`上次上传：${new Date().toLocaleString()}`);
+}
+
+async function downloadFromSupabase() {
+  const rows = await supabaseRequest('GET');
+  if (!Array.isArray(rows) || rows.length === 0) {
+    showToast('云端暂无数据');
+    return;
+  }
+  applyWorkspaceData(rows[0].data);
+  localStorage.setItem(STORAGE_KEYS.cloudSnapshot, JSON.stringify(rows[0].data));
+  showToast('已从云端下载数据');
+}
+
+function enqueuePendingSync() {
+  const queue = JSON.parse(localStorage.getItem(STORAGE_KEYS.pendingQueue) || '[]');
+  queue.push({ time: new Date().toISOString(), data: collectWorkspaceData() });
+  localStorage.setItem(STORAGE_KEYS.pendingQueue, JSON.stringify(queue.slice(-10)));
+}
+
+async function flushPendingSync() {
+  if (!navigator.onLine || !hasSupabaseConfig()) return;
+  const queue = JSON.parse(localStorage.getItem(STORAGE_KEYS.pendingQueue) || '[]');
+  if (queue.length === 0) return;
+  await uploadToSupabase(true);
+  localStorage.removeItem(STORAGE_KEYS.pendingQueue);
+  updateSyncStatus('离线期间的数据已同步到云端');
+}
+
+function scheduleAutoCloudSync() {
+  clearTimeout(autoCloudSyncTimer);
+  autoCloudSyncTimer = setTimeout(async () => {
+    const data = collectWorkspaceData();
+    localStorage.setItem(STORAGE_KEYS.cloudSnapshot, JSON.stringify(data));
+    if (!hasSupabaseConfig()) return;
+    if (!navigator.onLine) {
+      enqueuePendingSync();
+      updateSyncStatus('离线中：数据已存在本机，联网后会自动上传');
+      return;
+    }
+    try {
+      await uploadToSupabase(true);
+    } catch(e) {
+      console.warn('自动云端同步失败：', e);
+      enqueuePendingSync();
+      updateSyncStatus('自动同步失败：已加入待同步队列');
+    }
+  }, 900);
+}
+
+async function uploadCloud() {
+  const data = collectWorkspaceData();
+  try {
+    if (hasSupabaseConfig()) {
+      if (!navigator.onLine) {
+        enqueuePendingSync();
+        showToast('离线中，已加入待上传队列');
+        return;
+      }
+      await uploadToSupabase();
+    } else {
+      localStorage.setItem(STORAGE_KEYS.cloudSnapshot, JSON.stringify(data));
+      showToast('未配置云端，已保存到本机快照');
+    }
+  } catch(e) {
+    console.error(e);
+    enqueuePendingSync();
+    showToast('上传失败，已加入待同步队列');
+  }
+}
+
+async function downloadCloud() {
+  try {
+    if (hasSupabaseConfig()) {
+      if (!navigator.onLine) {
+        showToast('离线时不能下载云端数据');
+        return;
+      }
+      await downloadFromSupabase();
+    } else {
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEYS.cloudSnapshot) || 'null');
+      if (!data) {
+        showToast('暂无本机快照数据');
+        return;
+      }
+      applyWorkspaceData(data);
+      showToast('已读取本机快照');
+    }
+  } catch(e) {
+    console.error(e);
+    showToast('下载失败，请检查 Supabase 配置');
+  }
+}
+
+async function syncNow() {
+  await uploadCloud();
+}
+
+function installPwaHint() {
+  alert('手机使用方式：\n1. 先把 workstation.html 部署到 Cloudflare Pages / Vercel / Netlify。\n2. 用手机浏览器打开部署后的网址。\n3. iPhone：点分享按钮 → 添加到主屏幕。\n4. Android：点浏览器菜单 → 安装应用/添加到主屏幕。\n\n注意：没有网络时可以离线记录；恢复网络后才会上传云端。');
+}
+
+// --- 备忘录数据 (localStorage) ---
+function loadMemos() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.memos) || localStorage.getItem('workstation_memos') || '[]';
+    return JSON.parse(saved);
+  }
+  catch(e) { return []; }
+}
+function saveMemos(memos) {
+  localStorage.setItem(STORAGE_KEYS.memos, JSON.stringify(memos));
+  scheduleAutoCloudSync();
+}
+
+/* =================================================================
+   SIDEBAR TOGGLE
+   ================================================================= */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+/* =================================================================
+   TAB NAVIGATION
+   ================================================================= */
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tabName = btn.dataset.tab;
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + tabName).classList.add('active');
+  });
+});
+
+/* =================================================================
+   TOAST
+   ================================================================= */
+function showToast(msg) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+/* =================================================================
+   TAB 1: 情报站
+   ================================================================= */
+function renderNews(filter) {
+  const list = document.getElementById('newsList');
+  const filtered = filter === 'all' ? mockNews : mockNews.filter(n => n.category === filter);
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="news-empty"><span class="empty-icon">📭</span>暂无相关资讯</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(n => {
+    let badgeClass = 'badge-other';
+    if (n.source === '小红书') badgeClass = 'badge-xiaohongshu';
+    else if (n.source === '抖音') badgeClass = 'badge-douyin';
+    return `
+      <div class="news-item">
+        <span class="news-source-badge ${badgeClass}">${n.source}</span>
+        <div class="news-info">
+          <div class="news-title">${n.title}</div>
+          <div class="news-meta">
+            <span>🏷️ ${n.category}</span>
+            <span>🕐 ${n.time}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+document.querySelectorAll('#filterBar .filter-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#filterBar .filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    currentNewsFilter = chip.dataset.filter;
+    renderNews(currentNewsFilter);
+  });
+});
+
+/* =================================================================
+   TAB 2: 拆解器
+   ================================================================= */
+function analyzeContent(text) {
+  if (!text || text.trim().length < 10) return null;
+
+  const clean = text.trim();
+  const sentences = clean.split(/[。！？\n]+/).filter(s => s.trim().length > 0);
+  const firstSentence = sentences[0] || clean.substring(0, 50);
+
+  // Hook 分析
+  let hook = '';
+  if (firstSentence.includes('？') || firstSentence.includes('?')) {
+    hook = '提问式开头，直接抛出用户关心的问题，引发好奇心，迫使观众停下来思考答案。';
+  } else if (/\d+[个种步骤招秘诀]/.test(firstSentence)) {
+    hook = '数字清单式开头，给出明确的数量承诺（如"3个方法""5个步骤"），让观众产生"收藏备用"的心理。';
+  } else if (/竟然|原来|终于|没想到|揭秘/.test(firstSentence)) {
+    hook = '反差/揭秘式开头，利用"认知落差"制造悬念，激发观众一探究竟的欲望。';
+  } else if (firstSentence.length < 30) {
+    hook = '短句冲击式开头，节奏明快、信息密度高，适合短视频前3秒快速抓住注意力。';
+  } else {
+    hook = '叙述引入式开头，通过场景化描述或故事引入，适合偏治愈/教程类内容的温和开场。';
+  }
+
+  // 结构分析
+  const total = sentences.length;
+  let structure = '';
+  if (total <= 3) {
+    structure = `开头：${sentences[0] || '—'}\n中间：${sentences[1] || '—'}\n结尾：${sentences[2] || '—'}\n\n结构较短，适合短视频（30-60秒）。建议加强中间部分的信息密度。`;
+  } else {
+    const intro = sentences.slice(0, Math.ceil(total * 0.2)).join('；');
+    const body  = sentences.slice(Math.ceil(total * 0.2), Math.ceil(total * 0.8)).join('；');
+    const outro = sentences.slice(Math.ceil(total * 0.8)).join('；');
+    structure = `开头（引入）：${intro || '—'}\n\n中间（主体）：${body || '—'}\n\n结尾（收束）：${outro || '—'}\n\n结构完整，共 ${total} 个句子，逻辑层次清晰。`;
+  }
+
+  // 情绪触发
+  const emotionKeywords = {
+    '怀旧': /小时候|童年|以前|记忆|老味道|传统|经典|妈妈|奶奶|外婆/,
+    '治愈': /温暖|治愈|幸福|柔软|甜蜜|慢|放松|安静|阳光|午后/,
+    '稀缺': /限量|限时|最后|不再|错过|独家|秘方|绝版/,
+    '好奇': /揭秘|到底|原来|居然|竟然|秘密|你不知道/,
+    '成就感': /教程|学会|DIY|自制|成功|完美|第一次|零失败/,
+    '社交认同': /爆款|网红|排队|打卡|刷屏|大家都在|同款/,
+  };
+  let emotions = [];
+  for (const [label, regex] of Object.entries(emotionKeywords)) {
+    if (regex.test(clean)) emotions.push(label);
+  }
+  if (emotions.length === 0) emotions = ['治愈（内容风格偏温和，建议增加具体情绪锚点）'];
+  let emotionText = emotions.map(e => `• ${e}`).join('\n');
+
+  // 时间建议
+  const morningWords = /早餐|早上|清晨|咖啡|提神|上班|开始/;
+  const noonWords   = /午餐|下午茶|甜点|午后|休息|放松|朋友/;
+  const nightWords  = /晚餐|晚上|治愈|安静|睡前|独处|放松|温暖/;
+  let timeScore = { morning: 0, noon: 0, night: 0 };
+  if (morningWords.test(clean)) timeScore.morning += 2;
+  if (noonWords.test(clean))   timeScore.noon += 2;
+  if (nightWords.test(clean))  timeScore.night += 2;
+  if (/咖啡/.test(clean))      timeScore.morning += 3;
+  if (/甜品|蛋糕|下午茶/.test(clean)) timeScore.noon += 3;
+  if (/治愈|温暖|安静/.test(clean))   timeScore.night += 3;
+  let bestTime = Object.entries(timeScore).sort((a,b) => b[1]-a[1])[0][0];
+  const timeMap = { morning: '早上 7:00-9:00（早餐/通勤时段，咖啡/早餐类内容黄金窗口）', noon: '中午 12:00-14:00 或下午 15:00-17:00（午餐/下午茶时段，甜品/饮品类内容最佳）', night: '晚上 20:00-22:00（晚间放松时段，治愈/教程类内容完播率最高）' };
+  let timeText = timeMap[bestTime];
+
+  // 互动设计
+  const interactionPhrases = [];
+  if (/配方|教程|做法|步骤/.test(clean)) {
+    interactionPhrases.push('评论区征集粉丝的改良配方，形成UGC互动循环');
+  }
+  if (/测评|对比|推荐|排行/.test(clean)) {
+    interactionPhrases.push('发起投票："你更喜欢A还是B？"利用站队心理提升互动率');
+  }
+  if (/价格|成本|利润|卖/.test(clean)) {
+    interactionPhrases.push('提问："你们那边这个卖多少钱？"引发地域讨论，增加评论量');
+  }
+  if (interactionPhrases.length === 0) {
+    interactionPhrases.push('结尾设置开放式提问，引导观众分享自己的经历或偏好');
+    interactionPhrases.push('添加"下期预告"悬念，如"关注我，下期教你XXX"');
+  }
+  let interactionText = interactionPhrases.map(p => `• ${p}`).join('\n');
+
+  return { hook, structure, emotionText, timeText, interactionText };
+}
+
+async function callDeepSeekAnalysis(text) {
+  const settings = getCloudSettings();
+  if (!settings.deepseekProxyUrl || !navigator.onLine) return null;
+  const response = await fetch(settings.deepseekProxyUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      task: 'content_deconstruction',
+      input: text,
+      prompt: '请严格按 JSON 返回：hook, structure, emotionText, timeText, interactionText。内容面向甜品师和咖啡师，中文输出。',
+    }),
+  });
+  if (!response.ok) throw new Error('DeepSeek 代理请求失败');
+  const data = await response.json();
+  return data.result || data;
+}
+
+async function runAnalysis() {
+  const input = document.getElementById('deconInput').value;
+  if (!input || input.trim().length < 10) {
+    showToast('请先粘贴至少10个字的内容再拆解哦~');
+    return;
+  }
+  const btn = document.getElementById('btnAnalyze');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '🔍 拆解中...';
+  }
+  let result = null;
+  try {
+    result = await callDeepSeekAnalysis(input);
+    if (result) showToast('已使用 DeepSeek 增强拆解');
+  } catch(e) {
+    console.warn(e);
+    showToast('DeepSeek 不可用，已切换本地拆解');
+  }
+  if (!result) result = analyzeContent(input);
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = '🔍 开始拆解';
+  }
+  if (!result) {
+    showToast('内容太短，无法有效分析，请粘贴完整文案');
+    return;
+  }
+  const container = document.getElementById('analysisResult');
+  container.innerHTML = `
+    <div class="analysis-card">
+      <div class="analysis-card-header">🔍 拆解结果</div>
+      <div class="analysis-dimension">
+        <div class="dim-label">🪝 前3秒钩子</div>
+        <div class="dim-content">${result.hook}</div>
+      </div>
+      <div class="analysis-dimension">
+        <div class="dim-label">🏗️ 内容结构</div>
+        <div class="dim-content" style="white-space:pre-wrap;">${result.structure}</div>
+      </div>
+      <div class="analysis-dimension">
+        <div class="dim-label">❤️ 情绪触发点</div>
+        <div class="dim-content" style="white-space:pre-wrap;">${result.emotionText}</div>
+      </div>
+      <div class="analysis-dimension">
+        <div class="dim-label">⏰ 发布时间建议</div>
+        <div class="dim-content">${result.timeText}</div>
+      </div>
+      <div class="analysis-dimension">
+        <div class="dim-label">💬 结尾互动设计</div>
+        <div class="dim-content" style="white-space:pre-wrap;">${result.interactionText}</div>
+      </div>
+    </div>`;
+}
+
+function clearDeconstructor() {
+  document.getElementById('deconInput').value = '';
+  document.getElementById('analysisResult').innerHTML = `
+    <div class="analysis-placeholder">
+      <span class="ph-icon">📋</span>
+      <p>粘贴内容后点击"开始拆解"<br>AI 将自动分析 5 个维度</p>
+    </div>`;
+}
+
+/* =================================================================
+   TAB 3: 原料库
+   ================================================================= */
+function renderIngredientTable() {
+  const tbody = document.getElementById('ingredientTableBody');
+  tbody.innerHTML = ingredients.map(ing => {
+    const stockClass = ing.stock < 2000 ? 'stock-low' : 'stock-ok';
+    const isSelected = selectedIngredients[ing.id] !== undefined;
+    const suggestedPrice = (Number(ing.unitPrice) || 0) * 3;
+    return `
+      <tr class="${isSelected ? 'selected' : ''}" id="row-${ing.id}">
+        <td><input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleIngredient('${ing.id}')" style="accent-color:var(--matcha);width:16px;height:16px;cursor:pointer;"></td>
+        <td><input type="text" class="edit-input" value="${escapeAttr(ing.name)}"
+          onchange="editIngredient('${ing.id}', 'name', this.value)" title="点击修改名称"></td>
+        <td><input type="number" class="edit-input price-input" value="${ing.unitPrice}" min="0" step="0.1"
+          onchange="editIngredient('${ing.id}', 'unitPrice', this.value)" title="点击修改进货价"></td>
+        <td style="font-weight:800;color:var(--matcha-dark);white-space:nowrap;">¥${suggestedPrice.toFixed(2)} / ${ing.unit}</td>
+        <td><input type="number" class="edit-input stock-input ${stockClass}" value="${ing.stock}" min="0" step="1"
+          onchange="editIngredient('${ing.id}', 'stock', this.value)" title="点击修改库存量"></td>
+      </tr>`;
+  }).join('');
+}
+
+function escapeAttr(str) {
+  return String(str).replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function editIngredient(id, field, value) {
+  const ing = ingredients.find(i => i.id === id);
+  if (!ing) return;
+  if (field === 'name') {
+    ing.name = value.trim() || ing.name;
+  } else if (field === 'unitPrice') {
+    ing.unitPrice = Math.max(0, parseFloat(value) || 0);
+  } else if (field === 'stock') {
+    ing.stock = Math.max(0, parseFloat(value) || 0);
+  }
+  saveIngredients();
+  // 同步更新已选中的配方计算器数据
+  if (selectedIngredients[id]) {
+    selectedIngredients[id].name = ing.name;
+    selectedIngredients[id].unitPrice = ing.unitPrice;
+    renderCalculator();
+  }
+  // 重新渲染表格以更新库存颜色等状态
+  renderIngredientTable();
+  showToast('✓ 已保存修改');
+}
+
+function toggleIngredient(id) {
+  const ing = ingredients.find(i => i.id === id);
+  if (!ing) return;
+  if (selectedIngredients[id]) {
+    delete selectedIngredients[id];
+  } else {
+    selectedIngredients[id] = { name: ing.name, unitPrice: ing.unitPrice, unit: ing.unit, usage: 0 };
+  }
+  renderIngredientTable();
+  renderCalculator();
+}
+
+function renderCalculator() {
+  const container = document.getElementById('calcItems');
+  const resultDiv = document.getElementById('calcResult');
+  const ids = Object.keys(selectedIngredients);
+
+  if (ids.length === 0) {
+    container.innerHTML = '<div class="calc-empty">👆 请在左侧表格中勾选原料</div>';
+    resultDiv.style.display = 'none';
+    return;
+  }
+
+  container.innerHTML = ids.map(id => {
+    const ing = selectedIngredients[id];
+    return `
+      <div class="calc-item">
+        <span class="calc-item-name">${ing.name}</span>
+        <input type="number" value="${ing.usage || ''}" placeholder="用量" min="0" step="0.1"
+          onchange="updateUsage('${id}', this.value)" oninput="updateUsage('${id}', this.value)">
+        <span class="calc-item-unit">${ing.unit === '升' ? 'ml' : 'g'}</span>
+      </div>`;
+  }).join('');
+
+  resultDiv.style.display = 'block';
+  updateTotal();
+}
+
+function updateUsage(id, value) {
+  const num = parseFloat(value) || 0;
+  if (selectedIngredients[id]) {
+    selectedIngredients[id].usage = Math.max(0, num);
+  }
+  updateTotal();
+}
+
+function updateTotal() {
+  let total = 0;
+  for (const ing of Object.values(selectedIngredients)) {
+    if (ing.usage > 0) {
+      // 进货价元/500g 或 元/升，换算为元/g 或 元/ml
+      const pricePerUnit = ing.unit === '升' ? ing.unitPrice / 1000 : ing.unitPrice / 500;
+      total += pricePerUnit * ing.usage;
+    }
+  }
+  document.getElementById('totalCost').textContent = '¥' + total.toFixed(2);
+  document.getElementById('suggestedPrice').textContent = '¥' + (total * 3).toFixed(2);
+}
+
+renderIngredientTable();
+renderCalculator();
+
+/* =================================================================
+   TAB 4: 备忘录
+   ================================================================= */
+let memos = loadMemos();
+let selectedMemoTag = '灵感';
+
+document.querySelectorAll('#tagSelector .tag').forEach(tag => {
+  tag.addEventListener('click', () => {
+    document.querySelectorAll('#tagSelector .tag').forEach(t => t.classList.remove('selected'));
+    tag.classList.add('selected');
+    selectedMemoTag = tag.dataset.tag;
+  });
+});
+
+function addMemo() {
+  const title = document.getElementById('memoTitle').value.trim();
+  const body  = document.getElementById('memoBody').value.trim();
+  if (!title && !body) {
+    showToast('标题和正文至少填一个哦~');
+    return;
+  }
+  const memo = {
+    id: Date.now(),
+    title: title || '无标题',
+    body: body,
+    tag: selectedMemoTag,
+    time: new Date().toISOString(),
+  };
+  memos.unshift(memo);
+  saveMemos(memos);
+  renderMemos();
+  document.getElementById('memoTitle').value = '';
+  document.getElementById('memoBody').value = '';
+  showToast('笔记已保存 ✨');
+}
+
+function deleteMemo(id) {
+  memos = memos.filter(m => m.id !== id);
+  saveMemos(memos);
+  renderMemos();
+  showToast('笔记已删除');
+}
+
+function renderMemos() {
+  const list = document.getElementById('memoList');
+  if (memos.length === 0) {
+    list.innerHTML = '<div class="memo-empty"><span class="empty-icon">📭</span><p>还没有笔记，在左侧添加第一条吧~</p></div>';
+    return;
+  }
+  const tagClassMap = { '灵感': 'tag-pink', '待办': 'tag-cream', '财务': 'tag-blue' };
+  list.innerHTML = memos.map(m => {
+    const d = new Date(m.time);
+    const timeStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    return `
+      <div class="memo-card">
+        <div class="memo-card-header">
+          <span class="memo-card-title">${escapeHtml(m.title)}</span>
+          <span class="tag ${tagClassMap[m.tag] || 'tag-cream'}">${m.tag}</span>
+        </div>
+        <div class="memo-card-body">${escapeHtml(m.body)}</div>
+        <div class="memo-card-footer">
+          <span class="memo-time">🕐 ${timeStr}</span>
+          <button class="memo-delete" onclick="deleteMemo(${m.id})">🗑 删除</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+renderMemos();
+
+/* =================================================================
+   情报站：刷新 + 每日自动收集
+   ================================================================= */
+const NEWS_POOL = [
+  { title:'2026夏季奶油蛋糕裱花趋势：极简韩式风格回归，淡奶油配方升级', source:'小红书', category:'蛋糕' },
+  { title:'瑞幸新款生椰拿铁配方拆解：椰乳比例与萃取参数的黄金组合', source:'抖音', category:'咖啡' },
+  { title:'芒果百香果慕斯爆单秘诀：水果供应商选择与成本控制指南', source:'小红书', category:'甜品' },
+  { title:'手冲咖啡水温控制终极指南：不同烘焙度对应最佳冲煮温度表', source:'抖音', category:'咖啡' },
+  { title:'饮品店夏季新品研发思路：从茶底选择到小料搭配全流程', source:'小红书', category:'饮品' },
+  { title:'巴斯克芝士蛋糕2.0版本：加入白巧克力与柠檬皮的全新口感', source:'小红书', category:'蛋糕' },
+  { title:'奶茶店转向精品咖啡赛道：设备投入与人员培训成本分析', source:'抖音', category:'饮品' },
+  { title:'法式慕斯镜面淋面技巧：温度控制与吉利丁比例的精确计算', source:'小红书', category:'甜品' },
+  { title:'社区咖啡馆差异化经营案例：日销200杯的秘密在于这3个细节', source:'抖音', category:'咖啡' },
+  { title:'无麸质烘焙原料替代方案：杏仁粉、椰子粉、米粉的配比实验', source:'小红书', category:'蛋糕' },
+  { title:'夏季冷萃茶饮配方合集：栀子花乌龙、蜜桃乌龙、桂花龙井冷泡法', source:'抖音', category:'饮品' },
+  { title:'提拉米苏手指饼干自制教程：从零开始的经典意大利甜品复刻', source:'小红书', category:'甜品' },
+  { title:'可颂开酥失败的10个原因：面包师亲测避坑指南', source:'小红书', category:'甜品' },
+  { title:'Dirty咖啡在家也能做：牛奶选择与浓缩萃取的3个关键点', source:'抖音', category:'咖啡' },
+  { title:'杨梅荔枝饮爆红配方：酸甜比例与装饰技巧全公开', source:'小红书', category:'饮品' },
+  { title:'复古奶油蛋糕回潮：裱花嘴选择与奶油稳定性配方分享', source:'抖音', category:'蛋糕' },
+  { title:'意式浓缩金杯准则：粉水比、研磨度、萃取时间的精确控制', source:'小红书', category:'咖啡' },
+  { title:'夏日必备！8款低卡气泡饮配方，成本不到5元一杯', source:'抖音', category:'饮品' },
+  { title:'舒芙蕾松饼配方：蛋白打发技巧与平底锅做法详解', source:'小红书', category:'甜品' },
+  { title:'生日蛋糕定制接单流程：从询价到交付的完整SOP', source:'抖音', category:'蛋糕' },
+];
+
+let newsData = [];
+
+function initNews() {
+  const lastRefresh = localStorage.getItem(STORAGE_KEYS.lastNewsRefresh);
+  const today = new Date().toDateString();
+  if (lastRefresh === today) {
+    try {
+      const cached = JSON.parse(localStorage.getItem('xiafei_workstation_news') || '[]');
+      if (Array.isArray(cached) && cached.length > 0) {
+        newsData = cached;
+        renderNews(currentNewsFilter);
+        return;
+      }
+    } catch(e) {}
+  }
+  generateNews();
+}
+
+function generateNews() {
+  const shuffled = [...NEWS_POOL].sort(() => Math.random() - 0.5);
+  const today = new Date();
+  newsData = shuffled.map((item, i) => ({
+    id: i + 1,
+    title: item.title,
+    source: item.source,
+    category: item.category,
+    time: new Date(today.getTime() - i * 3600 * 1000 * Math.random() * 48).toISOString().slice(0,10),
+  }));
+  localStorage.setItem('xiafei_workstation_news', JSON.stringify(newsData));
+  localStorage.setItem(STORAGE_KEYS.lastNewsRefresh, today.toDateString());
+  renderNews(currentNewsFilter);
+}
+
+function refreshNews() {
+  const btn = document.getElementById('refreshBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    btn.textContent = '🔄 收集中...';
+  }
+  setTimeout(() => {
+    generateNews();
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.textContent = '🔄 刷新热点';
+    }
+    showToast('✨ 已更新今日热点资讯');
+  }, 800);
+}
+
+/* 覆盖原 renderNews 函数逻辑，使用 newsData 变量 */
+function renderNews(filter) {
+  const list = document.getElementById('newsList');
+  const filtered = filter === 'all' ? newsData : newsData.filter(n => n.category === filter);
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="news-empty"><span class="empty-icon">📭</span>暂无相关资讯</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(n => {
+    let badgeClass = 'badge-other';
+    if (n.source === '小红书') badgeClass = 'badge-xiaohongshu';
+    else if (n.source === '抖音') badgeClass = 'badge-douyin';
+    return `
+      <div class="news-item">
+        <span class="news-source-badge ${badgeClass}">${n.source}</span>
+        <div class="news-info">
+          <div class="news-title">${n.title}</div>
+          <div class="news-meta">
+            <span>🏷️ ${n.category}</span>
+            <span>🕐 ${n.time}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+initNews();
+
+/* =================================================================
+   TAB 4: 产品库
+   ================================================================= */
+function renderProductTable() {
+  const tbody = document.getElementById('productTableBody');
+  if (!tbody) return;
+  if (products.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--brown-light);">暂无产品，点击右上角"新增产品"开始创建</td></tr>';
+    return;
+  }
+  tbody.innerHTML = products.map(p => {
+    const cost = calcProductCost(p);
+    const price = cost * 3;
+    const stockClass = p.stock < 10 ? 'stock-low' : 'stock-ok';
+    const recipeText = (p.recipe || []).map(r => {
+      const ing = ingredients.find(i => i.id === r.ingredientId);
+      return ing ? `${ing.name} ${r.amount}${ing.stockUnit || 'g'}` : '';
+    }).filter(Boolean).join('、');
+    return `
+      <tr>
+        <td style="font-weight:600;color:var(--brown-deep);">${escapeHtml(p.name)}</td>
+        <td style="font-size:13px;color:var(--brown-mid);max-width:280px;">${recipeText || '—'}</td>
+        <td style="font-weight:700;color:var(--brown-deep);">¥${cost.toFixed(2)}</td>
+        <td style="font-weight:800;color:var(--matcha-dark);">¥${price.toFixed(2)}</td>
+        <td style="font-weight:600;" class="${stockClass}">${p.stock} 份</td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-secondary btn-sm" onclick="editProduct('${p.id}')">✏️ 编辑</button>
+          <button class="btn btn-secondary btn-sm" onclick="deleteProduct('${p.id}')" style="color:#D4786A;">🗑 删除</button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function addProduct() {
+  editingProductId = null;
+  tempProdIngredients = ingredients.slice(0, 2).map(ing => ({ ingredientId: ing.id, amount: 100 }));
+  document.getElementById('productModalTitle').textContent = '新增产品';
+  document.getElementById('prodName').value = '';
+  document.getElementById('prodStock').value = 0;
+  renderProdIngredientList();
+  openProductModal();
+}
+
+function editProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  editingProductId = id;
+  tempProdIngredients = JSON.parse(JSON.stringify(p.recipe || []));
+  document.getElementById('productModalTitle').textContent = '编辑产品';
+  document.getElementById('prodName').value = p.name;
+  document.getElementById('prodStock').value = p.stock;
+  renderProdIngredientList();
+  openProductModal();
+}
+
+function deleteProduct(id) {
+  if (!confirm('确定删除这个产品吗？')) return;
+  products = products.filter(p => p.id !== id);
+  saveProducts();
+  renderProductTable();
+  showToast('产品已删除');
+}
+
+function openProductModal() {
+  const modal = document.getElementById('productModal');
+  modal.style.display = 'flex';
+}
+
+function closeProductModal() {
+  document.getElementById('productModal').style.display = 'none';
+}
+
+function renderProdIngredientList() {
+  const list = document.getElementById('prodIngredientsList');
+  if (tempProdIngredients.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--brown-light);font-size:13px;">还没有添加原料</div>';
+    updateProdCostPreview();
+    return;
+  }
+  list.innerHTML = tempProdIngredients.map((item, idx) => {
+    const ing = ingredients.find(i => i.id === item.ingredientId);
+    const unit = ing ? (ing.unit === '升' ? 'ml' : 'g') : 'g';
+    return `
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select onchange="changeProdIngredient(${idx}, this.value)"
+          style="flex:1;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font-main);color:var(--brown-deep);background:#fff;cursor:pointer;outline:none;">
+          ${ingredients.map(ing => `<option value="${ing.id}" ${ing.id === item.ingredientId ? 'selected' : ''}>${ing.name}</option>`).join('')}
+        </select>
+        <input type="number" value="${item.amount}" min="0" step="1"
+          onchange="changeProdAmount(${idx}, this.value)" oninput="changeProdAmount(${idx}, this.value)"
+          style="width:90px;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font-main);text-align:right;outline:none;">
+        <span style="font-size:12px;color:var(--brown-light);width:24px;">${unit}</span>
+        <button onclick="removeProdIngredient(${idx})" style="background:none;border:none;color:#D4786A;cursor:pointer;font-size:16px;padding:4px;">✕</button>
+      </div>`;
+  }).join('');
+  updateProdCostPreview();
+}
+
+function addProdIngredientRow() {
+  const firstId = ingredients[0] ? ingredients[0].id : '';
+  tempProdIngredients.push({ ingredientId: firstId, amount: 100 });
+  renderProdIngredientList();
+}
+
+function changeProdIngredient(idx, ingId) {
+  tempProdIngredients[idx].ingredientId = ingId;
+  updateProdCostPreview();
+}
+
+function changeProdAmount(idx, value) {
+  tempProdIngredients[idx].amount = Math.max(0, parseFloat(value) || 0);
+  updateProdCostPreview();
+}
+
+function removeProdIngredient(idx) {
+  tempProdIngredients.splice(idx, 1);
+  renderProdIngredientList();
+}
+
+function updateProdCostPreview() {
+  const fakeProduct = { recipe: tempProdIngredients };
+  const cost = calcProductCost(fakeProduct);
+  document.getElementById('prodCostText').textContent = '¥' + cost.toFixed(2);
+  document.getElementById('prodPriceText').textContent = '¥' + (cost * 3).toFixed(2);
+}
+
+function saveProduct() {
+  const name = document.getElementById('prodName').value.trim();
+  const stock = Math.max(0, parseInt(document.getElementById('prodStock').value) || 0);
+  if (!name) {
+    showToast('请输入产品名称');
+    return;
+  }
+  if (editingProductId) {
+    const p = products.find(x => x.id === editingProductId);
+    if (p) {
+      p.name = name;
+      p.recipe = JSON.parse(JSON.stringify(tempProdIngredients));
+      p.stock = stock;
+    }
+  } else {
+    const newId = 'P' + String(Date.now()).slice(-6);
+    products.push({
+      id: newId,
+      name: name,
+      recipe: JSON.parse(JSON.stringify(tempProdIngredients)),
+      stock: stock,
+    });
+  }
+  saveProducts();
+  renderProductTable();
+  closeProductModal();
+  showToast('✓ 产品已保存');
+}
+
+renderProductTable();
+loadCloudSettingsToForm();
+window.addEventListener('online', () => { updateNetworkStatus(); flushPendingSync(); });
+window.addEventListener('offline', updateNetworkStatus);
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(err => {
+      console.warn('Service Worker 注册失败：', err);
+    });
+  });
+}
+
+/* =================================================================
+   KEYBOARD SHORTCUT: Ctrl+Enter to analyze
+   ================================================================= */
+document.getElementById('deconInput').addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    runAnalysis();
+  }
+});
+
+console.log('🍰 夏菲工作台已就绪！');
+console.log('💡 提示：在拆解器中按 Ctrl+Enter 可快速拆解');
+console.log('📦 所有数据存储在浏览器 localStorage 中，并支持沙盒同步快照');
+</script>
+
+</body>
+</html>
