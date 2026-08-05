@@ -257,6 +257,10 @@
   .cat-modal .cm-upload.has-img .up-icon,.cat-modal .cm-upload.has-img .up-text{display:none}
   .cat-modal .cm-upload .up-change{position:absolute;bottom:8px;right:8px;background:rgba(255,255,255,.92);padding:5px 10px;border-radius:10px;font-size:11px;font-weight:700;color:var(--ink);z-index:2;display:none}
   .cat-modal .cm-upload.has-img .up-change{display:block}
+  .cat-modal .cm-aigen{width:100%;padding:11px;border-radius:12px;border:1.6px dashed var(--brand-soft);color:var(--brand-deep);font-weight:700;font-size:13.5px;background:var(--fill);margin-top:8px;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
+  .cat-modal .cm-aigen:active{transform:scale(.98)}
+  .cat-modal .cm-aigen:disabled{opacity:.55;cursor:wait}
+  .cat-modal .cm-aigen.loading{border-style:solid;border-color:var(--brand);color:var(--brand)}
 </style>
 </head>
 <body>
@@ -413,12 +417,13 @@ const KEY = 'recipeAtelier.v1';
 const GIST_FILE = 'recipe-atelier-data.json';
 const GIST_DESC = '甜品配方工作台 — 云同步数据';
 const DEFAULT_SYNC = { token:'', gistId:'', autoSync:true, lastSyncedAt:0, localUpdatedAt:0 };
-let state = { recipes:[], pantry:[], wiki:{}, categories:[], sync:{...DEFAULT_SYNC}, activeTab:'gallery', wikiCat:'面粉类', gView:'home', catId:null, recipeId:null };
+const DEFAULT_AI = { apiKey:'sk-ws-H.ERMLHDH.xhJ8.MEUCIQCBGExi5HRzX2j5KDwDXlbiMloZcAIbTTHanMN9Hkv41gIgbzOYbi_2bBGWVkZsThzCJPIHD01qb9Mpf6EzSckhr9w', model:'wan2.6-t2i' };
+let state = { recipes:[], pantry:[], wiki:{}, categories:[], sync:{...DEFAULT_SYNC}, aiImage:{...DEFAULT_AI}, activeTab:'gallery', wikiCat:'面粉类', gView:'home', catId:null, recipeId:null };
 
 // pure local write — no side effects, no toast, no sync trigger
 function writeLocal(){
   localStorage.setItem(KEY, JSON.stringify({
-    recipes:state.recipes, pantry:state.pantry, wiki:state.wiki, categories:state.categories, sync:state.sync
+    recipes:state.recipes, pantry:state.pantry, wiki:state.wiki, categories:state.categories, sync:state.sync, aiImage:state.aiImage
   }));
 }
 // public mutation saver — records local change time + triggers debounced cloud push
@@ -440,6 +445,7 @@ function load(){
       state.wiki = d.wiki||{};
       state.categories = d.categories||[];
       state.sync = Object.assign({...DEFAULT_SYNC}, d.sync||{});
+      state.aiImage = Object.assign({...DEFAULT_AI}, d.aiImage||{});
     }
   }catch(e){ console.warn('load failed',e); }
   const hasLocal = state.recipes && state.recipes.length>0;
@@ -497,7 +503,8 @@ function buildPayload(){
     recipes: state.recipes,
     pantry: state.pantry,
     wiki: state.wiki,
-    categories: state.categories
+    categories: state.categories,
+    aiImage: state.aiImage
   };
 }
 // create a new secret gist, return its id
@@ -602,6 +609,7 @@ async function syncPull(silent){
       state.pantry = remote.pantry||[];
       state.wiki = remote.wiki||state.wiki||{};
       state.categories = remote.categories||state.categories||[];
+      if(remote.aiImage) state.aiImage = Object.assign({...DEFAULT_AI}, remote.aiImage);
       state.sync.localUpdatedAt = remoteTs;
       state.sync.lastSyncedAt = remoteTs;
       writeLocal();
@@ -1007,6 +1015,41 @@ function initCategoryDrag(){
   });
 }
 
+/* ---------- AI Image Generation (DashScope wan2.6) ---------- */
+function buildImagePrompt(categoryName){
+  const styleTemplate='Polaroid photograph of {food}, warm beige tones, soft natural lighting, top-down flat lay composition, rustic wooden table background, shallow depth of field, film grain texture, vintage food photography style, appetizing, high detail';
+  const negativePrompt='low quality, blurry, distorted, oversaturated, text, watermark, cartoon, illustration, artificial looking, plastic, messy composition';
+  return { prompt:styleTemplate.replace('{food}',categoryName), negative:negativePrompt };
+}
+
+async function generateImage(categoryName){
+  const {prompt,negative}=buildImagePrompt(categoryName);
+  const body={
+    model:state.aiImage.model||'wan2.6-t2i',
+    input:{ messages:[{ role:'user', content:[{ text:prompt }] }] },
+    parameters:{ negative_prompt:negative, size:'1280*1280', n:1, prompt_extend:true, watermark:false }
+  };
+  const resp=await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation',{
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+state.aiImage.apiKey },
+    body:JSON.stringify(body)
+  });
+  const data=await resp.json();
+  if(data.code){ throw new Error(data.message||'API调用失败'); }
+  const imageUrl=data.output?.choices?.[0]?.message?.content?.[0]?.image;
+  if(!imageUrl) throw new Error('未获取到图片');
+  return imageUrl;
+}
+
+async function downloadAndProcessAI(imageUrl){
+  const resp=await fetch(imageUrl);
+  const blob=await resp.blob();
+  const dataUrl=await new Promise((resolve)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.readAsDataURL(blob); });
+  return new Promise((resolve,reject)=>{
+    processCatImage(dataUrl, (processed)=>resolve(processed));
+  });
+}
+
 /* ---------- Image processor: center-crop + subtle warm tone ---------- */
 function processCatImage(dataUrl, callback){
   const img=new Image();
@@ -1057,7 +1100,8 @@ function openCatEditor(existing){
         <span class="up-text">${image?'':'点击上传图片'}</span>
         ${image?`<span class="up-change">更换图片</span>`:''}
       </div>
-      <div class="cm-label">分类名称</div>
+      <button class="cm-aigen" id="cmAiGen">✨ AI 自动生成</button>
+      <div class="cm-label" style="margin-top:14px">分类名称</div>
       <input class="cm-input" id="cmName" value="${esc(name)}" placeholder="输入分类名称" maxlength="20">
     </div>
     <div class="cm-actions">
@@ -1087,6 +1131,34 @@ function openCatEditor(existing){
     };
     reader.readAsDataURL(file);
     e.target.value='';
+  };
+  // AI image generation
+  document.getElementById('cmAiGen').onclick=async()=>{
+    const catName=nameInput.value.trim();
+    if(!catName){ toast('请先输入分类名称','error'); nameInput.focus(); return; }
+    if(!state.aiImage.apiKey){ toast('请先在「我的资料」中配置 API Key','error'); return; }
+    const btn=document.getElementById('cmAiGen');
+    btn.disabled=true; btn.classList.add('loading');
+    let dots=0;
+    const dotTimer=setInterval(()=>{ dots=(dots+1)%4; btn.textContent='正在生成'+'.'.repeat(dots)+' (约15秒)'; },500);
+    try{
+      const imageUrl=await generateImage(catName);
+      const processed=await downloadAndProcessAI(imageUrl);
+      image=processed;
+      uploadArea.classList.add('has-img');
+      uploadArea.innerHTML=`<img src="${image}" alt=""><span class="up-change">更换图片</span>`;
+      toast('AI 图片生成成功','success');
+    }catch(e){
+      let msg=e.message||'生成失败';
+      if(msg.includes('Failed to fetch')||msg.includes('NetworkError')) msg='网络错误或 CORS 限制，请检查网络';
+      else if(msg.includes('401')||msg.includes('Unauthorized')) msg='API Key 无效';
+      else if(msg.includes('429')) msg='请求过于频繁，请稍后再试';
+      toast('生成失败：'+msg,'error');
+    }finally{
+      clearInterval(dotTimer);
+      btn.disabled=false; btn.classList.remove('loading');
+      btn.textContent='✨ AI 自动生成';
+    }
   };
   // cancel
   document.getElementById('cmCancel').onclick=()=>{ modal.classList.remove('show'); };
@@ -1551,6 +1623,29 @@ function renderProfile(){
       </div>
 
       <div class="dm-card" style="margin-top:14px">
+        <div class="h"><span>AI 图片生成</span><span class="sync-dot ${state.aiImage.apiKey?'on':''}"></span></div>
+        <div class="sync-body">
+          <div class="sync-field">
+            <label>百炼 API Key</label>
+            <input type="password" id="aiApiKey" value="${esc(state.aiImage.apiKey)}" placeholder="sk-…（阿里云百炼 DashScope）" autocomplete="off">
+          </div>
+          <div class="sync-field">
+            <label>模型</label>
+            <select class="ed-sel" id="aiModel" style="width:100%">
+              <option value="wan2.6-t2i" ${state.aiImage.model==='wan2.6-t2i'?'selected':''}>wan2.6-t2i（推荐·同步）</option>
+              <option value="wan2.5-t2i-preview" ${state.aiImage.model==='wan2.5-t2i-preview'?'selected':''}>wan2.5-t2i-preview</option>
+              <option value="wan2.2-t2i-flash" ${state.aiImage.model==='wan2.2-t2i-flash'?'selected':''}>wan2.2-t2i-flash（更快）</option>
+              <option value="wanx2.1-t2i-turbo" ${state.aiImage.model==='wanx2.1-t2i-turbo'?'selected':''}>wanx2.1-t2i-turbo（更便宜）</option>
+            </select>
+          </div>
+          <button class="sync-btn primary block" id="saveAiKey">保存设置</button>
+          <div class="sync-hint">
+            在 <b>阿里云百炼控制台 → API-Key 管理</b> 创建 Key。模型使用通义万相文生图，按图片张数计费。Key 仅存储在本浏览器本地。
+          </div>
+        </div>
+      </div>
+
+      <div class="dm-card" style="margin-top:14px">
         <div class="h">本地备份</div>
         <button class="dm-item" id="exportBtn">
           <span class="ic">${svg('download')}</span>
@@ -1565,6 +1660,14 @@ function renderProfile(){
 
   document.getElementById('exportBtn').onclick=exportData;
   document.getElementById('importBtn').onclick=()=>document.getElementById('fileImport').click();
+  // AI image settings
+  document.getElementById('saveAiKey').onclick=()=>{
+    state.aiImage.apiKey=document.getElementById('aiApiKey').value.trim();
+    state.aiImage.model=document.getElementById('aiModel').value;
+    persist(true);
+    toast('AI 图片设置已保存','success');
+    renderProfile();
+  };
 
   if(connected){
     document.getElementById('syncNowBtn').onclick=async()=>{
