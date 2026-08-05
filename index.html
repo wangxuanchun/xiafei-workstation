@@ -236,6 +236,10 @@
   .sync-field input:focus{border-color:var(--brand-soft)}
   .sync-hint{font-size:11.5px;color:var(--sub);line-height:1.6;margin-top:12px;padding:11px 12px;background:var(--fill);border-radius:11px}
   .sync-hint b{color:var(--ink)}
+  .sync-section-title{font-size:14px;font-weight:800;color:var(--brand);margin-bottom:4px}
+  .sync-divider{text-align:center;font-size:11.5px;color:var(--sub);margin:14px 0 6px;position:relative}
+  .sync-divider:before,.sync-divider:after{content:'';position:absolute;top:50%;width:30%;height:1px;background:var(--line)}
+  .sync-divider:before{left:0}.sync-divider:after{right:0}
 
   .hidden{display:none!important}
 
@@ -490,7 +494,7 @@ function seedRecipes(){
 const KEY = 'recipeAtelier.v1';
 const GIST_FILE = 'recipe-atelier-data.json';
 const GIST_DESC = '甜品配方工作台 — 云同步数据';
-const DEFAULT_SYNC = { token:'', gistId:'', autoSync:true, lastSyncedAt:0, localUpdatedAt:0 };
+const DEFAULT_SYNC = { token:'', gistId:'', workerUrl:'', syncCode:'', autoSync:true, lastSyncedAt:0, localUpdatedAt:0 };
 const DEFAULT_AI = { apiKey:'sk-ws-H.ERMLHDH.xhJ8.MEUCIQCBGExi5HRzX2j5KDwDXlbiMloZcAIbTTHanMN9Hkv41gIgbzOYbi_2bBGWVkZsThzCJPIHD01qb9Mpf6EzSckhr9w', model:'wan2.6-t2i' };
 const DEFAULT_PROFILE = { name:'XiaFei', avatar:'' };
 let state = { recipes:[], pantry:[], wiki:{}, categories:[], showcases:[], sync:{...DEFAULT_SYNC}, aiImage:{...DEFAULT_AI}, profile:{...DEFAULT_PROFILE}, activeTab:'gallery', wikiCat:'面粉类', gView:'home', catId:null, recipeId:null };
@@ -574,7 +578,15 @@ function load(){
    CLOUD SYNC — GitHub Gist API
    Docs: https://docs.github.com/rest/gists  (Bearer token, gist scope)
    ============================================================ */
-function syncConfigured(){ return !!(state.sync.token && state.sync.gistId); }
+function syncConfigured(){
+  // CF backend takes priority, then GitHub Gist
+  return !!(state.sync.workerUrl && state.sync.syncCode) || !!(state.sync.token && state.sync.gistId);
+}
+function syncBackend(){
+  if(state.sync.workerUrl && state.sync.syncCode) return 'cf';
+  if(state.sync.token && state.sync.gistId) return 'gh';
+  return null;
+}
 function ghHeaders(extra){
   return Object.assign({
     'Authorization':'Bearer '+state.sync.token,
@@ -657,9 +669,95 @@ async function connectSync(token, gistId){
   }
 }
 function disconnectSync(){
-  // keep data, just forget credentials (gist left on GitHub for other devices)
-  state.sync.token=''; state.sync.gistId=''; state.sync.lastSyncedAt=0;
+  // keep data, just forget all credentials
+  state.sync.token=''; state.sync.gistId='';
+  state.sync.workerUrl=''; state.sync.syncCode='';
+  state.sync.lastSyncedAt=0;
   writeLocal();
+}
+
+/* ---------- Cloudflare Worker Sync Backend ---------- */
+/* Works in China (Cloudflare has edge nodes), free, fast.
+   Requires deploying a simple Worker (see instructions in profile page).
+   - POST   /create        → { id: "uuid" }
+   - GET    /data/:id      → JSON payload or null
+   - PUT    /data/:id      → { ok: true }
+*/
+function cfBaseUrl(){ return (state.sync.workerUrl||'').replace(/\/+$/,''); }
+async function cfCreateSync(workerUrl){
+  const base = workerUrl.replace(/\/+$/,'');
+  const res = await fetch(base+'/create', { method:'POST' });
+  if(!res.ok) throw new Error('创建同步空间失败（状态码 '+res.status+'）');
+  const d = await res.json();
+  if(!d.id) throw new Error('服务器未返回同步 ID');
+  return d.id;
+}
+async function cfReadSync(){
+  const res = await fetch(cfBaseUrl()+'/data/'+state.sync.syncCode);
+  if(res.status===404) return null;
+  if(!res.ok) throw new Error('读取同步数据失败（状态码 '+res.status+'）');
+  const text = await res.text();
+  if(!text || text==='null' || text==='')
+  return null;
+  return JSON.parse(text);
+}
+async function cfUpdateSync(){
+  const res = await fetch(cfBaseUrl()+'/data/'+state.sync.syncCode, {
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(buildPayload())
+  });
+  if(!res.ok) throw new Error('更新同步数据失败（状态码 '+res.status+'）');
+  return true;
+}
+async function cfConnectSync(workerUrl, syncCode){
+  workerUrl=(workerUrl||'').trim().replace(/\/+$/,'');
+  syncCode=(syncCode||'').trim();
+  if(!workerUrl) throw new Error('请输入同步服务器地址');
+  // test connectivity
+  try{
+    const test = await fetch(workerUrl+'/ping');
+    if(!test.ok && test.status!==404) throw new Error('服务器响应异常');
+  }catch(e){
+    throw new Error('无法连接到同步服务器，请检查地址是否正确');
+  }
+  if(syncCode){
+    // connect to existing sync space
+    state.sync.workerUrl = workerUrl;
+    state.sync.syncCode = syncCode;
+    // clear GH config to avoid conflict
+    state.sync.token=''; state.sync.gistId='';
+    writeLocal();
+    await syncNow(true);
+  }else{
+    // create new sync space
+    const id = await cfCreateSync(workerUrl);
+    state.sync.workerUrl = workerUrl;
+    state.sync.syncCode = id;
+    state.sync.token=''; state.sync.gistId='';
+    state.sync.lastSyncedAt = state.sync.localUpdatedAt || Date.now();
+    writeLocal();
+    // push initial data
+    await syncPush(true);
+  }
+}
+// generate a shareable sync link for other devices
+function generateSyncLink(){
+  const base = window.location.origin + window.location.pathname;
+  return base + '#sync=' + encodeURIComponent(state.sync.workerUrl) + ',' + state.sync.syncCode;
+}
+// check URL hash for sync config (for device pairing via link)
+function checkUrlForSyncConfig(){
+  const m = window.location.hash.match(/^#sync=(.+),(.+)$/);
+  if(m && m[1] && m[2]){
+    state.sync.workerUrl = decodeURIComponent(m[1]);
+    state.sync.syncCode = m[2];
+    state.sync.token=''; state.sync.gistId='';
+    writeLocal();
+    history.replaceState(null,'',window.location.pathname);
+    return true;
+  }
+  return false;
 }
 
 // PUSH — write local data to gist (only when local is ahead of last sync)
@@ -668,7 +766,9 @@ async function syncPush(silent){
   // don't push if local hasn't changed since last sync
   if(state.sync.localUpdatedAt <= state.sync.lastSyncedAt){ return; }
   try{
-    await ghUpdateGist();
+    const backend = syncBackend();
+    if(backend==='cf') await cfUpdateSync();
+    else await ghUpdateGist();
     state.sync.lastSyncedAt = state.sync.localUpdatedAt;
     writeLocal();
     if(!silent) toast('✓ 已同步到云端','success');
@@ -699,7 +799,8 @@ function mergeByKey(local, remote, keyFn){
 async function syncPull(silent){
   if(!syncConfigured()) return false;
   try{
-    const remote = await ghReadGist();
+    const backend = syncBackend();
+    const remote = backend==='cf' ? await cfReadSync() : await ghReadGist();
     if(!remote || !remote.recipes){
       // cloud empty but local empty too → seed
       if(!state.recipes.length){
@@ -2087,7 +2188,10 @@ function renderProfile(){
   const total=state.recipes.length;
   const stocked=state.pantry.length;
   const connected=syncConfigured();
-  const gistUrl = connected ? 'https://gist.github.com/'+state.sync.gistId : '';
+  const backend=syncBackend();
+  const cfConnected = backend==='cf';
+  const ghConnected = backend==='gh';
+  const gistUrl = ghConnected ? 'https://gist.github.com/'+state.sync.gistId : '';
   content.innerHTML=`
     <div class="screen">
       <div class="hd"><h1>我的资料</h1></div>
@@ -2112,10 +2216,28 @@ function renderProfile(){
           <span class="sync-dot ${connected?'on':''}"></span>
         </div>
         <div class="sync-body">
-          ${connected ? `
+          ${cfConnected ? `
             <div class="sync-row">
               <div>
-                <div class="sync-on">已连接</div>
+                <div class="sync-on">⚡ 快速同步已连接</div>
+                <div class="sync-sub" id="syncStatusLine">上次同步 ${fmtSyncTime(state.sync.lastSyncedAt)}</div>
+              </div>
+            </div>
+            <div class="sync-row between">
+              <span class="sync-lbl">编辑后自动同步</span>
+              <button class="toggle ${state.sync.autoSync?'on':''}" id="autoSyncToggle"><span></span></button>
+            </div>
+            <div class="sync-actions">
+              <button class="sync-btn primary" id="copyLinkBtn">📋 复制同步链接</button>
+              <button class="sync-btn primary" id="syncNowBtn">立即同步</button>
+            </div>
+            <div class="sync-actions" style="margin-top:8px">
+              <button class="sync-btn ghost" id="disconnectBtn">断开连接</button>
+            </div>
+          ` : ghConnected ? `
+            <div class="sync-row">
+              <div>
+                <div class="sync-on">已连接（GitHub Gist）</div>
                 <div class="sync-sub" id="syncStatusLine">上次同步 ${fmtSyncTime(state.sync.lastSyncedAt)}</div>
                 ${gistUrl?`<a class="sync-link" href="${gistUrl}" target="_blank" rel="noopener">打开 Gist ↗</a>`:''}
               </div>
@@ -2129,18 +2251,31 @@ function renderProfile(){
               <button class="sync-btn ghost" id="disconnectBtn">断开连接</button>
             </div>
           ` : `
+            <div class="sync-section-title">⚡ 快速同步（推荐）</div>
+            <div class="sync-field">
+              <label>同步服务器地址</label>
+              <input type="text" id="cfWorkerUrl" placeholder="https://your-worker.workers.dev" autocomplete="off">
+            </div>
+            <button class="sync-btn primary block" id="cfCreateBtn">创建同步空间</button>
+            <div class="sync-divider">— 或输入同步码连接已有空间 —</div>
+            <div class="sync-field">
+              <label>同步码</label>
+              <input type="text" id="cfSyncCode" placeholder="从其他设备复制的同步码" autocomplete="off">
+            </div>
+            <button class="sync-btn primary block" id="cfConnectBtn">连接</button>
+            <div class="sync-hint">
+              快速同步使用 Cloudflare 全球网络，国内手机也能快速访问，无需电脑在线。
+            </div>
+            <div class="sync-divider" style="margin-top:16px">— 或使用 GitHub Gist —</div>
             <div class="sync-field">
               <label>GitHub 个人访问令牌</label>
               <input type="password" id="syncToken" placeholder="ghp_…（需要 gist 权限）" autocomplete="off">
             </div>
             <div class="sync-field">
-              <label>Gist ID <span class="opt">— 可选，用于关联已有同步</span></label>
-              <input type="text" id="syncGistId" placeholder="留空则自动创建新的私密 Gist" autocomplete="off">
+              <label>Gist ID <span class="opt">— 可选</span></label>
+              <input type="text" id="syncGistId" placeholder="留空则自动创建" autocomplete="off">
             </div>
-            <button class="sync-btn primary block" id="connectBtn">连接并同步</button>
-            <div class="sync-hint">
-              在 <b>GitHub → Settings → Developer settings → Personal access tokens (classic)</b> 创建令牌，只需勾选 <b>gist</b> 权限。令牌仅存储在本浏览器本地。
-            </div>
+            <button class="sync-btn ghost block" id="connectBtn">连接 GitHub Gist</button>
           `}
         </div>
       </div>
@@ -2207,7 +2342,19 @@ function renderProfile(){
   // Memo
   initMemo();
 
-  if(connected){
+  if(cfConnected){
+    document.getElementById('copyLinkBtn').onclick=()=>{
+      const link=generateSyncLink();
+      if(navigator.clipboard){
+        navigator.clipboard.writeText(link).then(()=>{
+          toast('✓ 同步链接已复制！在手机浏览器打开即可自动连接','success');
+        }).catch(()=>{
+          prompt('请复制此链接：',link);
+        });
+      }else{
+        prompt('请复制此链接：',link);
+      }
+    };
     document.getElementById('syncNowBtn').onclick=async()=>{
       const btn=document.getElementById('syncNowBtn');
       btn.textContent='同步中…'; btn.disabled=true;
@@ -2216,7 +2363,23 @@ function renderProfile(){
       renderProfile();
     };
     document.getElementById('disconnectBtn').onclick=()=>{
-      openModal('断开云同步？','配方保留在本设备。Gist 仍保留在 GitHub 上，其他设备可继续同步。随时可重新连接。',()=>{
+      openModal('断开云同步？','配方保留在本设备。云端数据仍保留，其他设备可继续同步。',()=>{
+        disconnectSync(); renderProfile(); toast('云同步已断开','success');
+      });
+    };
+    document.getElementById('autoSyncToggle').onclick=()=>{
+      state.sync.autoSync=!state.sync.autoSync; writeLocal(); renderProfile();
+    };
+  }else if(ghConnected){
+    document.getElementById('syncNowBtn').onclick=async()=>{
+      const btn=document.getElementById('syncNowBtn');
+      btn.textContent='同步中…'; btn.disabled=true;
+      await syncNow(false);
+      btn.textContent='立即同步'; btn.disabled=false;
+      renderProfile();
+    };
+    document.getElementById('disconnectBtn').onclick=()=>{
+      openModal('断开云同步？','配方保留在本设备。Gist 仍保留在 GitHub 上，其他设备可继续同步。',()=>{
         disconnectSync(); renderProfile(); toast('云同步已断开','success');
       });
     };
@@ -2224,6 +2387,39 @@ function renderProfile(){
       state.sync.autoSync=!state.sync.autoSync; writeLocal(); renderProfile();
     };
   }else{
+    // CF create
+    document.getElementById('cfCreateBtn').onclick=async()=>{
+      const url=document.getElementById('cfWorkerUrl').value.trim();
+      const btn=document.getElementById('cfCreateBtn');
+      if(!url){ toast('请输入同步服务器地址','error'); return; }
+      btn.textContent='创建中…'; btn.disabled=true;
+      try{
+        await cfConnectSync(url,'');
+        toast('✓ 快速同步已连接！点击「复制同步链接」分享给其他设备','success');
+        renderProfile();
+      }catch(e){
+        toast(e.message||'创建失败','error');
+        btn.textContent='创建同步空间'; btn.disabled=false;
+      }
+    };
+    // CF connect with existing code
+    document.getElementById('cfConnectBtn').onclick=async()=>{
+      const url=document.getElementById('cfWorkerUrl').value.trim();
+      const code=document.getElementById('cfSyncCode').value.trim();
+      const btn=document.getElementById('cfConnectBtn');
+      if(!url){ toast('请输入同步服务器地址','error'); return; }
+      if(!code){ toast('请输入同步码','error'); return; }
+      btn.textContent='连接中…'; btn.disabled=true;
+      try{
+        await cfConnectSync(url,code);
+        toast('✓ 已连接并同步','success');
+        renderProfile();
+      }catch(e){
+        toast(e.message||'连接失败','error');
+        btn.textContent='连接'; btn.disabled=false;
+      }
+    };
+    // GH connect
     document.getElementById('connectBtn').onclick=async()=>{
       const tk=document.getElementById('syncToken').value;
       const gi=document.getElementById('syncGistId').value;
@@ -2236,7 +2432,7 @@ function renderProfile(){
         renderProfile();
       }catch(e){
         toast(e.message||'连接失败','error');
-        btn.textContent='连接并同步'; btn.disabled=false;
+        btn.textContent='连接 GitHub Gist'; btn.disabled=false;
       }
     };
   }
@@ -2303,12 +2499,15 @@ function bindGlobalFocusScroll(){
 /* ---------- Boot ---------- */
 bindGlobalFocusScroll();
 load();
+// check URL for sync config (device pairing via link)
+const urlSyncApplied = checkUrlForSyncConfig();
 render();
+if(urlSyncApplied){
+  toast('✓ 已从链接自动配置同步','success');
+}
 // background pull on startup so a new device fetches cloud data
 if(syncConfigured()){
   syncPull(true).then(()=>{
-    // if pull applied remote changes, render() already re-ran; nothing more to do
-    // otherwise, push any local-only changes
     if(state.sync.localUpdatedAt > state.sync.lastSyncedAt) syncPush(true);
   });
 }
