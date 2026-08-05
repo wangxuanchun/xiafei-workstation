@@ -261,6 +261,69 @@
   .cat-modal .cm-aigen:active{transform:scale(.98)}
   .cat-modal .cm-aigen:disabled{opacity:.55;cursor:wait}
   .cat-modal .cm-aigen.loading{border-style:solid;border-color:var(--brand);color:var(--brand);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ===== Search Modal (AI image search → pick → edit) ===== */
+  .sm-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
+  .sm-sheet{background:var(--bg);width:100%;max-width:480px;border-radius:20px 20px 0 0;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .25s ease}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .sm-header{padding:16px 18px 10px;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .sm-header .sm-title{font-size:17px;font-weight:800;color:var(--ink)}
+  .sm-close{width:30px;height:30px;border-radius:50%;background:var(--fill);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--sub);border:none;cursor:pointer}
+  .sm-search-row{padding:12px 18px;display:flex;gap:8px;flex-shrink:0}
+  .sm-search-row input{flex:1;padding:10px 14px;border-radius:12px;border:1.5px solid var(--rule);font-size:14px;background:var(--bg);color:var(--ink);outline:none}
+  .sm-search-row input:focus{border-color:var(--brand)}
+  .sm-search-row button{padding:10px 18px;border-radius:12px;background:var(--brand);color:#fff;font-weight:700;font-size:14px;border:none;cursor:pointer;white-space:nowrap}
+  .sm-search-row button:disabled{opacity:.5;cursor:wait}
+  .sm-content{flex:1;overflow-y:auto;padding:0 18px 16px}
+  .sm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .sm-grid-item{aspect-ratio:1;border-radius:10px;overflow:hidden;cursor:pointer;position:relative;background:var(--fill);border:2px solid transparent;transition:border-color .15s}
+  .sm-grid-item img{width:100%;height:100%;object-fit:cover}
+  .sm-grid-item:active{transform:scale(.95)}
+  .sm-grid-item.selected{border-color:var(--brand)}
+  .sm-grid-item.selected::after{content:'✓';position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:var(--brand);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .sm-loading{padding:40px 0;text-align:center;color:var(--sub);font-size:14px}
+  .sm-loading .spinner{width:28px;height:28px;border:3px solid var(--rule);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .sm-empty{padding:40px 20px;text-align:center;color:var(--sub);font-size:14px;line-height:1.6}
+  .sm-footer{padding:12px 18px;border-top:1px solid var(--rule);display:flex;gap:8px;flex-shrink:0}
+  .sm-footer button{flex:1;padding:12px;border-radius:12px;font-weight:700;font-size:14px;border:none;cursor:pointer}
+  .sm-footer .sm-cancel{background:var(--fill);color:var(--sub)}
+  .sm-footer .sm-confirm{background:var(--brand);color:#fff}
+  .sm-footer .sm-confirm:disabled{opacity:.5;cursor:wait}
+  .sm-gen-overlay{position:absolute;inset:0;background:rgba(255,255,255,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;border-radius:20px 20px 0 0}
+  .sm-gen-overlay .spinner{width:32px;height:32px;border:3px solid var(--rule);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+  .sm-gen-overlay .sm-gen-text{font-size:13px;color:var(--brand-deep);font-weight:600}
+  .sm-xhs-btn{width:100%;padding:10px;border-radius:10px;border:1.5px dashed var(--brand-soft);color:var(--brand-deep);font-size:12px;font-weight:600;background:var(--fill);margin-top:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
+
+  /* ===== Time Picker (iPhone-style wheel) ===== */
+  .tp-card{background:var(--bg2);border-radius:16px;padding:16px;margin-bottom:14px}
+  .tp-card .h{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .tp-display{text-align:center;font-size:42px;font-weight:200;color:var(--brand);font-variant-numeric:tabular-nums;letter-spacing:2px;margin:8px 0 4px}
+  .tp-display.running{color:var(--accent,#C45C48)}
+  .tp-status{text-align:center;font-size:12px;color:var(--sub);margin-bottom:12px}
+  .tp-wheels{display:flex;justify-content:center;gap:4px;position:relative;height:160px;overflow:hidden;margin:8px 0;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(to bottom,transparent,#000 30%,#000 70%,transparent)}
+  .tp-wheel{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;width:64px;scrollbar-width:none;-ms-overflow-style:none}
+  .tp-wheel::-webkit-scrollbar{display:none}
+  .tp-wheel-item{height:32px;scroll-snap-align:center;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .tp-wheel-item.muted{color:var(--sub);opacity:.4}
+  .tp-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:140px;height:32px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);pointer-events:none}
+  .tp-label{text-align:center;font-size:11px;color:var(--sub);margin-top:2px}
+  .tp-actions{display:flex;gap:8px;margin-top:12px}
+  .tp-btn{flex:1;padding:11px;border-radius:12px;font-weight:700;font-size:14px;border:none;cursor:pointer}
+  .tp-btn.start{background:var(--brand);color:#fff}
+  .tp-btn.stop{background:var(--accent,#C45C48);color:#fff}
+  .tp-btn:disabled{opacity:.4;cursor:not-allowed}
+
+  /* ===== Memo ===== */
+  .memo-card{background:var(--bg2);border-radius:16px;padding:16px;margin-bottom:14px}
+  .memo-card .h{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+  .memo-add-btn{width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+  .memo-list{display:flex;flex-direction:column;gap:8px}
+  .memo-item{background:var(--bg);border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;gap:8px;border:1px solid var(--rule)}
+  .memo-item textarea{flex:1;border:none;background:transparent;font-size:13px;color:var(--ink);resize:none;outline:none;line-height:1.5;font-family:inherit;min-height:20px}
+  .memo-item .memo-del{width:24px;height:24px;border-radius:6px;background:transparent;border:none;color:var(--sub);font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .memo-item .memo-del:active{background:rgba(196,92,72,.1);color:var(--accent,#C45C48)}
+  .memo-empty{text-align:center;color:var(--sub);font-size:13px;padding:16px 0}
 </style>
 </head>
 <body>
@@ -1015,62 +1078,94 @@ function initCategoryDrag(){
   });
 }
 
-/* ---------- AI Image Generation (DashScope: Qwen search + wan2.6 generate) ---------- */
+/* ---------- AI Image: Search (Openverse) → Pick → Style Edit (wanx2.1-imageedit) ---------- */
 
-// Step 1: Use Qwen with web search to find visual description of the food
-async function searchFoodDescription(categoryName){
-  const sysPrompt='You are a food photography expert. Search the web for the food and describe its visual appearance in English for an AI image generator. Focus on: shape, color, texture, common garnishes, plating style. Output ONLY the description, max 80 words, no preamble.';
-  const userPrompt=`Search for "${categoryName}" (a type of food/dessert). Describe what it looks like visually.`;
+// Step 1: Search food images via Openverse API (free, no key, CORS-friendly)
+async function searchFoodImages(query){
+  const url='https://api.openverse.org/v1/images/?q='+encodeURIComponent(query+' food dessert')+'&page_size=9&mature=false';
+  const resp=await fetch(url);
+  if(!resp.ok) throw new Error('搜索服务暂不可用');
+  const data=await resp.json();
+  const results=(data.results||[]).map(r=>({
+    id:r.id,
+    url:r.url,
+    thumb:r.thumbnail||r.url,
+    title:r.title||'',
+    license:r.license||''
+  }));
+  if(!results.length) throw new Error('未找到相关图片');
+  return results;
+}
+
+// Step 2: Download image and convert to base64 (with CORS proxy fallback)
+async function fetchImageAsBase64(imageUrl){
+  // Try direct fetch first
+  try{
+    const resp=await fetch(imageUrl,{mode:'cors'});
+    if(resp.ok){
+      const blob=await resp.blob();
+      return await new Promise((resolve)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.readAsDataURL(blob); });
+    }
+  }catch(e){ /* fall through to proxy */ }
+  // Fallback: CORS proxy
+  const proxyUrl='https://corsproxy.io/?url='+encodeURIComponent(imageUrl);
+  const resp=await fetch(proxyUrl);
+  const blob=await resp.blob();
+  return await new Promise((resolve)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.readAsDataURL(blob); });
+}
+
+// Step 3: Edit image with wanx2.1-imageedit (async task) — keep subject, change style only
+async function editImageWithReference(base64Image){
+  const stylePrompt='Apply warm beige color tones, soft natural diffused lighting, vintage polaroid film grain texture, slight vignette, cozy and appetizing atmosphere. Keep the food subject completely unchanged — do not alter shape, position, or identity. Only modify lighting, color tone, and overall mood.';
   const body={
-    model:'qwen-plus',
-    input:{ messages:[{ role:'system', content:sysPrompt },{ role:'user', content:userPrompt }] },
-    parameters:{ enable_search:true, result_format:'message', temperature:0.7, max_tokens:200 }
+    model:'wanx2.1-imageedit',
+    input:{
+      prompt:stylePrompt,
+      function:'description_edit',
+      base_image_url:base64Image
+    },
+    parameters:{ strength:0.35, n:1, watermark:false }
   };
-  const resp=await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation',{
+  // Create async task
+  const resp=await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis',{
     method:'POST',
-    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+state.aiImage.apiKey },
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+state.aiImage.apiKey, 'X-DashScope-Async':'enable' },
     body:JSON.stringify(body)
   });
   const data=await resp.json();
-  if(data.code){ throw new Error(data.message||'搜索失败'); }
-  // DashScope text-generation returns choices[].message.content
-  const desc=data.output?.choices?.[0]?.message?.content || data.output?.text || '';
-  if(!desc.trim()) throw new Error('未搜索到相关描述');
-  return desc.trim();
+  if(data.code) throw new Error(data.message||'图像编辑请求失败');
+  const taskId=data.output?.task_id;
+  if(!taskId) throw new Error('未获取到任务ID');
+  // Poll for result
+  return await pollTaskResult(taskId);
 }
 
-// Step 2: Build enhanced prompt with searched description
-function buildImagePrompt(categoryName, description){
-  const styleTemplate='Polaroid photograph of {food}: {desc}. Warm beige tones, soft natural lighting, top-down flat lay composition, rustic wooden table background, shallow depth of field, film grain texture, vintage food photography style, appetizing, high detail';
-  const negativePrompt='low quality, blurry, distorted, oversaturated, text, watermark, cartoon, illustration, artificial looking, plastic, messy composition, multiple items, hands, utensils';
-  return { prompt:styleTemplate.replace('{food}',categoryName).replace('{desc}',description), negative:negativePrompt };
+// Poll async task until completion
+async function pollTaskResult(taskId){
+  const maxAttempts=30;
+  for(let i=0;i<maxAttempts;i++){
+    await new Promise(r=>setTimeout(r,3000));
+    const resp=await fetch('https://dashscope.aliyuncs.com/api/v1/tasks/'+taskId,{
+      headers:{ 'Authorization':'Bearer '+state.aiImage.apiKey }
+    });
+    const data=await resp.json();
+    const status=data.output?.task_status;
+    if(status==='SUCCEEDED'){
+      const imageUrl=data.output?.results?.[0]?.url;
+      if(!imageUrl) throw new Error('未获取到结果图片');
+      return imageUrl;
+    }
+    if(status==='FAILED') throw new Error(data.output?.message||'图像编辑失败');
+  }
+  throw new Error('处理超时，请重试');
 }
 
-// Step 3: Generate image with enhanced prompt
-async function generateImage(categoryName, description){
-  const {prompt,negative}=buildImagePrompt(categoryName, description);
-  const body={
-    model:state.aiImage.model||'wan2.6-t2i',
-    input:{ messages:[{ role:'user', content:[{ text:prompt }] }] },
-    parameters:{ negative_prompt:negative, size:'1280*1280', n:1, prompt_extend:true, watermark:false }
-  };
-  const resp=await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation',{
-    method:'POST',
-    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+state.aiImage.apiKey },
-    body:JSON.stringify(body)
-  });
-  const data=await resp.json();
-  if(data.code){ throw new Error(data.message||'API调用失败'); }
-  const imageUrl=data.output?.choices?.[0]?.message?.content?.[0]?.image;
-  if(!imageUrl) throw new Error('未获取到图片');
-  return imageUrl;
-}
-
+// Download and process result image through our polaroid filter
 async function downloadAndProcessAI(imageUrl){
   const resp=await fetch(imageUrl);
   const blob=await resp.blob();
   const dataUrl=await new Promise((resolve)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.readAsDataURL(blob); });
-  return new Promise((resolve,reject)=>{
+  return new Promise((resolve)=>{
     processCatImage(dataUrl, (processed)=>resolve(processed));
   });
 }
@@ -1108,6 +1203,111 @@ function processCatImage(dataUrl, callback){
   img.src=dataUrl;
 }
 
+/* ---------- Search Modal (image search → pick → generate) ---------- */
+function openSearchModal(initialQuery, onConfirm){
+  let searchResults=[];
+  let selectedUrl=null;
+
+  const overlay=document.createElement('div');
+  overlay.className='sm-overlay';
+  overlay.innerHTML=`<div class="sm-sheet">
+    <div class="sm-header">
+      <div class="sm-title">AI 搜索参考图</div>
+      <button class="sm-close" id="smClose">✕</button>
+    </div>
+    <div class="sm-search-row">
+      <input type="text" id="smInput" value="${esc(initialQuery)}" placeholder="输入食物名称搜索">
+      <button id="smSearchBtn">搜索</button>
+    </div>
+    <div class="sm-content" id="smContent">
+      <div class="sm-loading"><div class="spinner"></div>正在搜索「${esc(initialQuery)}」...</div>
+    </div>
+    <div class="sm-footer">
+      <button class="sm-cancel" id="smCancel">取消</button>
+      <button class="sm-confirm" id="smConfirm" disabled>生成统一风格</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+
+  const content=overlay.querySelector('#smContent');
+  const confirmBtn=overlay.querySelector('#smConfirm');
+  const searchBtn=overlay.querySelector('#smSearchBtn');
+  const input=overlay.querySelector('#smInput');
+
+  // Close
+  overlay.querySelector('#smClose').onclick=()=>overlay.remove();
+  overlay.querySelector('#smCancel').onclick=()=>overlay.remove();
+
+  // Search function
+  async function doSearch(query){
+    searchBtn.disabled=true;
+    content.innerHTML='<div class="sm-loading"><div class="spinner"></div>正在搜索「'+esc(query)+'」...</div>';
+    selectedUrl=null;
+    confirmBtn.disabled=true;
+    try{
+      searchResults=await searchFoodImages(query);
+      let gridHtml='<div class="sm-grid">';
+      searchResults.forEach(r=>{
+        gridHtml+=`<div class="sm-grid-item" data-url="${esc(r.url)}"><img src="${esc(r.thumb)}" alt="${esc(r.title)}" loading="lazy" onerror="this.parentElement.style.display='none'"></div>`;
+      });
+      gridHtml+='</div>';
+      gridHtml+=`<button class="sm-xhs-btn" id="smXhs">📱 在小红书中搜索「${esc(query)}」</button>`;
+      content.innerHTML=gridHtml;
+      // Bind image selection
+      content.querySelectorAll('.sm-grid-item').forEach(item=>{
+        item.onclick=()=>{
+          content.querySelectorAll('.sm-grid-item').forEach(i=>i.classList.remove('selected'));
+          item.classList.add('selected');
+          selectedUrl=item.dataset.url;
+          confirmBtn.disabled=false;
+        };
+      });
+      // XHS search button
+      const xhsBtn=content.querySelector('#smXhs');
+      if(xhsBtn){
+        xhsBtn.onclick=()=>window.open('https://www.xiaohongshu.com/search_result?keyword='+encodeURIComponent(query),'_blank');
+      }
+    }catch(e){
+      let msg=e.message||'搜索失败';
+      content.innerHTML='<div class="sm-empty">'+msg+'<br><br>可以尝试：<br>1. 换一个关键词<br>2. <a href="https://www.xiaohongshu.com/search_result?keyword='+encodeURIComponent(query)+'" target="_blank" style="color:var(--brand)">在小红书中搜索</a> 并手动上传</div>';
+    }finally{
+      searchBtn.disabled=false;
+    }
+  }
+
+  // Search button
+  searchBtn.onclick=()=>{ const q=input.value.trim(); if(q) doSearch(q); };
+  input.onkeydown=(e)=>{ if(e.key==='Enter'){ const q=input.value.trim(); if(q) doSearch(q); } };
+
+  // Confirm → generate
+  confirmBtn.onclick=async()=>{
+    if(!selectedUrl) return;
+    confirmBtn.disabled=true;
+    // Show generation overlay
+    const genOverlay=document.createElement('div');
+    genOverlay.className='sm-gen-overlay';
+    genOverlay.innerHTML='<div class="spinner"></div><div class="sm-gen-text">正在生成统一风格图片...<br>保留食物主体，调整光影色调（约15秒）</div>';
+    overlay.querySelector('.sm-sheet').style.position='relative';
+    overlay.querySelector('.sm-sheet').appendChild(genOverlay);
+    try{
+      await onConfirm(selectedUrl);
+      overlay.remove();
+      toast('AI 风格化成功','success');
+    }catch(e){
+      let msg=e.message||'生成失败';
+      if(msg.includes('Failed to fetch')||msg.includes('NetworkError')) msg='网络错误，请检查网络连接';
+      else if(msg.includes('401')||msg.includes('Unauthorized')) msg='API Key 无效';
+      else if(msg.includes('429')) msg='请求过于频繁，请稍后再试';
+      toast('生成失败：'+msg,'error');
+      genOverlay.remove();
+      confirmBtn.disabled=false;
+    }
+  };
+
+  // Auto-search on open
+  doSearch(initialQuery);
+}
+
 /* ---------- Category editor modal (add / edit) ---------- */
 function openCatEditor(existing){
   const isEdit=!!existing;
@@ -1125,7 +1325,7 @@ function openCatEditor(existing){
         <span class="up-text">${image?'':'点击上传图片'}</span>
         ${image?`<span class="up-change">更换图片</span>`:''}
       </div>
-      <button class="cm-aigen" id="cmAiGen">✨ AI 自动生成</button>
+      <button class="cm-aigen" id="cmAiGen">🔍 AI 搜索生成</button>
       <div class="cm-label" style="margin-top:14px">分类名称</div>
       <input class="cm-input" id="cmName" value="${esc(name)}" placeholder="输入分类名称" maxlength="20">
     </div>
@@ -1157,39 +1357,20 @@ function openCatEditor(existing){
     reader.readAsDataURL(file);
     e.target.value='';
   };
-  // AI image generation — two-step: search → generate
-  document.getElementById('cmAiGen').onclick=async()=>{
+  // AI image search → pick → style edit
+  document.getElementById('cmAiGen').onclick=()=>{
     const catName=nameInput.value.trim();
     if(!catName){ toast('请先输入分类名称','error'); nameInput.focus(); return; }
     if(!state.aiImage.apiKey){ toast('请先在「我的资料」中配置 API Key','error'); return; }
-    const btn=document.getElementById('cmAiGen');
-    btn.disabled=true; btn.classList.add('loading');
-    let dots=0;
-    const dotTimer=setInterval(()=>{ dots=(dots+1)%4; btn.textContent=btn.dataset.phase+'.'.repeat(dots); },400);
-    try{
-      // Step 1: Search
-      btn.dataset.phase='🔍 正在搜索「'+catName+'」';
-      const description=await searchFoodDescription(catName);
-      // Step 2: Generate
-      btn.dataset.phase='🎨 正在生成图片';
-      const imageUrl=await generateImage(catName, description);
-      const processed=await downloadAndProcessAI(imageUrl);
+    openSearchModal(catName, async(selectedImageUrl)=>{
+      // User picked an image → fetch → edit → process
+      const base64=await fetchImageAsBase64(selectedImageUrl);
+      const editedUrl=await editImageWithReference(base64);
+      const processed=await downloadAndProcessAI(editedUrl);
       image=processed;
       uploadArea.classList.add('has-img');
       uploadArea.innerHTML=`<img src="${image}" alt=""><span class="up-change">更换图片</span>`;
-      toast('AI 搜索并生成成功','success');
-    }catch(e){
-      let msg=e.message||'生成失败';
-      if(msg.includes('Failed to fetch')||msg.includes('NetworkError')) msg='网络错误或 CORS 限制，请检查网络';
-      else if(msg.includes('401')||msg.includes('Unauthorized')) msg='API Key 无效';
-      else if(msg.includes('429')) msg='请求过于频繁，请稍后再试';
-      toast('生成失败：'+msg,'error');
-    }finally{
-      clearInterval(dotTimer);
-      btn.disabled=false; btn.classList.remove('loading');
-      btn.textContent='✨ AI 自动生成';
-      delete btn.dataset.phase;
-    }
+    });
   };
   // cancel
   document.getElementById('cmCancel').onclick=()=>{ modal.classList.remove('show'); };
@@ -1595,6 +1776,216 @@ function wikiCardHTML(it,i,iconName){
   </div>`;
 }
 
+/* ---------- Timer (iPhone-style wheel picker + alarm sound) ---------- */
+const MEMO_KEY='recipe-atelier-memos';
+let timerState={ running:false, endTime:0, intervalId:null, audioCtx:null };
+
+function initTimer(){
+  // Clear any existing interval from previous render
+  if(timerState.intervalId){ clearInterval(timerState.intervalId); timerState.intervalId=null; }
+  // Restore from localStorage (survives page refresh)
+  try{
+    const saved=JSON.parse(localStorage.getItem('recipe-atelier-timer'));
+    if(saved&&saved.running&&saved.endTime>Date.now()){ timerState.running=true; timerState.endTime=saved.endTime; }
+  }catch(e){}
+  const hourWheel=document.getElementById('tpHourWheel');
+  const minWheel=document.getElementById('tpMinWheel');
+  if(!hourWheel||!minWheel) return;
+
+  // Build hour wheel (0-23)
+  let hourHtml='';
+  for(let i=0;i<=23;i++){
+    hourHtml+='<div class="tp-wheel-item">'+String(i).padStart(2,'0')+'</div>';
+  }
+  hourWheel.innerHTML=hourHtml;
+
+  // Build minute wheel (0-59)
+  let minHtml='';
+  for(let i=0;i<=59;i++){
+    minHtml+='<div class="tp-wheel-item">'+String(i).padStart(2,'0')+'</div>';
+  }
+  minWheel.innerHTML=minHtml;
+
+  // Set initial scroll position (0 hours, 5 minutes)
+  const itemHeight=32;
+  hourWheel.scrollTop=0;
+  minWheel.scrollTop=5*itemHeight;
+
+  const display=document.getElementById('tpDisplay');
+  const statusEl=document.getElementById('tpStatus');
+  const startBtn=document.getElementById('tpStart');
+  const stopBtn=document.getElementById('tpStop');
+
+  function getSelectedTime(){
+    const h=Math.round(hourWheel.scrollTop/itemHeight);
+    const m=Math.round(minWheel.scrollTop/itemHeight);
+    return { h:Math.max(0,Math.min(23,h)), m:Math.max(0,Math.min(59,m)) };
+  }
+
+  function updateDisplay(){
+    if(timerState.running){
+      const remaining=Math.max(0, timerState.endTime - Date.now());
+      const totalSec=Math.ceil(remaining/1000);
+      const h=Math.floor(totalSec/3600);
+      const m=Math.floor((totalSec%3600)/60);
+      const s=totalSec%60;
+      display.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+      display.classList.add('running');
+      statusEl.textContent='计时中...';
+      if(remaining<=0){
+        stopTimer();
+        playAlarmSound();
+        statusEl.textContent='⏰ 时间到！';
+      }
+    }else{
+      const {h,m}=getSelectedTime();
+      display.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+      display.classList.remove('running');
+    }
+  }
+
+  // Scroll listener for live update
+  let scrollTimer=null;
+  function onScroll(){
+    if(scrollTimer) clearTimeout(scrollTimer);
+    scrollTimer=setTimeout(()=>{
+      if(!timerState.running) updateDisplay();
+    },100);
+  }
+  hourWheel.onscroll=onScroll;
+  minWheel.onscroll=onScroll;
+
+  function startTimer(){
+    const {h,m}=getSelectedTime();
+    const totalMs=(h*3600+m*60)*1000;
+    if(totalMs===0){ toast('请设置时间','error'); return; }
+    timerState.running=true;
+    timerState.endTime=Date.now()+totalMs;
+    localStorage.setItem('recipe-atelier-timer',JSON.stringify({running:true,endTime:timerState.endTime}));
+    startBtn.disabled=true;
+    stopBtn.disabled=false;
+    hourWheel.style.pointerEvents='none';
+    minWheel.style.pointerEvents='none';
+    hourWheel.style.opacity='0.4';
+    minWheel.style.opacity='0.4';
+    statusEl.textContent='计时中...';
+    timerState.intervalId=setInterval(updateDisplay,200);
+    updateDisplay();
+  }
+
+  function stopTimer(){
+    timerState.running=false;
+    if(timerState.intervalId){ clearInterval(timerState.intervalId); timerState.intervalId=null; }
+    localStorage.setItem('recipe-atelier-timer',JSON.stringify({running:false,endTime:0}));
+    startBtn.disabled=false;
+    stopBtn.disabled=true;
+    hourWheel.style.pointerEvents='';
+    minWheel.style.pointerEvents='';
+    hourWheel.style.opacity='';
+    minWheel.style.opacity='';
+    display.classList.remove('running');
+    if(statusEl.textContent.indexOf('时间到')===-1) statusEl.textContent='已停止';
+    setTimeout(()=>{ if(!timerState.running) statusEl.textContent='滑动设置时间'; },2000);
+    updateDisplay();
+  }
+
+  function playAlarmSound(){
+    try{
+      if(!timerState.audioCtx) timerState.audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      const ctx=timerState.audioCtx;
+      // Play 3 beeps
+      for(let i=0;i<3;i++){
+        const osc=ctx.createOscillator();
+        const gain=ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value=880;
+        osc.type='sine';
+        const startT=ctx.currentTime+i*0.4;
+        gain.gain.setValueAtTime(0, startT);
+        gain.gain.linearRampToValueAtTime(0.4, startT+0.05);
+        gain.gain.linearRampToValueAtTime(0.4, startT+0.25);
+        gain.gain.linearRampToValueAtTime(0, startT+0.35);
+        osc.start(startT);
+        osc.stop(startT+0.35);
+      }
+    }catch(e){ console.warn('Audio playback failed',e); }
+    // Vibration on mobile
+    if(navigator.vibrate) navigator.vibrate([200,100,200,100,200]);
+  }
+
+  startBtn.onclick=startTimer;
+  stopBtn.onclick=stopTimer;
+  updateDisplay();
+
+  // Check if timer was running (page refresh) — restore countdown
+  if(timerState.running && timerState.endTime>Date.now()){
+    startBtn.disabled=true;
+    stopBtn.disabled=false;
+    hourWheel.style.pointerEvents='none';
+    minWheel.style.pointerEvents='none';
+    hourWheel.style.opacity='0.4';
+    minWheel.style.opacity='0.4';
+    timerState.intervalId=setInterval(updateDisplay,200);
+  }
+}
+
+/* ---------- Memo (local only, NOT synced) ---------- */
+function loadMemos(){
+  try{ return JSON.parse(localStorage.getItem(MEMO_KEY))||[]; }catch(e){ return []; }
+}
+function saveMemos(memos){
+  localStorage.setItem(MEMO_KEY, JSON.stringify(memos));
+}
+function initMemo(){
+  const listEl=document.getElementById('memoList');
+  const addBtn=document.getElementById('memoAdd');
+  if(!listEl||!addBtn) return;
+  let memos=loadMemos();
+
+  function renderList(){
+    if(!memos.length){
+      listEl.innerHTML='<div class="memo-empty">点击 + 添加备忘</div>';
+      return;
+    }
+    listEl.innerHTML=memos.map((m,i)=>`
+      <div class="memo-item" data-idx="${i}">
+        <textarea rows="1" placeholder="输入备忘内容..." oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${esc(m)}</textarea>
+        <button class="memo-del" data-del="${i}">✕</button>
+      </div>`).join('');
+    // Auto-resize textareas
+    listEl.querySelectorAll('textarea').forEach(ta=>{
+      ta.style.height='auto';
+      ta.style.height=ta.scrollHeight+'px';
+    });
+    // Bind events
+    listEl.querySelectorAll('textarea').forEach((ta,i)=>{
+      ta.onblur=()=>{ memos[i]=ta.value; saveMemos(memos); };
+    });
+    listEl.querySelectorAll('.memo-del').forEach(btn=>{
+      btn.onclick=()=>{
+        const idx=parseInt(btn.dataset.del);
+        memos.splice(idx,1);
+        saveMemos(memos);
+        renderList();
+      };
+    });
+  }
+
+  addBtn.onclick=()=>{
+    memos.push('');
+    saveMemos(memos);
+    renderList();
+    // Focus the newly added textarea
+    setTimeout(()=>{
+      const last=listEl.querySelector('.memo-item:last-child textarea');
+      if(last) last.focus();
+    },50);
+  };
+
+  renderList();
+}
+
 /* ---------- Tab 4: Profile ---------- */
 function renderProfile(){
   const total=state.recipes.length;
@@ -1612,6 +2003,27 @@ function renderProfile(){
           <div class="stat"><div class="v">${total}</div><div class="l">配方</div></div>
           <div class="stat"><div class="v">${stocked}</div><div class="l">食材</div></div>
         </div>
+      </div>
+
+      <div class="tp-card">
+        <div class="h"><span>⏱ 计时器</span></div>
+        <div class="tp-display" id="tpDisplay">00:00</div>
+        <div class="tp-status" id="tpStatus">滑动设置时间</div>
+        <div class="tp-wheels">
+          <div class="tp-wheel" id="tpHourWheel"></div>
+          <div class="tp-wheel" id="tpMinWheel"></div>
+          <div class="tp-center"></div>
+        </div>
+        <div class="tp-label">小时 &nbsp;:&nbsp; 分钟</div>
+        <div class="tp-actions">
+          <button class="tp-btn start" id="tpStart">开始</button>
+          <button class="tp-btn stop" id="tpStop" disabled>停止</button>
+        </div>
+      </div>
+
+      <div class="memo-card">
+        <div class="h"><span>📝 备忘录</span><button class="memo-add-btn" id="memoAdd">+</button></div>
+        <div class="memo-list" id="memoList"></div>
       </div>
 
       <div class="dm-card">
@@ -1654,24 +2066,15 @@ function renderProfile(){
       </div>
 
       <div class="dm-card" style="margin-top:14px">
-        <div class="h"><span>AI 图片生成</span><span class="sync-dot ${state.aiImage.apiKey?'on':''}"></span></div>
+        <div class="h"><span>AI 搜索生成</span><span class="sync-dot ${state.aiImage.apiKey?'on':''}"></span></div>
         <div class="sync-body">
           <div class="sync-field">
             <label>百炼 API Key</label>
             <input type="password" id="aiApiKey" value="${esc(state.aiImage.apiKey)}" placeholder="sk-…（阿里云百炼 DashScope）" autocomplete="off">
           </div>
-          <div class="sync-field">
-            <label>模型</label>
-            <select class="ed-sel" id="aiModel" style="width:100%">
-              <option value="wan2.6-t2i" ${state.aiImage.model==='wan2.6-t2i'?'selected':''}>wan2.6-t2i（推荐·同步）</option>
-              <option value="wan2.5-t2i-preview" ${state.aiImage.model==='wan2.5-t2i-preview'?'selected':''}>wan2.5-t2i-preview</option>
-              <option value="wan2.2-t2i-flash" ${state.aiImage.model==='wan2.2-t2i-flash'?'selected':''}>wan2.2-t2i-flash（更快）</option>
-              <option value="wanx2.1-t2i-turbo" ${state.aiImage.model==='wanx2.1-t2i-turbo'?'selected':''}>wanx2.1-t2i-turbo（更便宜）</option>
-            </select>
-          </div>
           <button class="sync-btn primary block" id="saveAiKey">保存设置</button>
           <div class="sync-hint">
-            在 <b>阿里云百炼控制台 → API-Key 管理</b> 创建 Key。模型使用通义万相文生图，按图片张数计费。Key 仅存储在本浏览器本地。
+            在 <b>阿里云百炼控制台 → API-Key 管理</b> 创建 Key。AI 搜索生成流程：联网搜索食物参考图 → 你挑选一张 → wanx2.1-imageedit 保留主体并统一光影色调。Key 仅存储在本浏览器本地。
           </div>
         </div>
       </div>
@@ -1691,12 +2094,14 @@ function renderProfile(){
 
   document.getElementById('exportBtn').onclick=exportData;
   document.getElementById('importBtn').onclick=()=>document.getElementById('fileImport').click();
+  // Timer + Memo
+  initTimer();
+  initMemo();
   // AI image settings
   document.getElementById('saveAiKey').onclick=()=>{
     state.aiImage.apiKey=document.getElementById('aiApiKey').value.trim();
-    state.aiImage.model=document.getElementById('aiModel').value;
     persist(true);
-    toast('AI 图片设置已保存','success');
+    toast('AI 设置已保存','success');
     renderProfile();
   };
 
