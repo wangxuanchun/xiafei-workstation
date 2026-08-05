@@ -680,6 +680,22 @@ async function syncPush(silent){
   }
 }
 // PULL — read gist, apply remote if newer than last sync
+// Universal merge by key: remote wins for same key, local-only keys preserved
+// Works for arrays (keyFn extracts key from each item) and plain objects (property names are keys)
+function mergeByKey(local, remote, keyFn){
+  if(!remote) return local||[];
+  if(!local) return remote;
+  // Object merge: property names are the merge keys, remote overrides
+  if(!Array.isArray(local) && !Array.isArray(remote)){
+    return Object.assign({...local}, remote);
+  }
+  // Array merge: use keyFn to extract key, remote wins for same key
+  const map=new Map();
+  (local||[]).forEach(x=>{ const k=keyFn(x); if(k!=null) map.set(k,x); });
+  (remote||[]).forEach(r=>{ const k=keyFn(r); if(k!=null) map.set(k,r); });
+  return Array.from(map.values());
+}
+
 async function syncPull(silent){
   if(!syncConfigured()) return false;
   try{
@@ -697,23 +713,25 @@ async function syncPull(silent){
     if(remoteTs > state.sync.lastSyncedAt){
       const localHasChanges = state.sync.localUpdatedAt > state.sync.lastSyncedAt;
 
-      // Smart merge for showcases: combine by ID, remote wins for conflicts
-      if(remote.showcases){
-        const merged=[];
-        const localMap=new Map(state.showcases.map(s=>[s.id,s]));
-        // Add all remote showcases (remote wins for same ID)
-        remote.showcases.forEach(rs=>{
-          merged.push(rs);
-          localMap.delete(rs.id);
-        });
-        // Add local-only showcases (not in remote)
-        localMap.forEach(s=>merged.push(s));
-        state.showcases=merged;
-      }
+      // Universal merge by key for ALL data types (remote wins for same key)
+      // Recipes: merge by id
+      state.recipes = mergeByKey(state.recipes, remote.recipes, x=>x.id);
+      // Categories: merge by id
+      state.categories = mergeByKey(state.categories, remote.categories, x=>x.id);
+      // Showcases: merge by id
+      state.showcases = mergeByKey(state.showcases, remote.showcases, x=>x.id);
+      // Pantry: merge by value (string itself is the key)
+      state.pantry = mergeByKey(state.pantry, remote.pantry, x=>x);
+      // Wiki: merge by property name (object)
+      state.wiki = mergeByKey(state.wiki, remote.wiki);
+      // Settings: remote wins
+      if(remote.aiImage) state.aiImage = Object.assign({...DEFAULT_AI}, remote.aiImage);
+      if(remote.profile) state.profile = Object.assign({...DEFAULT_PROFILE}, remote.profile);
+
+      state.sync.lastSyncedAt = remoteTs;
 
       if(localHasChanges){
-        // Local has unsaved changes: merge showcases (done above), keep local for other data
-        // Push merged result back to cloud so other devices get our local-only items
+        // Local also has changes → mark as needing push to upload local-only items
         state.sync.localUpdatedAt = Date.now();
         writeLocal();
         render();
@@ -723,15 +741,8 @@ async function syncPull(silent){
         return true;
       }
 
-      // No local changes → safe to take all remote data
-      state.recipes = remote.recipes||[];
-      state.pantry = remote.pantry||[];
-      state.wiki = remote.wiki||state.wiki||{};
-      state.categories = remote.categories||state.categories||[];
-      if(remote.aiImage) state.aiImage = Object.assign({...DEFAULT_AI}, remote.aiImage);
-      if(remote.profile) state.profile = Object.assign({...DEFAULT_PROFILE}, remote.profile);
+      // No local changes → fully synced
       state.sync.localUpdatedAt = remoteTs;
-      state.sync.lastSyncedAt = remoteTs;
       writeLocal();
       render();
       if(!silent) toast('✓ 已从云端同步','success');
