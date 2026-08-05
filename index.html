@@ -295,25 +295,6 @@
   .sm-gen-overlay .sm-gen-text{font-size:13px;color:var(--brand-deep);font-weight:600}
   .sm-xhs-btn{width:100%;padding:10px;border-radius:10px;border:1.5px dashed var(--brand-soft);color:var(--brand-deep);font-size:12px;font-weight:600;background:var(--fill);margin-top:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
 
-  /* ===== Time Picker (iPhone-style wheel) ===== */
-  .tp-card{background:var(--bg2);border-radius:16px;padding:16px;margin-bottom:14px}
-  .tp-card .h{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;gap:6px}
-  .tp-display{text-align:center;font-size:42px;font-weight:200;color:var(--brand);font-variant-numeric:tabular-nums;letter-spacing:2px;margin:8px 0 4px}
-  .tp-display.running{color:var(--accent,#C45C48)}
-  .tp-status{text-align:center;font-size:12px;color:var(--sub);margin-bottom:12px}
-  .tp-wheels{display:flex;justify-content:center;gap:4px;position:relative;height:160px;overflow:hidden;margin:8px 0;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(to bottom,transparent,#000 30%,#000 70%,transparent)}
-  .tp-wheel{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;width:64px;scrollbar-width:none;-ms-overflow-style:none}
-  .tp-wheel::-webkit-scrollbar{display:none}
-  .tp-wheel-item{height:32px;scroll-snap-align:center;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
-  .tp-wheel-item.muted{color:var(--sub);opacity:.4}
-  .tp-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:140px;height:32px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);pointer-events:none}
-  .tp-label{text-align:center;font-size:11px;color:var(--sub);margin-top:2px}
-  .tp-actions{display:flex;gap:8px;margin-top:12px}
-  .tp-btn{flex:1;padding:11px;border-radius:12px;font-weight:700;font-size:14px;border:none;cursor:pointer}
-  .tp-btn.start{background:var(--brand);color:#fff}
-  .tp-btn.stop{background:var(--accent,#C45C48);color:#fff}
-  .tp-btn:disabled{opacity:.4;cursor:not-allowed}
-
   /* ===== Memo ===== */
   .memo-card{background:var(--bg2);border-radius:16px;padding:16px;margin-bottom:14px}
   .memo-card .h{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
@@ -665,9 +646,16 @@ async function syncPull(silent){
     }
     const remoteTs = remote.updatedAt || 0;
     if(remoteTs > state.sync.lastSyncedAt){
-      // guard: don't overwrite unsaved local changes — push first, pull on next cycle
+      // guard: if local has unsaved changes, push first then merge
       if(state.sync.localUpdatedAt > state.sync.lastSyncedAt){
+        // push local changes first, then pull will be retried on next cycle
         scheduleSyncPush();
+        // still apply remote pantry (non-conflicting with recipes) to keep counts in sync
+        if(remote.pantry && remote.pantry.length >= 0) state.pantry = remote.pantry;
+        if(remote.categories) state.categories = remote.categories;
+        if(remote.profile) state.profile = Object.assign({...DEFAULT_PROFILE}, remote.profile);
+        writeLocal();
+        render();
         return false;
       }
       // remote has changes since last sync → apply (last-write-wins handles conflicts)
@@ -1764,190 +1752,8 @@ function wikiCardHTML(it,i,iconName){
   </div>`;
 }
 
-/* ---------- Timer (iPhone-style wheel picker + alarm sound) ---------- */
-const MEMO_KEY='recipe-atelier-memos';
-let timerState={ running:false, endTime:0, intervalId:null, audioCtx:null };
-
-function initTimer(){
-  // Clear any existing interval from previous render
-  if(timerState.intervalId){ clearInterval(timerState.intervalId); timerState.intervalId=null; }
-  // Restore from localStorage (survives page refresh)
-  try{
-    const saved=JSON.parse(localStorage.getItem('recipe-atelier-timer'));
-    if(saved&&saved.running&&saved.endTime>Date.now()){ timerState.running=true; timerState.endTime=saved.endTime; }
-  }catch(e){}
-  const hourWheel=document.getElementById('tpHourWheel');
-  const minWheel=document.getElementById('tpMinWheel');
-  if(!hourWheel||!minWheel) return;
-
-  // Build hour wheel (0-23)
-  let hourHtml='';
-  for(let i=0;i<=23;i++){
-    hourHtml+='<div class="tp-wheel-item">'+String(i).padStart(2,'0')+'</div>';
-  }
-  hourWheel.innerHTML=hourHtml;
-
-  // Build minute wheel (0-59)
-  let minHtml='';
-  for(let i=0;i<=59;i++){
-    minHtml+='<div class="tp-wheel-item">'+String(i).padStart(2,'0')+'</div>';
-  }
-  minWheel.innerHTML=minHtml;
-
-  // Set initial scroll position (0 hours, 5 minutes)
-  const itemHeight=32;
-  hourWheel.scrollTop=0;
-  minWheel.scrollTop=5*itemHeight;
-
-  const display=document.getElementById('tpDisplay');
-  const statusEl=document.getElementById('tpStatus');
-  const startBtn=document.getElementById('tpStart');
-  const stopBtn=document.getElementById('tpStop');
-
-  function getSelectedTime(){
-    const h=Math.round(hourWheel.scrollTop/itemHeight);
-    const m=Math.round(minWheel.scrollTop/itemHeight);
-    return { h:Math.max(0,Math.min(23,h)), m:Math.max(0,Math.min(59,m)) };
-  }
-
-  function updateDisplay(){
-    if(timerState.running){
-      const remaining=Math.max(0, timerState.endTime - Date.now());
-      const totalSec=Math.ceil(remaining/1000);
-      const h=Math.floor(totalSec/3600);
-      const m=Math.floor((totalSec%3600)/60);
-      const s=totalSec%60;
-      display.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-      display.classList.add('running');
-      statusEl.textContent='计时中...';
-      if(remaining<=0){
-        stopTimer();
-        playAlarmSound();
-        statusEl.textContent='⏰ 时间到！';
-      }
-    }else{
-      const {h,m}=getSelectedTime();
-      display.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
-      display.classList.remove('running');
-    }
-  }
-
-  // Scroll listener for live update
-  let scrollTimer=null;
-  function onScroll(){
-    if(scrollTimer) clearTimeout(scrollTimer);
-    scrollTimer=setTimeout(()=>{
-      if(!timerState.running) updateDisplay();
-    },100);
-  }
-  hourWheel.onscroll=onScroll;
-  minWheel.onscroll=onScroll;
-
-  function startTimer(){
-    const {h,m}=getSelectedTime();
-    const totalMs=(h*3600+m*60)*1000;
-    if(totalMs===0){ toast('请设置时间','error'); return; }
-    // Pre-initialize AudioContext on user interaction (required by iOS)
-    try{
-      if(!timerState.audioCtx) timerState.audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-      if(timerState.audioCtx.state==='suspended') timerState.audioCtx.resume();
-    }catch(e){}
-    timerState.running=true;
-    timerState.endTime=Date.now()+totalMs;
-    localStorage.setItem('recipe-atelier-timer',JSON.stringify({running:true,endTime:timerState.endTime}));
-    startBtn.disabled=true;
-    stopBtn.disabled=false;
-    hourWheel.style.pointerEvents='none';
-    minWheel.style.pointerEvents='none';
-    hourWheel.style.opacity='0.4';
-    minWheel.style.opacity='0.4';
-    statusEl.textContent='计时中...';
-    timerState.intervalId=setInterval(updateDisplay,200);
-    updateDisplay();
-  }
-
-  function stopTimer(){
-    timerState.running=false;
-    if(timerState.intervalId){ clearInterval(timerState.intervalId); timerState.intervalId=null; }
-    localStorage.setItem('recipe-atelier-timer',JSON.stringify({running:false,endTime:0}));
-    startBtn.disabled=false;
-    stopBtn.disabled=true;
-    hourWheel.style.pointerEvents='';
-    minWheel.style.pointerEvents='';
-    hourWheel.style.opacity='';
-    minWheel.style.opacity='';
-    display.classList.remove('running');
-    if(statusEl.textContent.indexOf('时间到')===-1) statusEl.textContent='已停止';
-    setTimeout(()=>{ if(!timerState.running) statusEl.textContent='滑动设置时间'; },2000);
-    updateDisplay();
-  }
-
-  function playAlarmSound(){
-    try{
-      if(!timerState.audioCtx) timerState.audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-      if(timerState.audioCtx.state==='suspended') timerState.audioCtx.resume();
-      const ctx=timerState.audioCtx;
-      // Play 5 ascending beeps for a more noticeable alarm
-      for(let i=0;i<5;i++){
-        const osc=ctx.createOscillator();
-        const gain=ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.frequency.value=600+i*120;
-        osc.type='sine';
-        const startT=ctx.currentTime+i*0.3;
-        gain.gain.setValueAtTime(0, startT);
-        gain.gain.linearRampToValueAtTime(0.5, startT+0.03);
-        gain.gain.linearRampToValueAtTime(0.5, startT+0.18);
-        gain.gain.linearRampToValueAtTime(0, startT+0.25);
-        osc.start(startT);
-        osc.stop(startT+0.25);
-      }
-      // Schedule a second round after 1.5s
-      setTimeout(()=>{
-        if(!timerState.running) return; // only if still not dismissed
-        for(let i=0;i<5;i++){
-          const osc=ctx.createOscillator();
-          const gain=ctx.createGain();
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.frequency.value=600+i*120;
-          osc.type='sine';
-          const startT=ctx.currentTime+i*0.3;
-          gain.gain.setValueAtTime(0, startT);
-          gain.gain.linearRampToValueAtTime(0.5, startT+0.03);
-          gain.gain.linearRampToValueAtTime(0.5, startT+0.18);
-          gain.gain.linearRampToValueAtTime(0, startT+0.25);
-          osc.start(startT);
-          osc.stop(startT+0.25);
-        }
-      },1800);
-    }catch(e){ console.warn('Audio playback failed',e); }
-    // Vibration — works on Android, no-op on iOS
-    if(navigator.vibrate){ navigator.vibrate([300,150,300,150,300,150,600]); }
-    // Also try Notification API as fallback
-    if('Notification' in window && Notification.permission==='granted'){
-      try{ new Notification('⏰ 时间到！',{ body:'计时器已完成', silent:false }); }catch(e){}
-    }
-  }
-
-  startBtn.onclick=startTimer;
-  stopBtn.onclick=stopTimer;
-  updateDisplay();
-
-  // Check if timer was running (page refresh) — restore countdown
-  if(timerState.running && timerState.endTime>Date.now()){
-    startBtn.disabled=true;
-    stopBtn.disabled=false;
-    hourWheel.style.pointerEvents='none';
-    minWheel.style.pointerEvents='none';
-    hourWheel.style.opacity='0.4';
-    minWheel.style.opacity='0.4';
-    timerState.intervalId=setInterval(updateDisplay,200);
-  }
-}
-
 /* ---------- Memo (local only, NOT synced) ---------- */
+const MEMO_KEY='recipe-atelier-memos';
 function loadMemos(){
   try{ return JSON.parse(localStorage.getItem(MEMO_KEY))||[]; }catch(e){ return []; }
 }
@@ -2019,22 +1825,6 @@ function renderProfile(){
         <div class="stat-row">
           <div class="stat"><div class="v">${total}</div><div class="l">配方</div></div>
           <div class="stat"><div class="v">${stocked}</div><div class="l">食材</div></div>
-        </div>
-      </div>
-
-      <div class="tp-card">
-        <div class="h"><span>⏱ 计时器</span></div>
-        <div class="tp-display" id="tpDisplay">00:00</div>
-        <div class="tp-status" id="tpStatus">滑动设置时间</div>
-        <div class="tp-wheels">
-          <div class="tp-wheel" id="tpHourWheel"></div>
-          <div class="tp-wheel" id="tpMinWheel"></div>
-          <div class="tp-center"></div>
-        </div>
-        <div class="tp-label">小时 &nbsp;:&nbsp; 分钟</div>
-        <div class="tp-actions">
-          <button class="tp-btn start" id="tpStart">开始</button>
-          <button class="tp-btn stop" id="tpStop" disabled>停止</button>
         </div>
       </div>
 
@@ -2141,8 +1931,7 @@ function renderProfile(){
   profName.addEventListener('keydown',(e)=>{
     if(e.key==='Enter'){ e.preventDefault(); profName.blur(); }
   });
-  // Timer + Memo
-  initTimer();
+  // Memo
   initMemo();
 
   if(connected){
