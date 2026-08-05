@@ -260,7 +260,7 @@
   .cat-modal .cm-aigen{width:100%;padding:11px;border-radius:12px;border:1.6px dashed var(--brand-soft);color:var(--brand-deep);font-weight:700;font-size:13.5px;background:var(--fill);margin-top:8px;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
   .cat-modal .cm-aigen:active{transform:scale(.98)}
   .cat-modal .cm-aigen:disabled{opacity:.55;cursor:wait}
-  .cat-modal .cm-aigen.loading{border-style:solid;border-color:var(--brand);color:var(--brand)}
+  .cat-modal .cm-aigen.loading{border-style:solid;border-color:var(--brand);color:var(--brand);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -1015,15 +1015,40 @@ function initCategoryDrag(){
   });
 }
 
-/* ---------- AI Image Generation (DashScope wan2.6) ---------- */
-function buildImagePrompt(categoryName){
-  const styleTemplate='Polaroid photograph of {food}, warm beige tones, soft natural lighting, top-down flat lay composition, rustic wooden table background, shallow depth of field, film grain texture, vintage food photography style, appetizing, high detail';
-  const negativePrompt='low quality, blurry, distorted, oversaturated, text, watermark, cartoon, illustration, artificial looking, plastic, messy composition';
-  return { prompt:styleTemplate.replace('{food}',categoryName), negative:negativePrompt };
+/* ---------- AI Image Generation (DashScope: Qwen search + wan2.6 generate) ---------- */
+
+// Step 1: Use Qwen with web search to find visual description of the food
+async function searchFoodDescription(categoryName){
+  const sysPrompt='You are a food photography expert. Search the web for the food and describe its visual appearance in English for an AI image generator. Focus on: shape, color, texture, common garnishes, plating style. Output ONLY the description, max 80 words, no preamble.';
+  const userPrompt=`Search for "${categoryName}" (a type of food/dessert). Describe what it looks like visually.`;
+  const body={
+    model:'qwen-plus',
+    input:{ messages:[{ role:'system', content:sysPrompt },{ role:'user', content:userPrompt }] },
+    parameters:{ enable_search:true, result_format:'message', temperature:0.7, max_tokens:200 }
+  };
+  const resp=await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation',{
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+state.aiImage.apiKey },
+    body:JSON.stringify(body)
+  });
+  const data=await resp.json();
+  if(data.code){ throw new Error(data.message||'搜索失败'); }
+  // DashScope text-generation returns choices[].message.content
+  const desc=data.output?.choices?.[0]?.message?.content || data.output?.text || '';
+  if(!desc.trim()) throw new Error('未搜索到相关描述');
+  return desc.trim();
 }
 
-async function generateImage(categoryName){
-  const {prompt,negative}=buildImagePrompt(categoryName);
+// Step 2: Build enhanced prompt with searched description
+function buildImagePrompt(categoryName, description){
+  const styleTemplate='Polaroid photograph of {food}: {desc}. Warm beige tones, soft natural lighting, top-down flat lay composition, rustic wooden table background, shallow depth of field, film grain texture, vintage food photography style, appetizing, high detail';
+  const negativePrompt='low quality, blurry, distorted, oversaturated, text, watermark, cartoon, illustration, artificial looking, plastic, messy composition, multiple items, hands, utensils';
+  return { prompt:styleTemplate.replace('{food}',categoryName).replace('{desc}',description), negative:negativePrompt };
+}
+
+// Step 3: Generate image with enhanced prompt
+async function generateImage(categoryName, description){
+  const {prompt,negative}=buildImagePrompt(categoryName, description);
   const body={
     model:state.aiImage.model||'wan2.6-t2i',
     input:{ messages:[{ role:'user', content:[{ text:prompt }] }] },
@@ -1132,7 +1157,7 @@ function openCatEditor(existing){
     reader.readAsDataURL(file);
     e.target.value='';
   };
-  // AI image generation
+  // AI image generation — two-step: search → generate
   document.getElementById('cmAiGen').onclick=async()=>{
     const catName=nameInput.value.trim();
     if(!catName){ toast('请先输入分类名称','error'); nameInput.focus(); return; }
@@ -1140,14 +1165,19 @@ function openCatEditor(existing){
     const btn=document.getElementById('cmAiGen');
     btn.disabled=true; btn.classList.add('loading');
     let dots=0;
-    const dotTimer=setInterval(()=>{ dots=(dots+1)%4; btn.textContent='正在生成'+'.'.repeat(dots)+' (约15秒)'; },500);
+    const dotTimer=setInterval(()=>{ dots=(dots+1)%4; btn.textContent=btn.dataset.phase+'.'.repeat(dots); },400);
     try{
-      const imageUrl=await generateImage(catName);
+      // Step 1: Search
+      btn.dataset.phase='🔍 正在搜索「'+catName+'」';
+      const description=await searchFoodDescription(catName);
+      // Step 2: Generate
+      btn.dataset.phase='🎨 正在生成图片';
+      const imageUrl=await generateImage(catName, description);
       const processed=await downloadAndProcessAI(imageUrl);
       image=processed;
       uploadArea.classList.add('has-img');
       uploadArea.innerHTML=`<img src="${image}" alt=""><span class="up-change">更换图片</span>`;
-      toast('AI 图片生成成功','success');
+      toast('AI 搜索并生成成功','success');
     }catch(e){
       let msg=e.message||'生成失败';
       if(msg.includes('Failed to fetch')||msg.includes('NetworkError')) msg='网络错误或 CORS 限制，请检查网络';
@@ -1158,6 +1188,7 @@ function openCatEditor(existing){
       clearInterval(dotTimer);
       btn.disabled=false; btn.classList.remove('loading');
       btn.textContent='✨ AI 自动生成';
+      delete btn.dataset.phase;
     }
   };
   // cancel
