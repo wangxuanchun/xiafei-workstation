@@ -365,7 +365,7 @@ const ICONS = {
   book:'<path d="M4 5a2 2 0 012-2h12v18H6a2 2 0 01-2-2z"/><path d="M4 19a2 2 0 012-2h12"/>',
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
 };
-function svg(name,sw){return `<svg viewBox="0 0 24 24" ${sw?'stroke-width="'+sw+'"':''}>${ICONS[name]||''}</svg>`}
+function svg(name,sw){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ${sw?'stroke-width="'+sw+'"':''}>${ICONS[name]||''}</svg>`}
 
 /* ---------- Default sample recipes ---------- */
 function seedRecipes(){
@@ -998,7 +998,7 @@ function initCategoryDrag(){
   });
 }
 
-/* ---------- Image processor: strong warm-tone unification (sepia + cream overlay + vignette) ---------- */
+/* ---------- Image processor: natural warm-tone matching ---------- */
 function processCatImage(dataUrl, callback){
   const img=new Image();
   img.onload=()=>{
@@ -1012,52 +1012,43 @@ function processCatImage(dataUrl, callback){
     const sx=(img.width-minDim)/2, sy=(img.height-minDim)/2;
     ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
 
-    // step 2: pre-desaturate to 40% — removes strong color casts (green/blue) before sepia
+    // step 2: gentle warm tone — adjust white balance toward warm
     const imgData=ctx.getImageData(0, 0, size, size);
     const d=imgData.data;
     for(let i=0; i<d.length; i+=4){
       const r=d[i], g=d[i+1], b=d[i+2];
-      const gray=r*0.299 + g*0.587 + b*0.114;
-      // desaturate to 40%
-      const dr=gray + (r-gray)*0.4;
-      const dg=gray + (g-gray)*0.4;
-      const db=gray + (b-gray)*0.4;
-      // sepia formula on desaturated values
-      const sr=Math.min(255, dr*0.393 + dg*0.769 + db*0.189);
-      const sg=Math.min(255, dr*0.349 + dg*0.686 + db*0.168);
-      const sb=Math.min(255, dr*0.272 + dg*0.534 + db*0.131);
-      // blend sepia at 85% for strong unification
-      d[i]  =dr*0.15 + sr*0.85;
-      d[i+1]=dg*0.15 + sg*0.85;
-      d[i+2]=db*0.15 + sb*0.85;
+      // reduce blue channel slightly (warm white balance shift)
+      d[i]   = Math.min(255, r * 1.06);
+      d[i+1] = Math.min(255, g * 1.0);
+      d[i+2] = Math.min(255, b * 0.82);
+      // slight contrast boost for richer tones
+      const gray = (d[i]+d[i+1]+d[i+2])/3;
+      const factor = 1.12;
+      d[i]   = Math.min(255, Math.max(0, gray + (d[i]-gray)*factor));
+      d[i+1] = Math.min(255, Math.max(0, gray + (d[i+1]-gray)*factor));
+      d[i+2] = Math.min(255, Math.max(0, gray + (d[i+2]-gray)*factor));
     }
     ctx.putImageData(imgData, 0, 0);
 
-    // step 3: warm cream overlay (multiply) — pushes everything toward warm beige
+    // step 3: soft warm overlay (multiply) — gentle beige tint
     ctx.globalCompositeOperation='multiply';
-    ctx.fillStyle='rgba(255, 220, 180, 0.45)';
+    ctx.fillStyle='rgba(255, 235, 210, 0.25)';
     ctx.fillRect(0, 0, size, size);
 
-    // step 4: soft-light golden glow — adds warmth without darkening
-    ctx.globalCompositeOperation='soft-light';
-    ctx.fillStyle='rgba(255, 200, 130, 0.3)';
-    ctx.fillRect(0, 0, size, size);
-
-    // step 5: slight brightness lift for the faded vintage look
+    // step 4: slight brightness lift
     ctx.globalCompositeOperation='screen';
-    ctx.fillStyle='rgba(255, 240, 220, 0.12)';
+    ctx.fillStyle='rgba(255, 245, 230, 0.08)';
     ctx.fillRect(0, 0, size, size);
 
-    // step 6: vignette for depth and focus
+    // step 5: subtle vignette
     ctx.globalCompositeOperation='source-over';
-    const grad=ctx.createRadialGradient(size/2, size/2, size*0.3, size/2, size/2, size*0.75);
+    const grad=ctx.createRadialGradient(size/2, size/2, size*0.35, size/2, size/2, size*0.72);
     grad.addColorStop(0, 'rgba(0,0,0,0)');
-    grad.addColorStop(1, 'rgba(50,35,20,0.25)');
+    grad.addColorStop(1, 'rgba(61,44,30,0.15)');
     ctx.fillStyle=grad;
     ctx.fillRect(0, 0, size, size);
 
-    // output as compressed JPEG
-    callback(canvas.toDataURL('image/jpeg', 0.78));
+    callback(canvas.toDataURL('image/jpeg', 0.82));
   };
   img.onerror=()=>{ toast('图片加载失败','error'); };
   img.src=dataUrl;
@@ -1459,9 +1450,19 @@ function renderWiki(){
     data.items.unshift({n:'',d:''});
     saveWikiNow();
     renderWiki();
-    // focus the first card's name input
-    const firstCard=document.querySelector('#wikiGrid .wiki-card-edit');
-    if(firstCard) firstCard.querySelector('.wk-name').focus();
+    // scroll to top so the new card is visible
+    window.scrollTo({top:0, behavior:'smooth'});
+    // focus the first card's name input after render
+    setTimeout(()=>{
+      const firstCard=document.querySelector('#wikiGrid .wiki-card-edit');
+      if(firstCard){
+        firstCard.querySelector('.wk-name').focus();
+        // visual highlight on the new card
+        firstCard.style.transition='box-shadow .4s ease';
+        firstCard.style.boxShadow='0 0 0 2px var(--brand), 0 4px 14px rgba(196,140,92,.25)';
+        setTimeout(()=>{ firstCard.style.boxShadow=''; }, 1500);
+      }
+    }, 100);
   };
 
   // delete selected
