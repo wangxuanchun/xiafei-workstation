@@ -191,6 +191,7 @@
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   #toast.success{background:var(--green);color:#fff}
   #toast.error{background:var(--red);color:#fff}
+  #toast.info{background:var(--brand);color:#fff}
 
   /* modal */
   #modal{position:fixed;inset:0;background:rgba(61,44,30,.45);display:none;align-items:center;justify-content:center;z-index:999;padding:24px}
@@ -440,7 +441,7 @@ const ICONS = {
   match:'<path d="M4 7h16M4 12h16M4 17h10"/><circle cx="18" cy="17" r="2.5"/>',
   book:'<path d="M4 5a2 2 0 012-2h12v18H6a2 2 0 01-2-2z"/><path d="M4 19a2 2 0 012-2h12"/>',
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
-  showcase:'<path d="M3 20h18L12 5z"/><path d="M6 15h12"/><path d="M9 10h6"/><circle cx="12" cy="3.5" r="1"/>',
+  showcase:'<path d="M3 21h18L12 3z"/><path d="M6.5 15h11"/><path d="M8 11h8"/><path d="M9.5 7h5"/>',
 };
 function svg(name,sw){return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" ${sw?'stroke-width="'+sw+'"':''}>${ICONS[name]||''}</svg>`}
 
@@ -501,9 +502,20 @@ function persist(silent){
   try{
     state.sync.localUpdatedAt = Date.now();
     writeLocal();
-    if(!silent) toast('✓ 已保存','success');
+    if(!silent){
+      toast('✓ 已保存','success');
+      // show sync status feedback
+      if(syncConfigured() && state.sync.autoSync){
+        setTimeout(()=>toast('正在同步到云端...','info'),600);
+      }else if(!syncConfigured()){
+        setTimeout(()=>toast('提示：未配置云同步，数据仅保存在本地','info'),600);
+      }
+    }
     scheduleSyncPush();
-  }catch(e){ toast('保存失败，存储空间可能已满','error'); }
+  }catch(e){
+    console.error('persist error',e);
+    toast('保存失败：'+(e.message||'存储空间可能已满'),'error');
+  }
 }
 function load(){
   try{
@@ -659,7 +671,8 @@ async function syncPush(silent){
     updateSyncStatusUI();
   }catch(e){
     console.warn('push failed',e);
-    if(!silent) toast('云同步失败：'+e.message,'error');
+    // always show sync errors (even in silent mode) so user knows data isn't synced
+    toast('云同步失败：'+(e.message||'网络错误'),'error');
   }
 }
 // PULL — read gist, apply remote if newer than last sync
@@ -881,32 +894,60 @@ function openShowcaseEditor(existing){
   const uploadArea=document.getElementById('scUpload');
   const nameInput=document.getElementById('scName');
   const descInput=document.getElementById('scDesc');
+  const okBtn=document.getElementById('scOk');
+  let imgProcessing=false;
 
-  // Image upload — process to square crop
+  // Image upload — process to square crop (300x300, compressed)
   uploadArea.onclick=()=>{
+    if(imgProcessing) return;
     const input=document.createElement('input');
     input.type='file'; input.accept='image/*';
     input.onchange=(e)=>{
       const file=e.target.files[0];
       if(!file) return;
       if(file.size>5*1024*1024){ toast('图片不能超过5MB','error'); return; }
+      imgProcessing=true;
+      okBtn.disabled=true; okBtn.style.opacity='0.5';
+      uploadArea.innerHTML='<span style="color:var(--brand);font-size:13px">处理中...</span>';
       const reader=new FileReader();
       reader.onload=()=>{
-        // Process: center-crop to 400x400
-        const img=new Image();
-        img.onload=()=>{
-          const size=400;
-          const canvas=document.createElement('canvas');
-          canvas.width=size; canvas.height=size;
-          const ctx=canvas.getContext('2d');
-          const minDim=Math.min(img.width,img.height);
-          const sx=(img.width-minDim)/2, sy=(img.height-minDim)/2;
-          ctx.drawImage(img,sx,sy,minDim,minDim,0,0,size,size);
-          image=canvas.toDataURL('image/jpeg',0.85);
-          uploadArea.classList.add('has-img');
-          uploadArea.innerHTML=`<img src="${image}" alt="">`;
-        };
-        img.src=reader.result;
+        try{
+          const img=new Image();
+          img.onload=()=>{
+            try{
+              const size=300;
+              const canvas=document.createElement('canvas');
+              canvas.width=size; canvas.height=size;
+              const ctx=canvas.getContext('2d');
+              const minDim=Math.min(img.width,img.height);
+              const sx=(img.width-minDim)/2, sy=(img.height-minDim)/2;
+              ctx.drawImage(img,sx,sy,minDim,minDim,0,0,size,size);
+              image=canvas.toDataURL('image/jpeg',0.75);
+              uploadArea.classList.add('has-img');
+              uploadArea.innerHTML=`<img src="${image}" alt="">`;
+              imgProcessing=false;
+              okBtn.disabled=false; okBtn.style.opacity='1';
+            }catch(err){
+              console.error('image process error',err);
+              toast('图片处理失败，请重试','error');
+              uploadArea.innerHTML=svg('upload')+'<span class="up-text">点击上传成品图片</span>';
+              imgProcessing=false;
+              okBtn.disabled=false; okBtn.style.opacity='1';
+            }
+          };
+          img.onerror=()=>{
+            toast('图片加载失败','error');
+            uploadArea.innerHTML=svg('upload')+'<span class="up-text">点击上传成品图片</span>';
+            imgProcessing=false;
+            okBtn.disabled=false; okBtn.style.opacity='1';
+          };
+          img.src=reader.result;
+        }catch(err){
+          console.error('reader error',err);
+          toast('图片读取失败','error');
+          imgProcessing=false;
+          okBtn.disabled=false; okBtn.style.opacity='1';
+        }
       };
       reader.readAsDataURL(file);
     };
@@ -914,7 +955,8 @@ function openShowcaseEditor(existing){
   };
 
   document.getElementById('scCancel').onclick=()=>{ modal.classList.remove('show'); };
-  document.getElementById('scOk').onclick=()=>{
+  okBtn.onclick=()=>{
+    if(imgProcessing){ toast('图片正在处理中，请稍候','error'); return; }
     const valName=nameInput.value.trim()||'未命名成品';
     const valDesc=descInput.value.trim();
     if(isEdit){
