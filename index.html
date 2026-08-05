@@ -695,18 +695,39 @@ async function syncPull(silent){
     }
     const remoteTs = remote.updatedAt || 0;
     if(remoteTs > state.sync.lastSyncedAt){
-      // guard: if local has unsaved changes, push first then merge
-      if(state.sync.localUpdatedAt > state.sync.lastSyncedAt){
-        // local has unsaved changes — push first, do NOT overwrite local data
-        scheduleSyncPush();
-        return false;
+      const localHasChanges = state.sync.localUpdatedAt > state.sync.lastSyncedAt;
+
+      // Smart merge for showcases: combine by ID, remote wins for conflicts
+      if(remote.showcases){
+        const merged=[];
+        const localMap=new Map(state.showcases.map(s=>[s.id,s]));
+        // Add all remote showcases (remote wins for same ID)
+        remote.showcases.forEach(rs=>{
+          merged.push(rs);
+          localMap.delete(rs.id);
+        });
+        // Add local-only showcases (not in remote)
+        localMap.forEach(s=>merged.push(s));
+        state.showcases=merged;
       }
-      // remote has changes since last sync → apply (last-write-wins handles conflicts)
+
+      if(localHasChanges){
+        // Local has unsaved changes: merge showcases (done above), keep local for other data
+        // Push merged result back to cloud so other devices get our local-only items
+        state.sync.localUpdatedAt = Date.now();
+        writeLocal();
+        render();
+        if(!silent) toast('✓ 已合并云端数据','success');
+        updateSyncStatusUI();
+        scheduleSyncPush();
+        return true;
+      }
+
+      // No local changes → safe to take all remote data
       state.recipes = remote.recipes||[];
       state.pantry = remote.pantry||[];
       state.wiki = remote.wiki||state.wiki||{};
       state.categories = remote.categories||state.categories||[];
-      state.showcases = remote.showcases||state.showcases||[];
       if(remote.aiImage) state.aiImage = Object.assign({...DEFAULT_AI}, remote.aiImage);
       if(remote.profile) state.profile = Object.assign({...DEFAULT_PROFILE}, remote.profile);
       state.sync.localUpdatedAt = remoteTs;
@@ -2285,12 +2306,16 @@ let lastPullTs=0;
 async function maybePullOnFocus(){
   if(!syncConfigured()) return;
   const now=Date.now();
-  if(now - lastPullTs < 15000) return; // throttle: at most once per 15s
+  if(now - lastPullTs < 10000) return; // throttle: at most once per 10s
   lastPullTs=now;
   await syncPull(true);
 }
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) maybePullOnFocus(); });
 window.addEventListener('focus', maybePullOnFocus);
+// periodic cloud poll every 30s for cross-device sync (catches updates even without focus events)
+if(syncConfigured()){
+  setInterval(()=>{ if(!document.hidden) maybePullOnFocus(); }, 30000);
+}
 
 // ---------- PWA Service Worker Registration ----------
 if('serviceWorker' in navigator){
