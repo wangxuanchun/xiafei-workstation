@@ -481,12 +481,13 @@ const GIST_FILE = 'recipe-atelier-data.json';
 const GIST_DESC = '甜品配方工作台 — 云同步数据';
 const DEFAULT_SYNC = { token:'', gistId:'', autoSync:true, lastSyncedAt:0, localUpdatedAt:0 };
 const DEFAULT_AI = { apiKey:'sk-ws-H.ERMLHDH.xhJ8.MEUCIQCBGExi5HRzX2j5KDwDXlbiMloZcAIbTTHanMN9Hkv41gIgbzOYbi_2bBGWVkZsThzCJPIHD01qb9Mpf6EzSckhr9w', model:'wan2.6-t2i' };
-let state = { recipes:[], pantry:[], wiki:{}, categories:[], sync:{...DEFAULT_SYNC}, aiImage:{...DEFAULT_AI}, activeTab:'gallery', wikiCat:'面粉类', gView:'home', catId:null, recipeId:null };
+const DEFAULT_PROFILE = { name:'XiaFei', avatar:'' };
+let state = { recipes:[], pantry:[], wiki:{}, categories:[], sync:{...DEFAULT_SYNC}, aiImage:{...DEFAULT_AI}, profile:{...DEFAULT_PROFILE}, activeTab:'gallery', wikiCat:'面粉类', gView:'home', catId:null, recipeId:null };
 
 // pure local write — no side effects, no toast, no sync trigger
 function writeLocal(){
   localStorage.setItem(KEY, JSON.stringify({
-    recipes:state.recipes, pantry:state.pantry, wiki:state.wiki, categories:state.categories, sync:state.sync, aiImage:state.aiImage
+    recipes:state.recipes, pantry:state.pantry, wiki:state.wiki, categories:state.categories, sync:state.sync, aiImage:state.aiImage, profile:state.profile
   }));
 }
 // public mutation saver — records local change time + triggers debounced cloud push
@@ -509,6 +510,7 @@ function load(){
       state.categories = d.categories||[];
       state.sync = Object.assign({...DEFAULT_SYNC}, d.sync||{});
       state.aiImage = Object.assign({...DEFAULT_AI}, d.aiImage||{});
+      state.profile = Object.assign({...DEFAULT_PROFILE}, d.profile||{});
     }
   }catch(e){ console.warn('load failed',e); }
   const hasLocal = state.recipes && state.recipes.length>0;
@@ -567,7 +569,8 @@ function buildPayload(){
     pantry: state.pantry,
     wiki: state.wiki,
     categories: state.categories,
-    aiImage: state.aiImage
+    aiImage: state.aiImage,
+    profile: state.profile
   };
 }
 // create a new secret gist, return its id
@@ -673,6 +676,7 @@ async function syncPull(silent){
       state.wiki = remote.wiki||state.wiki||{};
       state.categories = remote.categories||state.categories||[];
       if(remote.aiImage) state.aiImage = Object.assign({...DEFAULT_AI}, remote.aiImage);
+      if(remote.profile) state.profile = Object.assign({...DEFAULT_PROFILE}, remote.profile);
       state.sync.localUpdatedAt = remoteTs;
       state.sync.lastSyncedAt = remoteTs;
       writeLocal();
@@ -728,8 +732,8 @@ function toast(msg,type){
   void t.offsetWidth;
   t.className='show '+type;
   clearTimeout(toastTimer);
-  if(type==='success'){ toastTimer=setTimeout(()=>{ t.classList.remove('show'); },1500); }
-  // error persists until next action replaces it
+  const dur = type==='success' ? 1500 : 3000;
+  toastTimer=setTimeout(()=>{ t.classList.remove('show'); },dur);
 }
 
 /* ---------- Helpers ---------- */
@@ -1843,6 +1847,11 @@ function initTimer(){
     const {h,m}=getSelectedTime();
     const totalMs=(h*3600+m*60)*1000;
     if(totalMs===0){ toast('请设置时间','error'); return; }
+    // Pre-initialize AudioContext on user interaction (required by iOS)
+    try{
+      if(!timerState.audioCtx) timerState.audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      if(timerState.audioCtx.state==='suspended') timerState.audioCtx.resume();
+    }catch(e){}
     timerState.running=true;
     timerState.endTime=Date.now()+totalMs;
     localStorage.setItem('recipe-atelier-timer',JSON.stringify({running:true,endTime:timerState.endTime}));
@@ -1876,26 +1885,50 @@ function initTimer(){
   function playAlarmSound(){
     try{
       if(!timerState.audioCtx) timerState.audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      if(timerState.audioCtx.state==='suspended') timerState.audioCtx.resume();
       const ctx=timerState.audioCtx;
-      // Play 3 beeps
-      for(let i=0;i<3;i++){
+      // Play 5 ascending beeps for a more noticeable alarm
+      for(let i=0;i<5;i++){
         const osc=ctx.createOscillator();
         const gain=ctx.createGain();
         osc.connect(gain);
         gain.connect(ctx.destination);
-        osc.frequency.value=880;
+        osc.frequency.value=600+i*120;
         osc.type='sine';
-        const startT=ctx.currentTime+i*0.4;
+        const startT=ctx.currentTime+i*0.3;
         gain.gain.setValueAtTime(0, startT);
-        gain.gain.linearRampToValueAtTime(0.4, startT+0.05);
-        gain.gain.linearRampToValueAtTime(0.4, startT+0.25);
-        gain.gain.linearRampToValueAtTime(0, startT+0.35);
+        gain.gain.linearRampToValueAtTime(0.5, startT+0.03);
+        gain.gain.linearRampToValueAtTime(0.5, startT+0.18);
+        gain.gain.linearRampToValueAtTime(0, startT+0.25);
         osc.start(startT);
-        osc.stop(startT+0.35);
+        osc.stop(startT+0.25);
       }
+      // Schedule a second round after 1.5s
+      setTimeout(()=>{
+        if(!timerState.running) return; // only if still not dismissed
+        for(let i=0;i<5;i++){
+          const osc=ctx.createOscillator();
+          const gain=ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.value=600+i*120;
+          osc.type='sine';
+          const startT=ctx.currentTime+i*0.3;
+          gain.gain.setValueAtTime(0, startT);
+          gain.gain.linearRampToValueAtTime(0.5, startT+0.03);
+          gain.gain.linearRampToValueAtTime(0.5, startT+0.18);
+          gain.gain.linearRampToValueAtTime(0, startT+0.25);
+          osc.start(startT);
+          osc.stop(startT+0.25);
+        }
+      },1800);
     }catch(e){ console.warn('Audio playback failed',e); }
-    // Vibration on mobile
-    if(navigator.vibrate) navigator.vibrate([200,100,200,100,200]);
+    // Vibration — works on Android, no-op on iOS
+    if(navigator.vibrate){ navigator.vibrate([300,150,300,150,300,150,600]); }
+    // Also try Notification API as fallback
+    if('Notification' in window && Notification.permission==='granted'){
+      try{ new Notification('⏰ 时间到！',{ body:'计时器已完成', silent:false }); }catch(e){}
+    }
   }
 
   startBtn.onclick=startTimer;
@@ -1929,7 +1962,7 @@ function initMemo(){
 
   function renderList(){
     if(!memos.length){
-      listEl.innerHTML='<div class="memo-empty">点击 + 添加备忘</div>';
+      listEl.innerHTML='<div class="memo-empty">点击 + 添加备忘<br><br>记录你的烘焙灵感<br>配方调整笔记、购物清单...</div>';
       return;
     }
     listEl.innerHTML=memos.map((m,i)=>`
@@ -1980,8 +2013,8 @@ function renderProfile(){
     <div class="screen">
       <div class="hd"><h1>我的资料</h1></div>
       <div class="prof">
-        <div class="avatar">X</div>
-        <div class="un">XiaFei</div>
+        <div class="avatar" id="profAvatar" style="${state.profile.avatar?'background-image:url('+state.profile.avatar+');background-size:cover;background-position:center':''}">${state.profile.avatar?'':'X'}</div>
+        <div class="un" id="profName" contenteditable="true" spellcheck="false">${esc(state.profile.name)}</div>
         <div class="us">加油！你是最棒的！！</div>
         <div class="stat-row">
           <div class="stat"><div class="v">${total}</div><div class="l">配方</div></div>
@@ -2064,6 +2097,50 @@ function renderProfile(){
 
   document.getElementById('exportBtn').onclick=exportData;
   document.getElementById('importBtn').onclick=()=>document.getElementById('fileImport').click();
+  // Profile editing — avatar upload + name editing
+  const profAvatar=document.getElementById('profAvatar');
+  const profName=document.getElementById('profName');
+  profAvatar.style.cursor='pointer';
+  profAvatar.onclick=()=>{
+    const input=document.createElement('input');
+    input.type='file'; input.accept='image/*';
+    input.onchange=(e)=>{
+      const file=e.target.files[0];
+      if(!file) return;
+      if(file.size>3*1024*1024){ toast('头像不能超过3MB','error'); return; }
+      const reader=new FileReader();
+      reader.onload=()=>{
+        // Resize avatar to 120x120
+        const img=new Image();
+        img.onload=()=>{
+          const canvas=document.createElement('canvas');
+          canvas.width=120; canvas.height=120;
+          const ctx=canvas.getContext('2d');
+          const minDim=Math.min(img.width,img.height);
+          const sx=(img.width-minDim)/2, sy=(img.height-minDim)/2;
+          ctx.drawImage(img,sx,sy,minDim,minDim,0,0,120,120);
+          state.profile.avatar=canvas.toDataURL('image/jpeg',0.85);
+          persist(true);
+          renderProfile();
+          toast('头像已更新','success');
+        };
+        img.src=reader.result;
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+  profName.addEventListener('blur',()=>{
+    const val=profName.textContent.trim()||'XiaFei';
+    if(val!==state.profile.name){
+      state.profile.name=val;
+      persist(true);
+      toast('名字已更新','success');
+    }
+  });
+  profName.addEventListener('keydown',(e)=>{
+    if(e.key==='Enter'){ e.preventDefault(); profName.blur(); }
+  });
   // Timer + Memo
   initTimer();
   initMemo();
