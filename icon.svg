@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#F7F3EC"/>
+  <rect x="48" y="48" width="416" height="416" rx="80" fill="#C48C5C"/>
+  <!-- mixing bowl icon -->
+  <ellipse cx="256" cy="300" rx="140" ry="120" fill="#F7F3EC" opacity="0.95"/>
+  <ellipse cx="256" cy="270" rx="140" ry="100" fill="#E0BC94"/>
+  <path d="M140 260 Q256 200 372 260 L360 340 Q256 380 152 340 Z" fill="#3D2C1E"/>
+  <!-- whisk -->
+  <line x1="256" y1="120" x2="256" y2="220" stroke="#3D2C1E" stroke-width="8" stroke-linecap="round"/>
+  <path d="M230 220 Q256 280 282 220" fill="none" stroke="#3D2C1E" stroke-width="6" stroke-linecap="round"/>
+  <path d="M240 220 Q256 270 272 220" fill="none" stroke="#3D2C1E" stroke-width="5" stroke-linecap="round"/>
+  <path d="M250 220 Q256 260 262 220" fill="none" stroke="#3D2C1E" stroke-width="4" stroke-linecap="round"/>
+  <!-- decorative dots -->
+  <circle cx="200" cy="350" r="6" fill="#A66B3E"/>
+  <circle cx="312" cy="350" r="6" fill="#A66B3E"/>
+  <circle cx="256" cy="370" r="5" fill="#A66B3E"/>
+</svg>
