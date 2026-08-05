@@ -307,6 +307,10 @@
   .sc-card .sc-desc{font-size:11px;color:var(--sub);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .sc-card .sc-del{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;border:none;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;opacity:0;transition:opacity .2s}
   .sc-card:active .sc-del{opacity:1}
+  .sc-grid.del-mode .sc-del{opacity:1;background:var(--red)}
+  .sc-grid.del-mode .sc-card{box-shadow:0 0 0 2px var(--red) inset}
+  .hd-btn.danger.active{background:var(--red);color:#fff;opacity:1}
+  .hd-btn.danger.active svg{stroke:#fff}
   .sc-add{border:2px dashed var(--brand-soft);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1;gap:6px;cursor:pointer;color:var(--brand-deep);transition:all .15s}
   .sc-add:active{transform:scale(.97);background:var(--fill)}
   .sc-add svg{width:32px;height:32px;stroke:var(--brand);stroke-width:1.8;fill:none}
@@ -441,7 +445,7 @@ const ICONS = {
   match:'<path d="M4 7h16M4 12h16M4 17h10"/><circle cx="18" cy="17" r="2.5"/>',
   book:'<path d="M4 5a2 2 0 012-2h12v18H6a2 2 0 01-2-2z"/><path d="M4 19a2 2 0 012-2h12"/>',
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
-  showcase:'<path d="M3 21h18L12 3z"/><path d="M6.5 15h11"/><path d="M8 11h8"/><path d="M9.5 7h5"/>',
+  showcase:'<path d="M4 21h16L12 4z"/><path d="M4 21h16" stroke-width="2.5"/><path d="M6.5 16h11"/><path d="M8 11.5h8"/>',
 };
 function svg(name,sw){return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" ${sw?'stroke-width="'+sw+'"':''}>${ICONS[name]||''}</svg>`}
 
@@ -809,15 +813,24 @@ function renderNav(){
 }
 
 /* ---------- Tab 0: Showcase ---------- */
+let scDelMode=false;
 function renderShowcase(){
   const items = state.showcases || [];
   content.innerHTML = `
     <div class="screen">
       <div class="hd">
-        <h1>Showcase</h1>
-        <p>展示你的烘焙成品</p>
+        <div class="hd-row">
+          <div>
+            <h1>Showcase</h1>
+            <p>展示你的烘焙成品</p>
+          </div>
+          <div class="hd-actions">
+            <button class="hd-btn brand" id="scAdd">${svg('plus',2)}</button>
+            <button class="hd-btn danger ${scDelMode?'active':''}" id="scDelBtn" ${items.length===0?'disabled':''}>${svg('trash')}</button>
+          </div>
+        </div>
       </div>
-      <div class="sc-grid" id="scGrid">
+      <div class="sc-grid ${scDelMode?'del-mode':''}" id="scGrid">
         ${items.map(item=>`
           <div class="sc-card" data-id="${item.id}">
             <div class="sc-img">
@@ -830,27 +843,44 @@ function renderShowcase(){
             <button class="sc-del" data-del="${item.id}">✕</button>
           </div>
         `).join('')}
-        <div class="sc-add" id="scAdd">
-          ${svg('plus')}
-          <span>添加成品</span>
-        </div>
       </div>
+      ${items.length===0 ? `<div class="empty">还没有展示成品。<br>点击右上角 + 来添加。</div>` : ''}
     </div>`;
 
   // Add new
-  document.getElementById('scAdd').onclick=()=>openShowcaseEditor(null);
+  document.getElementById('scAdd').onclick=()=>{ scDelMode=false; openShowcaseEditor(null); };
 
-  // Click card to edit
+  // Toggle delete mode
+  const delBtn=document.getElementById('scDelBtn');
+  if(delBtn){
+    delBtn.onclick=()=>{
+      scDelMode=!scDelMode;
+      renderShowcase();
+    };
+  }
+
+  // Click card to edit (or delete in del mode)
   document.querySelectorAll('.sc-card').forEach(card=>{
     card.onclick=(e)=>{
       if(e.target.classList.contains('sc-del')) return;
-      const id=card.dataset.id;
-      const item=state.showcases.find(s=>s.id===id);
-      if(item) openShowcaseEditor(item);
+      if(scDelMode){
+        const id=card.dataset.id;
+        openModal('删除成品？','该展示卡片将被永久删除。',()=>{
+          state.showcases=state.showcases.filter(s=>s.id!==id);
+          persist(true);
+          if(state.showcases.length===0) scDelMode=false;
+          renderShowcase();
+          toast('已删除','success');
+        });
+      }else{
+        const id=card.dataset.id;
+        const item=state.showcases.find(s=>s.id===id);
+        if(item) openShowcaseEditor(item);
+      }
     };
   });
 
-  // Delete
+  // Delete via ✕ button
   document.querySelectorAll('.sc-del').forEach(btn=>{
     btn.onclick=(e)=>{
       e.stopPropagation();
@@ -858,6 +888,7 @@ function renderShowcase(){
       openModal('删除成品？','该展示卡片将被永久删除。',()=>{
         state.showcases=state.showcases.filter(s=>s.id!==id);
         persist(true);
+        if(state.showcases.length===0) scDelMode=false;
         renderShowcase();
         toast('已删除','success');
       });
@@ -915,14 +946,14 @@ function openShowcaseEditor(existing){
           const img=new Image();
           img.onload=()=>{
             try{
-              const size=300;
+              const size=400;
               const canvas=document.createElement('canvas');
               canvas.width=size; canvas.height=size;
               const ctx=canvas.getContext('2d');
               const minDim=Math.min(img.width,img.height);
               const sx=(img.width-minDim)/2, sy=(img.height-minDim)/2;
               ctx.drawImage(img,sx,sy,minDim,minDim,0,0,size,size);
-              image=canvas.toDataURL('image/jpeg',0.75);
+              image=canvas.toDataURL('image/jpeg',0.85);
               uploadArea.classList.add('has-img');
               uploadArea.innerHTML=`<img src="${image}" alt="">`;
               imgProcessing=false;
