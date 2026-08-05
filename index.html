@@ -1325,7 +1325,6 @@ function openCatEditor(existing){
         <span class="up-text">${image?'':'点击上传图片'}</span>
         ${image?`<span class="up-change">更换图片</span>`:''}
       </div>
-      <button class="cm-aigen" id="cmAiGen">🔍 AI 搜索生成</button>
       <div class="cm-label" style="margin-top:14px">分类名称</div>
       <input class="cm-input" id="cmName" value="${esc(name)}" placeholder="输入分类名称" maxlength="20">
     </div>
@@ -1356,21 +1355,6 @@ function openCatEditor(existing){
     };
     reader.readAsDataURL(file);
     e.target.value='';
-  };
-  // AI image search → pick → style edit
-  document.getElementById('cmAiGen').onclick=()=>{
-    const catName=nameInput.value.trim();
-    if(!catName){ toast('请先输入分类名称','error'); nameInput.focus(); return; }
-    if(!state.aiImage.apiKey){ toast('请先在「我的资料」中配置 API Key','error'); return; }
-    openSearchModal(catName, async(selectedImageUrl)=>{
-      // User picked an image → fetch → edit → process
-      const base64=await fetchImageAsBase64(selectedImageUrl);
-      const editedUrl=await editImageWithReference(base64);
-      const processed=await downloadAndProcessAI(editedUrl);
-      image=processed;
-      uploadArea.classList.add('has-img');
-      uploadArea.innerHTML=`<img src="${image}" alt=""><span class="up-change">更换图片</span>`;
-    });
   };
   // cancel
   document.getElementById('cmCancel').onclick=()=>{ modal.classList.remove('show'); };
@@ -1998,7 +1982,7 @@ function renderProfile(){
       <div class="prof">
         <div class="avatar">X</div>
         <div class="un">XiaFei</div>
-        <div class="us">家庭烘焙师 · 配方工作台</div>
+        <div class="us">加油！你是最棒的！！</div>
         <div class="stat-row">
           <div class="stat"><div class="v">${total}</div><div class="l">配方</div></div>
           <div class="stat"><div class="v">${stocked}</div><div class="l">食材</div></div>
@@ -2066,20 +2050,6 @@ function renderProfile(){
       </div>
 
       <div class="dm-card" style="margin-top:14px">
-        <div class="h"><span>AI 搜索生成</span><span class="sync-dot ${state.aiImage.apiKey?'on':''}"></span></div>
-        <div class="sync-body">
-          <div class="sync-field">
-            <label>百炼 API Key</label>
-            <input type="password" id="aiApiKey" value="${esc(state.aiImage.apiKey)}" placeholder="sk-…（阿里云百炼 DashScope）" autocomplete="off">
-          </div>
-          <button class="sync-btn primary block" id="saveAiKey">保存设置</button>
-          <div class="sync-hint">
-            在 <b>阿里云百炼控制台 → API-Key 管理</b> 创建 Key。AI 搜索生成流程：联网搜索食物参考图 → 你挑选一张 → wanx2.1-imageedit 保留主体并统一光影色调。Key 仅存储在本浏览器本地。
-          </div>
-        </div>
-      </div>
-
-      <div class="dm-card" style="margin-top:14px">
         <div class="h">本地备份</div>
         <button class="dm-item" id="exportBtn">
           <span class="ic">${svg('download')}</span>
@@ -2097,13 +2067,6 @@ function renderProfile(){
   // Timer + Memo
   initTimer();
   initMemo();
-  // AI image settings
-  document.getElementById('saveAiKey').onclick=()=>{
-    state.aiImage.apiKey=document.getElementById('aiApiKey').value.trim();
-    persist(true);
-    toast('AI 设置已保存','success');
-    renderProfile();
-  };
 
   if(connected){
     document.getElementById('syncNowBtn').onclick=async()=>{
