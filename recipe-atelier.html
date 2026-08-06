@@ -3076,6 +3076,12 @@ function bindGlobalFocusScroll(){
 }
 
 /* ---------- Boot ---------- */
+// Gallery Password Lock constants (must be defined before render() call)
+const GALLERY_PASSWORD='0823';
+const GALLERY_LOCK_KEY='gallery_unlocked';
+function isGalleryUnlocked(){
+  return localStorage.getItem(GALLERY_LOCK_KEY)==='true';
+}
 bindGlobalFocusScroll();
 load();
 // Auto-repair garbled text from previous encoding bug
@@ -3112,12 +3118,7 @@ if(syncConfigured()){
 }
 
 // ---------- Gallery Password Lock ----------
-const GALLERY_PASSWORD='0823';
-const GALLERY_LOCK_KEY='gallery_unlocked';
-
-function isGalleryUnlocked(){
-  return localStorage.getItem(GALLERY_LOCK_KEY)==='true';
-}
+// (constants & isGalleryUnlocked moved to Boot section above)
 
 function renderGalleryLock(){
   content.innerHTML=`
