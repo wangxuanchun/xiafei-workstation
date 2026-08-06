@@ -494,7 +494,7 @@ function seedRecipes(){
 const KEY = 'recipeAtelier.v1';
 const GIST_FILE = 'recipe-atelier-data.json';
 const GIST_DESC = '甜品配方工作台 — 云同步数据';
-const DEFAULT_SYNC = { token:'', gistId:'', workerUrl:'', syncCode:'', autoSync:true, lastSyncedAt:0, localUpdatedAt:0 };
+const DEFAULT_SYNC = { token:'', gistId:'', giteeToken:'', giteeRepo:'', autoSync:true, lastSyncedAt:0, localUpdatedAt:0 };
 const DEFAULT_AI = { apiKey:'sk-ws-H.ERMLHDH.xhJ8.MEUCIQCBGExi5HRzX2j5KDwDXlbiMloZcAIbTTHanMN9Hkv41gIgbzOYbi_2bBGWVkZsThzCJPIHD01qb9Mpf6EzSckhr9w', model:'wan2.6-t2i' };
 const DEFAULT_PROFILE = { name:'XiaFei', avatar:'' };
 let state = { recipes:[], pantry:[], wiki:{}, categories:[], showcases:[], sync:{...DEFAULT_SYNC}, aiImage:{...DEFAULT_AI}, profile:{...DEFAULT_PROFILE}, activeTab:'gallery', wikiCat:'面粉类', gView:'home', catId:null, recipeId:null };
@@ -579,11 +579,11 @@ function load(){
    Docs: https://docs.github.com/rest/gists  (Bearer token, gist scope)
    ============================================================ */
 function syncConfigured(){
-  // CF backend takes priority, then GitHub Gist
-  return !!(state.sync.workerUrl && state.sync.syncCode) || !!(state.sync.token && state.sync.gistId);
+  // Gitee backend takes priority, then GitHub Gist
+  return !!(state.sync.giteeToken && state.sync.giteeRepo) || !!(state.sync.token && state.sync.gistId);
 }
 function syncBackend(){
-  if(state.sync.workerUrl && state.sync.syncCode) return 'cf';
+  if(state.sync.giteeToken && state.sync.giteeRepo) return 'gitee';
   if(state.sync.token && state.sync.gistId) return 'gh';
   return null;
 }
@@ -671,87 +671,124 @@ async function connectSync(token, gistId){
 function disconnectSync(){
   // keep data, just forget all credentials
   state.sync.token=''; state.sync.gistId='';
-  state.sync.workerUrl=''; state.sync.syncCode='';
+  state.sync.giteeToken=''; state.sync.giteeRepo='';
   state.sync.lastSyncedAt=0;
   writeLocal();
 }
 
-/* ---------- Cloudflare Worker Sync Backend ---------- */
-/* Works in China (Cloudflare has edge nodes), free, fast.
-   Requires deploying a simple Worker (see instructions in profile page).
-   - POST   /create        → { id: "uuid" }
-   - GET    /data/:id      → JSON payload or null
-   - PUT    /data/:id      → { ok: true }
+/* ---------- Gitee Sync Backend (works in China) ---------- */
+/* Gitee API: https://gitee.com/api/v5
+   Uses a private repo's file as sync storage.
+   - GET  /repos/{owner}/{repo}/contents/{path}  → read file (returns base64 content + sha)
+   - POST /repos/{owner}/{repo}/contents/{path}  → create file
+   - PUT  /repos/{owner}/{repo}/contents/{path}  → update file (needs sha)
+   - POST /user                                     → validate token + get username
 */
-function cfBaseUrl(){ return (state.sync.workerUrl||'').replace(/\/+$/,''); }
-async function cfCreateSync(workerUrl){
-  const base = workerUrl.replace(/\/+$/,'');
-  const res = await fetch(base+'/create', { method:'POST' });
-  if(!res.ok) throw new Error('创建同步空间失败（状态码 '+res.status+'）');
+const GITEE_API = 'https://gitee.com/api/v5';
+const GITEE_SYNC_FILE = 'recipe-atelier-data.json';
+
+async function giteeValidateToken(token){
+  const res = await fetch(GITEE_API+'/user?access_token='+encodeURIComponent(token));
+  if(!res.ok) throw new Error('Gitee 令牌无效（状态码 '+res.status+'）');
   const d = await res.json();
-  if(!d.id) throw new Error('服务器未返回同步 ID');
-  return d.id;
+  return d.login; // username
 }
-async function cfReadSync(){
-  const res = await fetch(cfBaseUrl()+'/data/'+state.sync.syncCode);
-  if(res.status===404) return null;
-  if(!res.ok) throw new Error('读取同步数据失败（状态码 '+res.status+'）');
-  const text = await res.text();
-  if(!text || text==='null' || text==='')
-  return null;
-  return JSON.parse(text);
-}
-async function cfUpdateSync(){
-  const res = await fetch(cfBaseUrl()+'/data/'+state.sync.syncCode, {
-    method:'PUT',
+async function giteeCreateRepo(token, owner, repoName){
+  const res = await fetch(GITEE_API+'/user/repos', {
+    method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(buildPayload())
+    body: JSON.stringify({
+      access_token: token,
+      name: repoName,
+      private: true,
+      auto_init: true
+    })
   });
-  if(!res.ok) throw new Error('更新同步数据失败（状态码 '+res.status+'）');
+  if(!res.ok){
+    const t = await res.text();
+    // repo might already exist, that's ok
+    if(t.includes('已存在')||t.includes('already')) return true;
+    throw new Error('创建仓库失败：'+t.substring(0,200));
+  }
   return true;
 }
-async function cfConnectSync(workerUrl, syncCode){
-  workerUrl=(workerUrl||'').trim().replace(/\/+$/,'');
-  syncCode=(syncCode||'').trim();
-  if(!workerUrl) throw new Error('请输入同步服务器地址');
-  // test connectivity
-  try{
-    const test = await fetch(workerUrl+'/ping');
-    if(!test.ok && test.status!==404) throw new Error('服务器响应异常');
-  }catch(e){
-    throw new Error('无法连接到同步服务器，请检查地址是否正确');
+async function giteeReadFile(token, owner, repo){
+  const url = GITEE_API+'/repos/'+owner+'/'+repo+'/contents/'+GITEE_SYNC_FILE+'?access_token='+encodeURIComponent(token);
+  const res = await fetch(url);
+  if(res.status===404) return null; // file not created yet
+  if(!res.ok) throw new Error('读取同步数据失败（状态码 '+res.status+'）');
+  const d = await res.json();
+  if(!d.content) return null;
+  // Gitee returns base64 content, decode it
+  const text = atob(d.content.replace(/\n/g,''));
+  if(!text || text==='null') return null;
+  return { data: JSON.parse(text), sha: d.sha };
+}
+async function giteeWriteFile(token, owner, repo, content, sha){
+  const url = GITEE_API+'/repos/'+owner+'/'+repo+'/contents/'+GITEE_SYNC_FILE;
+  const body = {
+    access_token: token,
+    content: btoa(unescape(encodeURIComponent(JSON.stringify(content)))),
+    message: 'sync: ' + new Date().toISOString()
+  };
+  if(sha) body.sha = sha; // needed for update
+  const method = sha ? 'PUT' : 'POST';
+  const res = await fetch(url, {
+    method: method,
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  if(!res.ok){
+    const t = await res.text();
+    // If sha mismatch (409 conflict), re-read and retry once
+    if(res.status===409 || t.includes('sha')){
+      const fresh = await giteeReadFile(token, owner, repo);
+      if(fresh){
+        body.sha = fresh.sha;
+        const res2 = await fetch(url, {
+          method:'PUT',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(body)
+        });
+        if(!res2.ok) throw new Error('更新同步数据失败（重试后仍失败）');
+        return true;
+      }
+    }
+    throw new Error('写入同步数据失败（状态码 '+res.status+'）：'+t.substring(0,150));
   }
-  if(syncCode){
-    // connect to existing sync space
-    state.sync.workerUrl = workerUrl;
-    state.sync.syncCode = syncCode;
-    // clear GH config to avoid conflict
-    state.sync.token=''; state.sync.gistId='';
-    writeLocal();
-    await syncNow(true);
+  return true;
+}
+async function giteeConnectSync(token, repoOrOwner){
+  token=(token||'').trim();
+  if(!token) throw new Error('请输入 Gitee 私人令牌');
+  const owner = await giteeValidateToken(token);
+  // repoOrOwner can be "owner/repo" format or just repo name
+  let repo='';
+  if(repoOrOwner && repoOrOwner.trim()){
+    const parts = repoOrOwner.trim().split('/');
+    repo = parts.length>1 ? parts[1] : parts[0];
   }else{
-    // create new sync space
-    const id = await cfCreateSync(workerUrl);
-    state.sync.workerUrl = workerUrl;
-    state.sync.syncCode = id;
-    state.sync.token=''; state.sync.gistId='';
-    state.sync.lastSyncedAt = state.sync.localUpdatedAt || Date.now();
-    writeLocal();
-    // push initial data
-    await syncPush(true);
+    repo = 'recipe-sync';
   }
+  await giteeCreateRepo(token, owner, repo);
+  state.sync.giteeToken = token;
+  state.sync.giteeRepo = owner+'/'+repo;
+  // clear GH config
+  state.sync.token=''; state.sync.gistId='';
+  writeLocal();
+  await syncNow(true);
 }
 // generate a shareable sync link for other devices
 function generateSyncLink(){
   const base = window.location.origin + window.location.pathname;
-  return base + '#sync=' + encodeURIComponent(state.sync.workerUrl) + ',' + state.sync.syncCode;
+  return base + '#sync=gitee,' + encodeURIComponent(state.sync.giteeToken) + ',' + encodeURIComponent(state.sync.giteeRepo);
 }
 // check URL hash for sync config (for device pairing via link)
 function checkUrlForSyncConfig(){
-  const m = window.location.hash.match(/^#sync=(.+),(.+)$/);
+  const m = window.location.hash.match(/^#sync=gitee,(.+),(.+)$/);
   if(m && m[1] && m[2]){
-    state.sync.workerUrl = decodeURIComponent(m[1]);
-    state.sync.syncCode = m[2];
+    state.sync.giteeToken = decodeURIComponent(m[1]);
+    state.sync.giteeRepo = decodeURIComponent(m[2]);
     state.sync.token=''; state.sync.gistId='';
     writeLocal();
     history.replaceState(null,'',window.location.pathname);
@@ -767,7 +804,13 @@ async function syncPush(silent){
   if(state.sync.localUpdatedAt <= state.sync.lastSyncedAt){ return; }
   try{
     const backend = syncBackend();
-    if(backend==='cf') await cfUpdateSync();
+    if(backend==='gitee'){
+      const [owner,repo] = state.sync.giteeRepo.split('/');
+      // read current sha first
+      let sha=null;
+      try{ const f=await giteeReadFile(state.sync.giteeToken,owner,repo); if(f) sha=f.sha; }catch(e){}
+      await giteeWriteFile(state.sync.giteeToken, owner, repo, buildPayload(), sha);
+    }
     else await ghUpdateGist();
     state.sync.lastSyncedAt = state.sync.localUpdatedAt;
     writeLocal();
@@ -800,7 +843,14 @@ async function syncPull(silent){
   if(!syncConfigured()) return false;
   try{
     const backend = syncBackend();
-    const remote = backend==='cf' ? await cfReadSync() : await ghReadGist();
+    let remote = null;
+    if(backend==='gitee'){
+      const [owner,repo] = state.sync.giteeRepo.split('/');
+      const result = await giteeReadFile(state.sync.giteeToken, owner, repo);
+      remote = result ? result.data : null;
+    }else{
+      remote = await ghReadGist();
+    }
     if(!remote || !remote.recipes){
       // cloud empty but local empty too → seed
       if(!state.recipes.length){
@@ -2189,7 +2239,7 @@ function renderProfile(){
   const stocked=state.pantry.length;
   const connected=syncConfigured();
   const backend=syncBackend();
-  const cfConnected = backend==='cf';
+  const giteeConnected = backend==='gitee';
   const ghConnected = backend==='gh';
   const gistUrl = ghConnected ? 'https://gist.github.com/'+state.sync.gistId : '';
   content.innerHTML=`
@@ -2216,11 +2266,12 @@ function renderProfile(){
           <span class="sync-dot ${connected?'on':''}"></span>
         </div>
         <div class="sync-body">
-          ${cfConnected ? `
+          ${giteeConnected ? `
             <div class="sync-row">
               <div>
-                <div class="sync-on">⚡ 快速同步已连接</div>
+                <div class="sync-on">⚡ Gitee 同步已连接</div>
                 <div class="sync-sub" id="syncStatusLine">上次同步 ${fmtSyncTime(state.sync.lastSyncedAt)}</div>
+                <div class="sync-sub">仓库：${esc(state.sync.giteeRepo)}</div>
               </div>
             </div>
             <div class="sync-row between">
@@ -2251,22 +2302,24 @@ function renderProfile(){
               <button class="sync-btn ghost" id="disconnectBtn">断开连接</button>
             </div>
           ` : `
-            <div class="sync-section-title">⚡ 快速同步（推荐）</div>
+            <div class="sync-section-title">⚡ Gitee 同步（推荐，国内快速）</div>
             <div class="sync-field">
-              <label>同步服务器地址</label>
-              <input type="text" id="cfWorkerUrl" placeholder="https://your-worker.workers.dev" autocomplete="off">
+              <label>Gitee 私人令牌</label>
+              <input type="password" id="giteeToken" placeholder="在 Gitee → 设置 → 私人令牌 创建" autocomplete="off">
             </div>
-            <button class="sync-btn primary block" id="cfCreateBtn">创建同步空间</button>
-            <div class="sync-divider">— 或输入同步码连接已有空间 —</div>
             <div class="sync-field">
-              <label>同步码</label>
-              <input type="text" id="cfSyncCode" placeholder="从其他设备复制的同步码" autocomplete="off">
+              <label>仓库名 <span class="opt">— 可选，留空自动创建</span></label>
+              <input type="text" id="giteeRepo" placeholder="如 recipe-sync，留空自动创建" autocomplete="off">
             </div>
-            <button class="sync-btn primary block" id="cfConnectBtn">连接</button>
+            <button class="sync-btn primary block" id="giteeConnectBtn">连接 Gitee 同步</button>
             <div class="sync-hint">
-              快速同步使用 Cloudflare 全球网络，国内手机也能快速访问，无需电脑在线。
+              1. 注册 <b>Gitee.com</b> 账号<br>
+              2. 进入 <b>设置 → 私人令牌 → 生成新令牌</b><br>
+              3. 勾选 <b>projects</b> 权限，生成后复制令牌<br>
+              4. 将令牌粘贴到上方输入框，点击连接<br>
+              <br>Gitee 是国内平台，手机端和电脑端都能快速同步，无需电脑在线。
             </div>
-            <div class="sync-divider" style="margin-top:16px">— 或使用 GitHub Gist —</div>
+            <div class="sync-divider" style="margin-top:16px">— 或使用 GitHub Gist（国外） —</div>
             <div class="sync-field">
               <label>GitHub 个人访问令牌</label>
               <input type="password" id="syncToken" placeholder="ghp_…（需要 gist 权限）" autocomplete="off">
@@ -2342,7 +2395,7 @@ function renderProfile(){
   // Memo
   initMemo();
 
-  if(cfConnected){
+  if(giteeConnected){
     document.getElementById('copyLinkBtn').onclick=()=>{
       const link=generateSyncLink();
       if(navigator.clipboard){
@@ -2387,36 +2440,20 @@ function renderProfile(){
       state.sync.autoSync=!state.sync.autoSync; writeLocal(); renderProfile();
     };
   }else{
-    // CF create
-    document.getElementById('cfCreateBtn').onclick=async()=>{
-      const url=document.getElementById('cfWorkerUrl').value.trim();
-      const btn=document.getElementById('cfCreateBtn');
-      if(!url){ toast('请输入同步服务器地址','error'); return; }
-      btn.textContent='创建中…'; btn.disabled=true;
-      try{
-        await cfConnectSync(url,'');
-        toast('✓ 快速同步已连接！点击「复制同步链接」分享给其他设备','success');
-        renderProfile();
-      }catch(e){
-        toast(e.message||'创建失败','error');
-        btn.textContent='创建同步空间'; btn.disabled=false;
-      }
-    };
-    // CF connect with existing code
-    document.getElementById('cfConnectBtn').onclick=async()=>{
-      const url=document.getElementById('cfWorkerUrl').value.trim();
-      const code=document.getElementById('cfSyncCode').value.trim();
-      const btn=document.getElementById('cfConnectBtn');
-      if(!url){ toast('请输入同步服务器地址','error'); return; }
-      if(!code){ toast('请输入同步码','error'); return; }
+    // Gitee connect
+    document.getElementById('giteeConnectBtn').onclick=async()=>{
+      const tk=document.getElementById('giteeToken').value.trim();
+      const repo=document.getElementById('giteeRepo').value.trim();
+      const btn=document.getElementById('giteeConnectBtn');
+      if(!tk){ toast('请输入 Gitee 私人令牌','error'); return; }
       btn.textContent='连接中…'; btn.disabled=true;
       try{
-        await cfConnectSync(url,code);
-        toast('✓ 已连接并同步','success');
+        await giteeConnectSync(tk, repo);
+        toast('✓ Gitee 同步已连接！点击「复制同步链接」分享给其他设备','success');
         renderProfile();
       }catch(e){
         toast(e.message||'连接失败','error');
-        btn.textContent='连接'; btn.disabled=false;
+        btn.textContent='连接 Gitee 同步'; btn.disabled=false;
       }
     };
     // GH connect
