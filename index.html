@@ -15,10 +15,10 @@
 <title>甜品配方工作台</title>
 <style>
   :root{
-    --bg:#F8F9F4; --brand:#6B8E4E; --brand-deep:#556B2F; --brand-soft:#B5C99A;
-    --card:#FFFFFF; --ink:#2D3A1F; --sub:#7A8B6B; --line:#E0E8D5; --fill:#EEF2E6;
+    --bg:#F7F3EC; --brand:#6B8E4E; --brand-deep:#556B2F; --brand-soft:#B5C99A;
+    --card:#FFFFFF; --ink:#3D2E1F; --sub:#8B7355; --line:#E8DCC8; --fill:#F0E8D8;
     --green:#6B8E4E; --red:#C45C48;
-    --shadow:0 3px 10px rgba(45,58,31,.06); --shadow-lg:0 10px 30px rgba(45,58,31,.10);
+    --shadow:0 3px 10px rgba(139,111,78,.06); --shadow-lg:0 10px 30px rgba(139,111,78,.10);
     --radius:16px; --radius-sm:12px;
     --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
   }
@@ -108,7 +108,7 @@
   .ed-block{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
   .ed-label{font-size:11.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--sub);margin-bottom:8px}
   .ed-name{width:100%;border:none;font-size:21px;font-weight:800;color:var(--ink);background:transparent;padding:2px 0;outline:none}
-  .ed-sel{width:100%;padding:11px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--fill);font-size:14px;font-weight:600;color:var(--ink);outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A8B6B' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+  .ed-sel{width:100%;padding:11px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--fill);font-size:14px;font-weight:600;color:var(--ink);outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A68A7A' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
   .ing-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
   .ing-row .in-name{flex:1;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-size:14px;outline:none;min-width:0}
   .ing-row .in-gram{width:84px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-size:14px;outline:none;text-align:center}
@@ -205,6 +205,10 @@
   .msheet .ma button{flex:1;padding:13px;border-radius:13px;font-weight:700;font-size:14px}
   .mb-cancel{background:var(--fill);color:var(--ink)}
   .mb-ok{background:var(--red);color:#fff}
+  .msheet .ma-opt{flex:1;padding:13px;border-radius:13px;font-weight:700;font-size:14px;background:var(--fill);color:var(--ink);text-align:center}
+  .msheet .ma-opt.brand{background:var(--brand);color:#fff}
+  .msheet .ma-opt.danger{background:var(--red);color:#fff}
+  .msheet .ma-opt:active{opacity:.8}
 
   /* cloud sync */
   .dm-card .h{display:flex;align-items:center;justify-content:space-between}
@@ -2159,10 +2163,8 @@ function renderWiki(){
             <p>每种食材都有它的故事</p>
           </div>
           <div class="hd-actions">
-            <button class="hd-btn" id="wikiAddCat" title="添加分类">${svg('folder-plus')}</button>
-            <button class="hd-btn danger" id="wikiDelCat" title="删除当前分类">${svg('trash')}</button>
             <button class="hd-btn brand" id="wikiAdd">${svg('plus',2)}</button>
-            <button class="hd-btn danger" id="wikiDel" disabled>${svg('trash')}</button>
+            <button class="hd-btn danger" id="wikiDel">${svg('trash')}</button>
           </div>
         </div>
       </div>
@@ -2179,31 +2181,75 @@ function renderWiki(){
     b.onclick=()=>{ saveWikiNow(); state.wikiCat=b.dataset.wcat; renderWiki(); };
   });
 
-  // add category
-  document.getElementById('wikiAddCat').onclick=()=>{
-    const name=prompt('输入新分类名称：');
-    if(!name||!name.trim()) return;
-    name=name.trim();
-    if(state.wiki[name]){ toast('该分类已存在','error'); return; }
-    state.wiki[name]={icon:'spice',items:[]};
-    state.wikiCat=name;
-    persist(true);
-    renderWiki();
-    toast('已添加分类：'+name,'success');
+  // add — chooser: category or item
+  document.getElementById('wikiAdd').onclick=()=>{
+    openActionSheet('添加','请选择添加类型',[
+      {label:'添加分类',variant:'brand',action:()=>{
+        const name=prompt('输入新分类名称：');
+        if(!name||!name.trim()) return;
+        name=name.trim();
+        if(state.wiki[name]){ toast('该分类已存在','error'); return; }
+        state.wiki[name]={icon:'spice',items:[]};
+        state.wikiCat=name;
+        persist(true);
+        renderWiki();
+        toast('已添加分类：'+name,'success');
+      }},
+      {label:'添加食材',action:()=>{
+        clearTimeout(wikiSaveTimer);
+        const cat=state.wikiCat||Object.keys(state.wiki)[0];
+        const cur=state.wiki[cat];
+        if(!cur){ toast('数据异常，无法添加','error'); return; }
+        if(!cur.items) cur.items=[];
+        cur.items.unshift({n:'',d:''});
+        renderWiki();
+        window.scrollTo({top:0, behavior:'smooth'});
+        setTimeout(()=>{
+          const firstCard=document.querySelector('#wikiGrid .wiki-card-edit');
+          if(firstCard){
+            firstCard.querySelector('.wk-name').focus();
+            firstCard.style.transition='box-shadow .4s ease';
+            firstCard.style.boxShadow='0 0 0 2px var(--brand), 0 4px 14px rgba(139,111,78,.25)';
+            setTimeout(()=>{ firstCard.style.boxShadow=''; }, 1500);
+          }
+          persist(true);
+          toast('已添加新行','success');
+        }, 100);
+      }},
+      {label:'取消'},
+    ]);
   };
 
-  // delete current category
-  document.getElementById('wikiDelCat').onclick=()=>{
-    const cats=Object.keys(state.wiki);
-    if(cats.length<=1){ toast('至少保留一个分类','error'); return; }
-    const cur=state.wikiCat||cats[0];
-    openModal('删除分类？',`确认删除分类「${cur}」及其所有食材？此操作无法撤销。`,()=>{
-      delete state.wiki[cur];
-      state.wikiCat=Object.keys(state.wiki)[0];
-      persist(true);
-      renderWiki();
-      toast('已删除分类：'+cur,'success');
-    });
+  // delete — chooser: category or selected items
+  document.getElementById('wikiDel').onclick=()=>{
+    const hasSel=wikiSelected.size>0;
+    const opts=[
+      {label:'删除当前分类',variant:'danger',action:()=>{
+        const cats=Object.keys(state.wiki);
+        if(cats.length<=1){ toast('至少保留一个分类','error'); return; }
+        const cur=state.wikiCat||cats[0];
+        openModal('删除分类？',`确认删除分类「${cur}」及其所有食材？此操作无法撤销。`,()=>{
+          delete state.wiki[cur];
+          state.wikiCat=Object.keys(state.wiki)[0];
+          persist(true);
+          renderWiki();
+          toast('已删除分类：'+cur,'success');
+        });
+      }},
+    ];
+    if(hasSel){
+      opts.push({label:`删除选中食材(${wikiSelected.size})`,variant:'danger',action:()=>{
+        openModal('删除选中的食材？',`确认删除选中的 ${wikiSelected.size} 项食材？此操作无法撤销。`,()=>{
+          const indices=Array.from(wikiSelected).sort((a,b)=>b-a);
+          indices.forEach(idx=>{ data.items.splice(idx,1); });
+          saveWikiNow();
+          renderWiki();
+          toast('已删除选中食材','success');
+        });
+      }});
+    }
+    opts.push({label:'取消'});
+    openActionSheet('删除','请选择删除类型',opts);
   };
 
   // auto-save on input
@@ -2222,50 +2268,13 @@ function renderWiki(){
   });
 
   // add item — insert at TOP so user doesn't need to scroll down
-  document.getElementById('wikiAdd').onclick=()=>{
-    // clear any pending save timer — its commitWikiSave would read old DOM and discard the new empty item
-    clearTimeout(wikiSaveTimer);
-    // use state directly for robustness (avoid stale closure)
-    const cat=state.wikiCat||Object.keys(state.wiki)[0];
-    const cur=state.wiki[cat];
-    if(!cur){ toast('数据异常，无法添加','error'); return; }
-    if(!cur.items) cur.items=[];
-    cur.items.unshift({n:'',d:''});
-    // render first (shows the new card), then save after a short delay
-    renderWiki();
-    // scroll to top so the new card is visible
-    window.scrollTo({top:0, behavior:'smooth'});
-    // focus the first card's name input after render
-    setTimeout(()=>{
-      const firstCard=document.querySelector('#wikiGrid .wiki-card-edit');
-      if(firstCard){
-        firstCard.querySelector('.wk-name').focus();
-        // visual highlight on the new card
-        firstCard.style.transition='box-shadow .4s ease';
-        firstCard.style.boxShadow='0 0 0 2px var(--brand), 0 4px 14px rgba(196,140,92,.25)';
-        setTimeout(()=>{ firstCard.style.boxShadow=''; }, 1500);
-      }
-      // now save — the new item is in the DOM and won't be lost
-      persist(true);
-      toast('已添加新行','success');
-    }, 100);
-  };
+  // (moved to wikiAdd action sheet above)
 
-  // delete selected
-  document.getElementById('wikiDel').onclick=()=>{
-    if(wikiSelected.size===0) return;
-    openModal('删除选中的食材？',`确认删除选中的 ${wikiSelected.size} 项食材？此操作无法撤销。`,()=>{
-      const indices=Array.from(wikiSelected).sort((a,b)=>b-a);
-      indices.forEach(idx=>{ data.items.splice(idx,1); });
-      saveWikiNow();
-      renderWiki();
-      toast('已删除选中食材','success');
-    });
-  };
+  // delete selected — (moved to wikiDel action sheet above)
 
   function updateWikiDelBtn(){
     const btn=document.getElementById('wikiDel');
-    if(btn) btn.disabled = wikiSelected.size===0;
+    if(btn) btn.disabled = false; // always enabled: category delete is always available
   }
 }
 
@@ -2623,6 +2632,20 @@ function openModal(title,desc,onOk){
   document.getElementById('mbOk').onclick=()=>{ const cb=modalCb; closeModal(); if(cb) cb(); };
 }
 function closeModal(){ document.getElementById('modal').classList.remove('show'); modalCb=null; }
+function openActionSheet(title, desc, options){
+  document.getElementById('modal').innerHTML=`
+    <div class="msheet">
+      <div class="mb"><div class="mt">${title}</div><div class="md">${desc||''}</div></div>
+      <div class="ma" style="flex-direction:column;gap:8px">
+        ${options.map((o,i)=>`<button class="ma-opt ${o.variant||''}" data-idx="${i}">${o.label}</button>`).join('')}
+      </div>
+    </div>`;
+  document.getElementById('modal').classList.add('show');
+  options.forEach((o,i)=>{
+    const btn=document.querySelector(`.ma-opt[data-idx="${i}"]`);
+    if(btn) btn.onclick=()=>{ closeModal(); if(o.action) o.action(); };
+  });
+}
 document.getElementById('modal').onclick=(e)=>{ if(e.target.id==='modal') closeModal(); };
 
 /* ---------- Mobile: scroll input into view on focus (global delegated) ---------- */
