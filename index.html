@@ -719,8 +719,8 @@ async function giteeReadFile(token, owner, repo){
   if(!res.ok) throw new Error('读取同步数据失败（状态码 '+res.status+'）');
   const d = await res.json();
   if(!d.content) return null;
-  // Gitee returns base64 content, decode it
-  const text = atob(d.content.replace(/\n/g,''));
+  // Gitee returns base64 content, decode it with UTF-8 support
+  const text = decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))));
   if(!text || text==='null') return null;
   return { data: JSON.parse(text), sha: d.sha };
 }
