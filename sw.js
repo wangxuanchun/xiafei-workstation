@@ -1,7 +1,7 @@
 // Service Worker — 甜品配方工作台 PWA
 // 缓存策略：network-first for HTML, cache-first for static assets
 
-const CACHE_NAME = 'recipe-atelier-v30';
+const CACHE_NAME = 'recipe-atelier-v31';
 const MAIN_URL = './';
 
 // 安装时预缓存主页面
@@ -17,9 +17,8 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 // 请求拦截 — HTML 用 network-first（保证及时更新），其他资源用 stale-while-revalidate
