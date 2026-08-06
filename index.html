@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="theme-color" content="#C48C5C">
+<meta name="theme-color" content="#6B8E4E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="配方工作台">
@@ -15,10 +15,10 @@
 <title>甜品配方工作台</title>
 <style>
   :root{
-    --bg:#F7F3EC; --brand:#C48C5C; --brand-deep:#A66B3E; --brand-soft:#E0BC94;
-    --card:#FFFFFF; --ink:#3D2C1E; --sub:#9A8474; --line:#EBE2D4; --fill:#F2EBE0;
-    --green:#3FAE7A; --red:#C45C48;
-    --shadow:0 3px 10px rgba(61,44,30,.06); --shadow-lg:0 10px 30px rgba(61,44,30,.10);
+    --bg:#F8F9F4; --brand:#6B8E4E; --brand-deep:#556B2F; --brand-soft:#B5C99A;
+    --card:#FFFFFF; --ink:#2D3A1F; --sub:#7A8B6B; --line:#E0E8D5; --fill:#EEF2E6;
+    --green:#6B8E4E; --red:#C45C48;
+    --shadow:0 3px 10px rgba(45,58,31,.06); --shadow-lg:0 10px 30px rgba(45,58,31,.10);
     --radius:16px; --radius-sm:12px;
     --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
   }
@@ -108,7 +108,7 @@
   .ed-block{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
   .ed-label{font-size:11.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--sub);margin-bottom:8px}
   .ed-name{width:100%;border:none;font-size:21px;font-weight:800;color:var(--ink);background:transparent;padding:2px 0;outline:none}
-  .ed-sel{width:100%;padding:11px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--fill);font-size:14px;font-weight:600;color:var(--ink);outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A68A7A' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+  .ed-sel{width:100%;padding:11px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--fill);font-size:14px;font-weight:600;color:var(--ink);outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A8B6B' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
   .ing-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
   .ing-row .in-name{flex:1;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-size:14px;outline:none;min-width:0}
   .ing-row .in-gram{width:84px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-size:14px;outline:none;text-align:center}
@@ -450,6 +450,7 @@ const ICONS = {
   book:'<path d="M4 5a2 2 0 012-2h12v18H6a2 2 0 01-2-2z"/><path d="M4 19a2 2 0 012-2h12"/>',
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
   showcase:'<path d="M4 21h16L12 4z"/><path d="M4 21h16" stroke-width="2.5"/><path d="M6.5 16h11"/><path d="M8 11.5h8"/>',
+  'folder-plus':'<path d="M3 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M12 10v5M9.5 12.5h5" stroke-width="2"/>',
 };
 function svg(name,sw){return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" ${sw?'stroke-width="'+sw+'"':''}>${ICONS[name]||''}</svg>`}
 
@@ -2158,6 +2159,8 @@ function renderWiki(){
             <p>每种食材都有它的故事</p>
           </div>
           <div class="hd-actions">
+            <button class="hd-btn" id="wikiAddCat" title="添加分类">${svg('folder-plus')}</button>
+            <button class="hd-btn danger" id="wikiDelCat" title="删除当前分类">${svg('trash')}</button>
             <button class="hd-btn brand" id="wikiAdd">${svg('plus',2)}</button>
             <button class="hd-btn danger" id="wikiDel" disabled>${svg('trash')}</button>
           </div>
@@ -2175,6 +2178,33 @@ function renderWiki(){
   document.querySelectorAll('.wtab').forEach(b=>{
     b.onclick=()=>{ saveWikiNow(); state.wikiCat=b.dataset.wcat; renderWiki(); };
   });
+
+  // add category
+  document.getElementById('wikiAddCat').onclick=()=>{
+    const name=prompt('输入新分类名称：');
+    if(!name||!name.trim()) return;
+    name=name.trim();
+    if(state.wiki[name]){ toast('该分类已存在','error'); return; }
+    state.wiki[name]={icon:'spice',items:[]};
+    state.wikiCat=name;
+    persist(true);
+    renderWiki();
+    toast('已添加分类：'+name,'success');
+  };
+
+  // delete current category
+  document.getElementById('wikiDelCat').onclick=()=>{
+    const cats=Object.keys(state.wiki);
+    if(cats.length<=1){ toast('至少保留一个分类','error'); return; }
+    const cur=state.wikiCat||cats[0];
+    openModal('删除分类？',`确认删除分类「${cur}」及其所有食材？此操作无法撤销。`,()=>{
+      delete state.wiki[cur];
+      state.wikiCat=Object.keys(state.wiki)[0];
+      persist(true);
+      renderWiki();
+      toast('已删除分类：'+cur,'success');
+    });
+  };
 
   // auto-save on input
   document.querySelectorAll('.wk-name, .wk-desc').forEach(el=>{
