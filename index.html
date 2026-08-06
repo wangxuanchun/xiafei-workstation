@@ -458,10 +458,141 @@ const ICONS = {
 };
 function svg(name,sw){return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" ${sw?'stroke-width="'+sw+'"':''}>${ICONS[name]||''}</svg>`}
 
+/* ---------- English reference recipes (one per category) ---------- */
+const REFERENCE_RECIPES = [
+  {
+    id:'r-ref-yeast', cat:'yeast', name:'Hokkaido Milk Bread (Shokupan)',
+    ingredients:[
+      {name:'Bread flour', gram:'300'},
+      {name:'Whole milk', gram:'180'},
+      {name:'Egg', gram:'1'},
+      {name:'Caster sugar', gram:'30'},
+      {name:'Salt', gram:'4'},
+      {name:'Active dry yeast', gram:'4'},
+      {name:'Unsalted butter (softened)', gram:'25'},
+    ],
+    steps:'1. In a stand mixer, combine flour, milk, egg, sugar, salt, and yeast. Mix on low speed until a shaggy dough forms.\n2. Knead on medium for 5 minutes, then add softened butter. Continue kneading 8 to 10 minutes until the dough passes the windowpane test.\n3. Shape into a ball, place in a greased bowl, cover, and proof at 28C for 60 to 90 minutes until doubled in size.\n4. Punch down and divide into 3 equal pieces. Roll each into an oval, then fold in thirds like a letter.\n5. Roll each piece into a long strand. Place three strands side by side, braid loosely, and tuck into a greased 9x4-inch loaf pan.\n6. Cover and proof at 35C for 50 to 60 minutes until the dough rises to 1cm below the rim.\n7. Brush with egg wash (1 egg plus 1 tbsp milk). Bake at 170C for 25 to 30 minutes until golden brown.\n8. Cool completely on a wire rack before slicing.',
+    notes:'For extra softness, add a tangzhong roux: whisk 20g flour with 100g water over low heat until it reaches 65C, cool, then mix into the dough.'
+  },
+  {
+    id:'r-ref-artisan', cat:'artisan', name:'Classic Sourdough Boule',
+    ingredients:[
+      {name:'Bread flour', gram:'400'},
+      {name:'Whole wheat flour', gram:'50'},
+      {name:'Water (room temp)', gram:'350'},
+      {name:'Active sourdough starter', gram:'100'},
+      {name:'Salt', gram:'10'},
+    ],
+    steps:'1. In a large bowl, whisk both flours with water until no dry spots remain. Cover and autolyse for 1 hour at room temperature.\n2. Add starter and salt. Pinch and fold until evenly incorporated.\n3. Perform 4 sets of stretch-and-folds at 30-minute intervals over 2 hours.\n4. Bulk ferment at 24C for 4 to 5 hours total, until the dough increases 50 percent in volume with visible bubbles.\n5. Pre-shape into a round, rest 20 minutes, then shape into a tight boule.\n6. Place seam-side up in a floured banneton. Cold retard at 4C for 12 to 16 hours.\n7. Preheat a Dutch oven to 250C. Turn dough onto parchment, score with a sharp blade.\n8. Bake covered at 250C for 20 minutes, then uncover and bake at 230C for 20 to 25 minutes until deep amber crust.\n9. Cool at least 2 hours before slicing.',
+    notes:'Feed your starter 12 hours before baking. Higher hydration (75 to 80 percent) creates a more open crumb but is harder to handle.'
+  },
+  {
+    id:'r-ref-cakes', cat:'cakes', name:'Classic Victoria Sponge',
+    ingredients:[
+      {name:'Unsalted butter (room temp)', gram:'200'},
+      {name:'Caster sugar', gram:'200'},
+      {name:'Eggs', gram:'4'},
+      {name:'Self-raising flour', gram:'200'},
+      {name:'Baking powder', gram:'5'},
+      {name:'Vanilla extract', gram:'5'},
+      {name:'Whole milk', gram:'30'},
+      {name:'Strawberry jam', gram:'150'},
+      {name:'Icing sugar (for dusting)', gram:'20'},
+    ],
+    steps:'1. Preheat oven to 180C. Grease and line two 8-inch round cake tins.\n2. Cream butter and sugar with an electric mixer until pale and fluffy, 4 to 5 minutes.\n3. Add eggs one at a time, beating well after each addition. Add vanilla extract.\n4. Sift flour and baking powder together. Fold into the batter gently with a spatula.\n5. Add milk and fold until the batter drops easily from a spoon.\n6. Divide evenly between the two tins and smooth the tops.\n7. Bake 20 to 25 minutes until golden and a skewer comes out clean.\n8. Cool in tins for 5 minutes, then turn onto a wire rack to cool completely.\n9. Sandwich the two layers with strawberry jam. Dust the top with icing sugar.',
+    notes:'All ingredients should be at room temperature for the best emulsion. Avoid overmixing once flour is added or the cake will be tough.'
+  },
+  {
+    id:'r-ref-cookies', cat:'cookies', name:'Brown Butter Chocolate Chip Cookies',
+    ingredients:[
+      {name:'Unsalted butter', gram:'170'},
+      {name:'Dark brown sugar', gram:'150'},
+      {name:'Caster sugar', gram:'100'},
+      {name:'Eggs', gram:'2'},
+      {name:'Vanilla extract', gram:'8'},
+      {name:'Bread flour', gram:'250'},
+      {name:'Baking soda', gram:'5'},
+      {name:'Salt', gram:'5'},
+      {name:'Dark chocolate chunks', gram:'200'},
+      {name:'Flaky sea salt (finishing)', gram:'3'},
+    ],
+    steps:'1. Brown the butter in a saucepan over medium heat until nutty and amber. Pour into a bowl and cool to room temperature.\n2. Whisk browned butter with both sugars until smooth. Add eggs and vanilla, then whisk until glossy.\n3. Fold in flour, baking soda, and salt until just combined. Fold in chocolate chunks.\n4. Cover and chill the dough in the refrigerator for at least 2 hours, preferably overnight.\n5. Scoop into 60g balls and arrange on a lined baking sheet, leaving 5cm space between.\n6. Bake at 190C for 11 to 13 minutes until edges are golden but centers look slightly underbaked.\n7. Sprinkle with flaky sea salt immediately. Cool on the pan for 5 minutes, then transfer to a rack.',
+    notes:'Chilling the dough is essential for deep flavor and to prevent excessive spreading. The cookies will continue to set as they cool.'
+  },
+  {
+    id:'r-ref-laminated', cat:'laminated', name:'Classic Croissants',
+    ingredients:[
+      {name:'Bread flour', gram:'500'},
+      {name:'Water', gram:'250'},
+      {name:'Caster sugar', gram:'50'},
+      {name:'Salt', gram:'10'},
+      {name:'Active dry yeast', gram:'7'},
+      {name:'Unsalted butter (for dough)', gram:'25'},
+      {name:'European butter (for lamination)', gram:'250'},
+      {name:'Egg (for egg wash)', gram:'1'},
+    ],
+    steps:'1. Mix flour, water, sugar, salt, yeast, and 25g softened butter into a smooth dough. Knead 5 minutes, shape into a rectangle, wrap, and refrigerate 2 hours.\n2. Pound cold butter into a 20x20cm square between parchment paper. Chill to 12C.\n3. Encase the butter in the dough (letter fold). Roll to 60x20cm and perform the first 3-fold turn. Rest 45 minutes.\n4. Perform second 3-fold turn. Rest 45 minutes. Perform third 3-fold turn. Rest overnight at 4C.\n5. Roll the dough to 4mm thickness and 25cm width. Cut into triangles with a 10cm base.\n6. Stretch each triangle slightly, notch the base, and roll up snugly toward the tip.\n7. Curve into a crescent, place on a lined tray, and proof at 26C for 2 to 2.5 hours until puffy and jiggly.\n8. Brush with egg wash (1 egg plus 1 tbsp milk). Bake at 200C for 18 to 20 minutes until deep golden and flaky.',
+    notes:'Keep butter and dough at similar temperatures (12 to 14C) throughout lamination. If the butter gets too warm, return to the fridge for 20 minutes before continuing.'
+  },
+  {
+    id:'r-ref-tarts', cat:'tarts', name:'Classic Lemon Tart',
+    ingredients:[
+      {name:'Plain flour (pastry)', gram:'200'},
+      {name:'Icing sugar (pastry)', gram:'60'},
+      {name:'Unsalted butter, cold (pastry)', gram:'100'},
+      {name:'Egg yolk (pastry)', gram:'1'},
+      {name:'Cold water (pastry)', gram:'15'},
+      {name:'Eggs (curd)', gram:'4'},
+      {name:'Caster sugar (curd)', gram:'200'},
+      {name:'Lemon zest (curd)', gram:'6'},
+      {name:'Lemon juice (curd)', gram:'120'},
+      {name:'Unsalted butter (curd)', gram:'100'},
+    ],
+    steps:'1. Pastry: Rub cold butter into flour and icing sugar until sandy. Mix in yolk and water to form a dough. Flatten, wrap, and chill 1 hour.\n2. Roll pastry to 3mm, line a 23cm tart tin, and prick the base. Chill 30 minutes.\n3. Line with baking paper and weights, blind bake at 180C for 15 minutes. Remove weights and bake 8 more minutes until golden.\n4. Lemon curd: Whisk eggs, sugar, zest, and juice in a heatproof bowl over a bain-marie.\n5. Cook, whisking constantly, until thickened to coating consistency, about 8 to 10 minutes.\n6. Remove from heat and whisk in butter until smooth and glossy. Strain through a fine sieve.\n7. Pour warm curd into the baked tart shell. Bake at 150C for 10 to 15 minutes until just set with a slight wobble.\n8. Cool at room temperature for 1 hour, then chill 2 hours before slicing.',
+    notes:'For a professional finish, brulee the top with a blowtorch and a thin layer of sugar. The curd will continue to set as it cools.'
+  },
+  {
+    id:'r-ref-quick', cat:'quick', name:'Buttermilk Scones',
+    ingredients:[
+      {name:'Plain flour', gram:'350'},
+      {name:'Baking powder', gram:'15'},
+      {name:'Caster sugar', gram:'50'},
+      {name:'Salt', gram:'3'},
+      {name:'Unsalted butter, cold', gram:'85'},
+      {name:'Buttermilk', gram:'175'},
+      {name:'Egg', gram:'1'},
+      {name:'Raisins (optional)', gram:'60'},
+      {name:'Milk (for brushing)', gram:'15'},
+    ],
+    steps:'1. Preheat oven to 220C. Sift flour, baking powder, and salt into a large bowl. Stir in sugar.\n2. Cut cold butter into small cubes. Rub into the flour using fingertips until the mixture resembles coarse breadcrumbs.\n3. Stir in raisins if using. Make a well in the center.\n4. Whisk buttermilk and egg together, pour into the well. Use a knife to cut and stir until the dough just comes together.\n5. Turn onto a floured surface. Gently pat to 3cm thick. Do not roll or overwork.\n6. Cut out rounds with a 5cm cutter, pressing straight down without twisting.\n7. Place on a lined tray, brush tops with milk, and bake 12 to 15 minutes until well-risen and golden.\n8. Serve warm with clotted cream and jam.',
+    notes:'Cold butter and minimal handling are the secrets to tall, flaky scones. Press straight down when cutting; twisting seals the edges and prevents rising.'
+  },
+  {
+    id:'r-ref-choux', cat:'choux', name:'Cream Puffs (Choux a la Creme)',
+    ingredients:[
+      {name:'Water', gram:'250'},
+      {name:'Unsalted butter', gram:'100'},
+      {name:'Caster sugar', gram:'5'},
+      {name:'Salt', gram:'3'},
+      {name:'Plain flour', gram:'150'},
+      {name:'Eggs (approx)', gram:'200'},
+      {name:'Whole milk (pastry cream)', gram:'500'},
+      {name:'Vanilla pod (pastry cream)', gram:'1'},
+      {name:'Egg yolks (pastry cream)', gram:'4'},
+      {name:'Caster sugar (pastry cream)', gram:'100'},
+      {name:'Cornflour (pastry cream)', gram:'30'},
+      {name:'Butter (pastry cream)', gram:'30'},
+    ],
+    steps:'1. Choux: In a saucepan, bring water, butter, sugar, and salt to a rolling boil. Remove from heat.\n2. Add all the flour at once and beat vigorously with a wooden spoon until a smooth ball forms and pulls away from the sides.\n3. Return to low heat and cook, stirring, for 2 minutes to dry out the dough.\n4. Transfer to a mixer. Beat on low, adding eggs one at a time, until the dough falls from a spatula in a V-shaped ribbon.\n5. Pipe 4cm mounds onto a lined tray. Smooth peaks with a wet finger.\n6. Bake at 200C for 15 minutes, then reduce to 180C for 10 to 15 minutes until deeply golden and hollow-sounding.\n7. Pastry cream: Heat milk with vanilla. Whisk yolks, sugar, and cornflour. Temper with hot milk, return to pan, whisk until thick.\n8. Off heat, whisk in butter. Cover with cling film on the surface, then chill completely.\n9. Pierce the bottom of each puff, pipe in pastry cream. Dust with icing sugar.',
+    notes:'Do not open the oven during baking or the puffs will collapse. The dough is ready when it holds a V-shape on your spatula.'
+  }
+];
+
 /* ---------- Default sample recipes ---------- */
 function seedRecipes(){
   const now = Date.now();
   return [
+    ...REFERENCE_RECIPES.map((r,i)=>({...r, updated:now - i*3600000})),
     {
       id:'r-seed-1', cat:'cakes', name:'巴斯克焦香芝士蛋糕',
       updated: now - 86400000*2,
@@ -493,6 +624,22 @@ function seedRecipes(){
       notes:'担心生蛋黄可用巴氏杀菌蛋。手指饼干蘸取要快——过湿会破坏口感。提拉米苏隔夜后风味更佳。'
     }
   ];
+}
+
+/* ---------- Inject reference recipes for existing users ---------- */
+function ensureReferenceRecipes(){
+  let added=false;
+  REFERENCE_RECIPES.forEach(ref=>{
+    if(!state.recipes.find(r=>r.id===ref.id)){
+      state.recipes.unshift({...ref, updated:Date.now()});
+      added=true;
+    }
+  });
+  if(added){
+    state.sync.localUpdatedAt=Date.now();
+    writeLocal();
+  }
+  return added;
 }
 
 /* ---------- State & persistence ---------- */
@@ -553,6 +700,8 @@ function load(){
     state.sync.localUpdatedAt = Date.now();
     writeLocal();
   }
+  // inject English reference recipes for existing users (idempotent by recipe id)
+  ensureReferenceRecipes();
   // seed wiki defaults if empty
   if(!state.wiki || Object.keys(state.wiki).length===0){
     state.wiki = JSON.parse(JSON.stringify(DEFAULT_WIKI));
