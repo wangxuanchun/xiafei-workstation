@@ -765,6 +765,13 @@ function ensureReferenceRecipes(){
 /* ---------- Migrate wiki: add missing categories and ingredients ---------- */
 function ensureWikiIngredients(){
   let changed=false;
+  // Remove garbled wiki categories that couldn't be repaired (still contain mojibake)
+  for(const k in state.wiki){
+    if(/[\u00C0-\u00FF]{2,}/.test(k)){
+      delete state.wiki[k];
+      changed=true;
+    }
+  }
   Object.keys(DEFAULT_WIKI).forEach(catName=>{
     const defCat=DEFAULT_WIKI[catName];
     if(!state.wiki[catName]){
@@ -1224,11 +1231,12 @@ async function syncPull(silent){
   }
 }
 // Repair garbled UTF-8 text (caused by double encoding bug)
-// Detects text like "Ã¥Â·Â´" and converts back to correct Chinese
+// Detects mojibake like "Ã¥Â·Â´", "æ²¹è´¨ç±»", "ç²¾ç±»" and converts back to correct Chinese
 function repairText(s){
   if(typeof s!=='string' || !s) return s;
-  // Check if text looks like garbled UTF-8 (contains Ã followed by continuation bytes)
-  if(!/Ã[\x80-\xBF]|Â[\x80-\xBF]/.test(s)) return s;
+  // Check if text looks like garbled UTF-8 (2+ consecutive high Latin-1 chars 0xC0-0xFF)
+  // This covers all mojibake patterns: Ã, Â, æ, è, ç, å, etc.
+  if(!/[\u00C0-\u00FF]{2,}/.test(s)) return s;
   try{
     const repaired = decodeURIComponent(escape(s));
     // Verify the repaired text has CJK or common characters (confirms it was garbled)
@@ -1263,17 +1271,21 @@ function repairAllData(){
     if(s.name) s.name=tryFix(s.name);
     if(s.desc) s.desc=tryFix(s.desc);
   });
-  // Repair wiki
+  // Repair wiki (fix both keys and item fields)
   if(state.wiki){
+    const newWiki={};
     for(const k in state.wiki){
+      const repairedKey=tryFix(k);
       const items=state.wiki[k];
-      if(Array.isArray(items)){
-        items.forEach(it=>{
+      if(items && Array.isArray(items.items)){
+        items.items.forEach(it=>{
           if(it.n) it.n=tryFix(it.n);
           if(it.d) it.d=tryFix(it.d);
         });
       }
+      newWiki[repairedKey]=items;
     }
+    state.wiki=newWiki;
   }
   // Repair pantry
   state.pantry=state.pantry.map(p=>tryFix(p));
