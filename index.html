@@ -1201,6 +1201,12 @@ async function syncPull(silent){
       if(remote.aiImage) state.aiImage = Object.assign({...DEFAULT_AI}, remote.aiImage);
       if(remote.profile) state.profile = Object.assign({...DEFAULT_PROFILE}, remote.profile);
 
+      // Repair any garbled text that came from cloud
+      repairAllData();
+      // Ensure reference recipes and wiki ingredients exist
+      ensureReferenceRecipes();
+      ensureWikiIngredients();
+
       state.sync.lastSyncedAt = remoteTs;
 
       if(localHasChanges){
@@ -1297,17 +1303,21 @@ function repairAllData(){
   }
   return fixed;
 }
-// full bidirectional sync — repair local, push first (overwrite cloud), then pull
+// full bidirectional sync — repair local, pull first (merge remote), then push
 async function syncNow(silent){
   if(!syncConfigured()){ if(!silent) toast('请先连接云同步','error'); return; }
   // Step 1: repair any garbled text in local data
   const repaired = repairAllData();
   if(repaired && !silent) toast('已修复乱码数据','success');
-  // Step 2: force push local data to cloud (overwrite garbled cloud data)
-  state.sync.localUpdatedAt = Date.now(); // force push
-  await syncPush(true);
-  // Step 3: pull from cloud (should now be correct)
+  // Step 2: pull from cloud first (merge remote changes into local)
   await syncPull(true);
+  // Step 3: repair again (fix any garbled text that came from cloud)
+  repairAllData();
+  // Step 4: push merged local data to cloud
+  state.sync.localUpdatedAt = Date.now();
+  await syncPush(true);
+  // Step 5: re-render to reflect merged data
+  render();
   if(!silent) toast('✓ 同步完成','success');
   updateSyncStatusUI();
 }
