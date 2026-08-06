@@ -313,6 +313,7 @@
   .sc-card .sc-info{padding:10px 12px}
   .sc-card .sc-name{font-size:14px;font-weight:800;color:var(--ink);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sc-card .sc-price{font-size:14px;font-weight:700;color:var(--brand);margin-bottom:2px}
+  .sc-card .sc-price::before{content:'¥ ';opacity:.85}
   .sc-card .sc-desc{font-size:11px;color:var(--sub);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .sc-card .sc-del{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;border:none;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;opacity:0;transition:opacity .2s}
   .sc-card:active .sc-del{opacity:1}
@@ -1490,7 +1491,7 @@ function renderShowcase(){
             </div>
             <div class="sc-info">
               <div class="sc-name">${esc(item.name||'未命名')}</div>
-              <div class="sc-price">${item.price&&item.price!=='¥'?esc(item.price):'¥ —'}</div>
+              <div class="sc-price">${item.price?esc(String(item.price).replace(/^¥\s*/,'')):'—'}</div>
               <div class="sc-desc">${esc(item.desc||'')}</div>
             </div>
             <button class="sc-del" data-del="${item.id}">✕</button>
@@ -1553,7 +1554,7 @@ function openShowcaseEditor(existing){
   const isEdit=!!existing;
   let name=existing?existing.name:'';
   let desc=existing?existing.desc:'';
-  let price=existing?(existing.price||''):'¥';
+  let price=existing?(existing.price||''):'';
   let image=existing?existing.image:'';
 
   const modal=document.getElementById('modal');
@@ -1567,7 +1568,10 @@ function openShowcaseEditor(existing){
       <div class="cm-label">成品名称</div>
       <input class="cm-input" id="scName" value="${esc(name)}" placeholder="输入名称" maxlength="30">
       <div class="cm-label" style="margin-top:12px">价格</div>
-      <input class="cm-input" id="scPrice" value="${esc(price)}" placeholder="¥ 后输入价格数字" maxlength="20">
+      <div style="display:flex;align-items:center;gap:0">
+        <span style="font-size:16px;font-weight:700;color:var(--brand);padding:10px 0 10px 14px;border:1.5px solid var(--rule);border-right:none;border-radius:12px 0 0 12px;background:var(--fill)">¥</span>
+        <input class="cm-input" id="scPrice" value="${esc(price.replace(/^¥\s*/,''))}" placeholder="输入价格数字" maxlength="20" style="border-radius:0 12px 12px 0;flex:1;width:calc(100% - 40px)" inputmode="decimal">
+      </div>
       <div class="cm-label" style="margin-top:12px">描述</div>
       <textarea class="cm-input" id="scDesc" placeholder="一段文字描述..." rows="3" style="width:100%;resize:none;font-family:inherit;padding:10px 14px;border-radius:12px;border:1.5px solid var(--rule);font-size:14px;color:var(--ink);background:var(--bg);outline:none">${esc(desc)}</textarea>
     </div>
@@ -1646,8 +1650,7 @@ function openShowcaseEditor(existing){
     if(imgProcessing){ toast('图片正在处理中，请稍候','error'); return; }
     const valName=nameInput.value.trim()||'未命名成品';
     const valDesc=descInput.value.trim();
-    let valPrice=document.getElementById('scPrice').value.trim();
-    if(valPrice && !valPrice.startsWith('¥')) valPrice='¥'+valPrice;
+    let valPrice=document.getElementById('scPrice').value.trim().replace(/^¥\s*/,'');
     if(isEdit){
       existing.name=valName; existing.desc=valDesc; existing.price=valPrice; existing.image=image||'';
       persist(false);
