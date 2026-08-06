@@ -908,11 +908,80 @@ async function syncPull(silent){
     return false;
   }
 }
-// full bidirectional sync — pull first, then push any local changes
+// Repair garbled UTF-8 text (caused by double encoding bug)
+// Detects text like "Ã¥Â·Â´" and converts back to correct Chinese
+function repairText(s){
+  if(typeof s!=='string' || !s) return s;
+  // Check if text looks like garbled UTF-8 (contains Ã followed by continuation bytes)
+  if(!/Ã[\x80-\xBF]|Â[\x80-\xBF]/.test(s)) return s;
+  try{
+    const repaired = decodeURIComponent(escape(s));
+    // Verify the repaired text has CJK or common characters (confirms it was garbled)
+    if(/[\u4e00-\u9fff\u3000-\u303f]/.test(repaired)) return repaired;
+  }catch(e){}
+  return s;
+}
+// Repair all text fields in the state data
+function repairAllData(){
+  let fixed=false;
+  function tryFix(val){
+    if(typeof val==='string'){
+      const r=repairText(val);
+      if(r!==val){ fixed=true; return r; }
+    }
+    return val;
+  }
+  // Repair recipes
+  state.recipes.forEach(r=>{
+    if(r.name) r.name=tryFix(r.name);
+    if(r.desc) r.desc=tryFix(r.desc);
+    if(r.ingredients) r.ingredients=tryFix(r.ingredients);
+    if(r.steps) r.steps=tryFix(r.steps);
+    if(r.tips) r.tips=tryFix(r.tips);
+  });
+  // Repair categories
+  state.categories.forEach(c=>{
+    if(c.name) c.name=tryFix(c.name);
+  });
+  // Repair showcases
+  state.showcases.forEach(s=>{
+    if(s.name) s.name=tryFix(s.name);
+    if(s.desc) s.desc=tryFix(s.desc);
+  });
+  // Repair wiki
+  if(state.wiki){
+    for(const k in state.wiki){
+      const items=state.wiki[k];
+      if(Array.isArray(items)){
+        items.forEach(it=>{
+          if(it.n) it.n=tryFix(it.n);
+          if(it.d) it.d=tryFix(it.d);
+        });
+      }
+    }
+  }
+  // Repair pantry
+  state.pantry=state.pantry.map(p=>tryFix(p));
+  // Repair profile
+  if(state.profile.name) state.profile.name=tryFix(state.profile.name);
+  if(fixed){
+    state.sync.localUpdatedAt=Date.now();
+    writeLocal();
+  }
+  return fixed;
+}
+// full bidirectional sync — repair local, push first (overwrite cloud), then pull
 async function syncNow(silent){
   if(!syncConfigured()){ if(!silent) toast('请先连接云同步','error'); return; }
+  // Step 1: repair any garbled text in local data
+  const repaired = repairAllData();
+  if(repaired && !silent) toast('已修复乱码数据','success');
+  // Step 2: force push local data to cloud (overwrite garbled cloud data)
+  state.sync.localUpdatedAt = Date.now(); // force push
+  await syncPush(true);
+  // Step 3: pull from cloud (should now be correct)
   await syncPull(true);
-  await syncPush(silent);
+  if(!silent) toast('✓ 同步完成','success');
   updateSyncStatusUI();
 }
 // debounced auto-push after local edits (3s idle)
@@ -1119,7 +1188,7 @@ function openShowcaseEditor(existing){
     input.onchange=(e)=>{
       const file=e.target.files[0];
       if(!file) return;
-      if(file.size>10*1024*1024){ toast('图片不能超过10MB','error'); return; }
+      if(file.size>20*1024*1024){ toast('图片不能超过20MB','error'); return; }
       imgProcessing=true;
       okBtn.disabled=true; okBtn.style.opacity='0.5';
       uploadArea.innerHTML='<span style="color:var(--brand);font-size:13px">处理中...</span>';
@@ -1760,7 +1829,7 @@ function openCatEditor(existing){
   imgInput.onchange=(e)=>{
     const file=e.target.files[0];
     if(!file) return;
-    if(file.size>5*1024*1024){ toast('图片不能超过5MB','error'); e.target.value=''; return; }
+    if(file.size>20*1024*1024){ toast('图片不能超过20MB','error'); e.target.value=''; return; }
     const reader=new FileReader();
     reader.onload=()=>{
       processCatImage(reader.result, (processed)=>{
@@ -2358,7 +2427,7 @@ function renderProfile(){
     input.onchange=(e)=>{
       const file=e.target.files[0];
       if(!file) return;
-      if(file.size>3*1024*1024){ toast('头像不能超过3MB','error'); return; }
+      if(file.size>20*1024*1024){ toast('图片不能超过20MB','error'); return; }
       const reader=new FileReader();
       reader.onload=()=>{
         // Resize avatar to 120x120
@@ -2536,9 +2605,14 @@ function bindGlobalFocusScroll(){
 /* ---------- Boot ---------- */
 bindGlobalFocusScroll();
 load();
+// Auto-repair garbled text from previous encoding bug
+const bootRepaired = repairAllData();
 // check URL for sync config (device pairing via link)
 const urlSyncApplied = checkUrlForSyncConfig();
 render();
+if(bootRepaired){
+  toast('已自动修复乱码数据','success');
+}
 if(urlSyncApplied){
   toast('✓ 已从链接自动配置同步','success');
 }
