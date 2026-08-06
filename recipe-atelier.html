@@ -2846,21 +2846,21 @@ function renderProfile(){
         </div>
       </div>
 
-      <div class="dm-card" style="margin-top:14px">
-        <div class="h">本地备份</div>
-        <button class="dm-item" id="exportBtn">
-          <span class="ic">${svg('download')}</span>
-          <span class="tx"><div class="t">导出备份</div><div class="d">将所有配方和食材库下载为 JSON</div></span>
-        </button>
-        <button class="dm-item" id="importBtn">
-          <span class="ic">${svg('upload')}</span>
-          <span class="tx"><div class="t">导入备份</div><div class="d">从 JSON 文件恢复（替换当前数据）</div></span>
+      <div style="display:flex;justify-content:center;padding:20px 0 8px">
+        <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
+          ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
       </div>
     </div>`;
 
-  document.getElementById('exportBtn').onclick=exportData;
-  document.getElementById('importBtn').onclick=()=>document.getElementById('fileImport').click();
+  document.getElementById('backupTrashBtn').onmouseenter=function(){this.style.opacity='1'};
+  document.getElementById('backupTrashBtn').onmouseleave=function(){this.style.opacity='.5'};
+  document.getElementById('backupTrashBtn').onclick=()=>{
+    openActionSheet('本地备份','选择操作',[
+      {label:'导出备份',action:exportData},
+      {label:'导入备份',action:()=>document.getElementById('fileImport').click()}
+    ]);
+  };
   // Profile editing — avatar upload + name editing
   const profAvatar=document.getElementById('profAvatar');
   const profName=document.getElementById('profName');
