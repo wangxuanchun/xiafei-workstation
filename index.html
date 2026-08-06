@@ -1250,7 +1250,7 @@ function openShowcaseEditor(existing){
       toast('已更新','success');
     }else{
       const newItem={ id:'sc-'+Date.now(), name:valName, desc:valDesc, image:image||'' };
-      state.showcases.push(newItem);
+      state.showcases.unshift(newItem);
       persist(false);
       modal.classList.remove('show');
       renderShowcase();
@@ -1854,7 +1854,7 @@ function openCatEditor(existing){
       toast('分类已更新','success');
     }else{
       const newCat={ id:'cat-'+Date.now(), name:val, image:image||'' };
-      state.categories.push(newCat);
+      state.categories.unshift(newCat);
       persist(true);
       modal.classList.remove('show');
       renderGalleryHome();
@@ -1890,7 +1890,7 @@ function renderRecipeList(){
   document.getElementById('backHome').onclick=()=>{ state.gView='home'; render(); window.scrollTo(0,0); };
   document.getElementById('newRecipe').onclick=()=>{
     const r={ id:uid(), cat:state.catId, name:'未命名配方', updated:Date.now(), ingredients:[{name:'',gram:''}], steps:'', notes:'' };
-    state.recipes.push(r); state.recipeId=r.id; state.gView='editor'; persist(true); render(); window.scrollTo(0,0);
+    state.recipes.unshift(r); state.recipeId=r.id; state.gView='editor'; persist(true); render(); window.scrollTo(0,0);
   };
   // checkbox toggle
   document.querySelectorAll('.rcard-check').forEach(cb=>{
