@@ -824,6 +824,7 @@ async function syncPush(silent){
 }
 // PULL — read gist, apply remote if newer than last sync
 // Universal merge by key: remote wins for same key, local-only keys preserved
+// Remote order is preserved; local-only items appended at end
 // Works for arrays (keyFn extracts key from each item) and plain objects (property names are keys)
 function mergeByKey(local, remote, keyFn){
   if(!remote) return local||[];
@@ -832,11 +833,17 @@ function mergeByKey(local, remote, keyFn){
   if(!Array.isArray(local) && !Array.isArray(remote)){
     return Object.assign({...local}, remote);
   }
-  // Array merge: use keyFn to extract key, remote wins for same key
+  // Array merge: remote order first, then local-only items appended
   const map=new Map();
-  (local||[]).forEach(x=>{ const k=keyFn(x); if(k!=null) map.set(k,x); });
-  (remote||[]).forEach(r=>{ const k=keyFn(r); if(k!=null) map.set(k,r); });
-  return Array.from(map.values());
+  const localKeys=new Set();
+  (local||[]).forEach(x=>{ const k=keyFn(x); if(k!=null){ map.set(k,x); localKeys.add(k); } });
+  const result=[];
+  const seen=new Set();
+  // Remote items in their order (remote wins for same key)
+  (remote||[]).forEach(r=>{ const k=keyFn(r); if(k!=null){ result.push(r); seen.add(k); } });
+  // Local-only items appended at end
+  (local||[]).forEach(x=>{ const k=keyFn(x); if(k!=null && !seen.has(k)) result.push(x); });
+  return result;
 }
 
 async function syncPull(silent){
