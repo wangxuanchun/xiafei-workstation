@@ -3271,7 +3271,18 @@ function renderGalleryLock(){
 
 // ---------- PWA Service Worker Registration ----------
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    // Check for SW updates every 60 seconds
+    setInterval(()=>{ reg.update().catch(()=>{}); }, 60000);
+  }).catch(()=>{});
+  // When a new SW takes control, force reload to load new assets
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    // Prevent reload loop with a flag
+    if(!sessionStorage.getItem('sw_reloaded')){
+      sessionStorage.setItem('sw_reloaded','1');
+      window.location.reload();
+    }
+  });
 }
 </script>
 </body>
