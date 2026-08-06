@@ -1567,9 +1567,9 @@ function openShowcaseEditor(existing){
       <div class="cm-label">成品名称</div>
       <input class="cm-input" id="scName" value="${esc(name)}" placeholder="输入名称" maxlength="30">
       <div class="cm-label" style="margin-top:12px">价格</div>
-      <div style="display:flex;align-items:center;gap:0">
-        <span style="font-size:16px;font-weight:700;color:var(--brand);padding:10px 0 10px 14px;border:1.5px solid var(--rule);border-right:none;border-radius:12px 0 0 12px;background:var(--fill)">¥</span>
-        <input class="cm-input" id="scPrice" value="${esc(price.replace(/^¥\s*/,''))}" placeholder="输入价格数字" maxlength="20" style="border-radius:0 12px 12px 0;flex:1;width:calc(100% - 40px)" inputmode="decimal">
+      <div style="display:flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;background:#fff;overflow:hidden">
+        <span style="padding:11px 4px 11px 13px;font-size:16px;font-weight:800;color:var(--brand);flex-shrink:0;line-height:1.5">¥</span>
+        <input id="scPrice" value="${esc(price.replace(/^¥\s*/,''))}" placeholder="输入价格数字" maxlength="20" style="flex:1;border:none;outline:none;padding:11px 13px 11px 0;font-size:14px;background:transparent;font-family:inherit;min-width:0" inputmode="decimal">
       </div>
       <div class="cm-label" style="margin-top:12px">描述</div>
       <textarea class="cm-input" id="scDesc" placeholder="一段文字描述..." rows="3" style="width:100%;resize:none;font-family:inherit;padding:10px 14px;border-radius:12px;border:1.5px solid var(--rule);font-size:14px;color:var(--ink);background:var(--bg);outline:none">${esc(desc)}</textarea>
