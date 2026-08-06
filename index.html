@@ -807,7 +807,7 @@ const GIST_FILE = 'recipe-atelier-data.json';
 const GIST_DESC = '甜品配方工作台 — 云同步数据';
 const DEFAULT_SYNC = { token:'', gistId:'', giteeToken:'', giteeRepo:'', autoSync:true, lastSyncedAt:0, localUpdatedAt:0 };
 const DEFAULT_AI = { apiKey:'sk-ws-H.ERMLHDH.xhJ8.MEUCIQCBGExi5HRzX2j5KDwDXlbiMloZcAIbTTHanMN9Hkv41gIgbzOYbi_2bBGWVkZsThzCJPIHD01qb9Mpf6EzSckhr9w', model:'wan2.6-t2i' };
-const DEFAULT_PROFILE = { name:'XiaFei', avatar:'' };
+const DEFAULT_PROFILE = { name:'XiaFei', avatar:'', tagline:'与木&Kimiko' };
 let state = { recipes:[], pantry:[], wiki:{}, categories:[], showcases:[], sync:{...DEFAULT_SYNC}, aiImage:{...DEFAULT_AI}, profile:{...DEFAULT_PROFILE}, activeTab:'gallery', wikiCat:'面粉类', gView:'home', catId:null, recipeId:null };
 
 // pure local write — no side effects, no toast, no sync trigger
@@ -1297,6 +1297,7 @@ function repairAllData(){
   state.pantry=state.pantry.map(p=>tryFix(p));
   // Repair profile
   if(state.profile.name) state.profile.name=tryFix(state.profile.name);
+  if(state.profile.tagline) state.profile.tagline=tryFix(state.profile.tagline);
   if(fixed){
     state.sync.localUpdatedAt=Date.now();
     writeLocal();
@@ -2675,8 +2676,8 @@ function initMemo(){
 
 /* ---------- Tab 4: Profile ---------- */
 function renderProfile(){
-  const total=state.recipes.length;
-  const stocked=state.pantry.length;
+  const totalRecipes=state.recipes.length;
+  const totalShowcases=(state.showcases||[]).length;
   const connected=syncConfigured();
   const backend=syncBackend();
   const giteeConnected = backend==='gitee';
@@ -2688,10 +2689,10 @@ function renderProfile(){
       <div class="prof">
         <div class="avatar" id="profAvatar" style="${state.profile.avatar?'background-image:url('+state.profile.avatar+');background-size:cover;background-position:center':''}">${state.profile.avatar?'':'X'}</div>
         <div class="un" id="profName" contenteditable="true" spellcheck="false">${esc(state.profile.name)}</div>
-        <div class="us">加油！你是最棒的！！</div>
+        <div class="us" id="profTagline" contenteditable="true" spellcheck="false">${esc(state.profile.tagline||'与木&Kimiko')}</div>
         <div class="stat-row">
-          <div class="stat"><div class="v">${total}</div><div class="l">配方</div></div>
-          <div class="stat"><div class="v">${stocked}</div><div class="l">食材</div></div>
+          <div class="stat"><div class="v">${totalShowcases}</div><div class="l">Showcase</div></div>
+          <div class="stat"><div class="v">${totalRecipes}</div><div class="l">配方</div></div>
         </div>
       </div>
 
@@ -2832,6 +2833,21 @@ function renderProfile(){
   profName.addEventListener('keydown',(e)=>{
     if(e.key==='Enter'){ e.preventDefault(); profName.blur(); }
   });
+  // Tagline editing
+  const profTagline=document.getElementById('profTagline');
+  if(profTagline){
+    profTagline.addEventListener('blur',()=>{
+      const val=profTagline.textContent.trim()||'与木&Kimiko';
+      if(val!==state.profile.tagline){
+        state.profile.tagline=val;
+        persist(true);
+        toast('签名已更新','success');
+      }
+    });
+    profTagline.addEventListener('keydown',(e)=>{
+      if(e.key==='Enter'){ e.preventDefault(); profTagline.blur(); }
+    });
+  }
   // Memo
   initMemo();
 
