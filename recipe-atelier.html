@@ -1314,6 +1314,21 @@ async function syncPull(silent){
       // Ensure reference recipes and wiki ingredients exist
       ensureReferenceRecipes();
       ensureWikiIngredients();
+      // Re-lock recipes after cloud merge (cloud data may lack 'locked' field)
+      let relockChanged=false;
+      if(state.recipes && state.recipes.length>0){
+        state.recipes.forEach(r=>{
+          if(r.locked===undefined){
+            r.locked=true;
+            r.lockPwd=r.lockPwd||DEFAULT_RECIPE_PWD;
+            relockChanged=true;
+          }
+        });
+        if(relockChanged){
+          state.sync.localUpdatedAt=Date.now();
+          writeLocal();
+        }
+      }
 
       state.sync.lastSyncedAt = remoteTs;
 
@@ -1329,11 +1344,14 @@ async function syncPull(silent){
       }
 
       // No local changes → fully synced
-      state.sync.localUpdatedAt = remoteTs;
+      // But if migrations/repairs changed data, push fixes to cloud
+      const migrated = (state.sync.localUpdatedAt > remoteTs);
+      if(!migrated) state.sync.localUpdatedAt = remoteTs;
       writeLocal();
       render();
-      if(!silent) toast('✓ 已从云端同步','success');
+      if(!silent) toast(migrated ? '✓ 已从云端同步并修复数据' : '✓ 已从云端同步','success');
       updateSyncStatusUI();
+      if(migrated) scheduleSyncPush();
       return true;
     }
     updateSyncStatusUI();
@@ -1536,7 +1554,7 @@ function renderShowcase(){
             </div>
             <div class="sc-info">
               <div class="sc-name">${esc(item.name||'未命名')}</div>
-              <div class="sc-price"><span style="font-weight:800;margin-right:1px">&#xFFE5;</span>${item.price?esc(String(item.price).replace(/^[¥￥]\s*/,'')):'—'}</div>
+              <div class="sc-price">${item.price?esc(String(item.price).replace(/^[¥￥]\s*/,'')):'—'}</div>
               <div class="sc-desc">${esc(item.desc||'')}</div>
             </div>
             <button class="sc-del" data-del="${item.id}">✕</button>
@@ -2989,7 +3007,7 @@ function renderProfile(){
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v40</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v41</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
@@ -3533,13 +3551,20 @@ if('serviceWorker' in navigator){
 }
 
 // ---------- Remote Version Check ----------
-// Fetch latest sw.js from GitHub raw to compare versions
-// This catches cases where the old SW is still serving stale HTML
-const APP_VERSION='v40';
+// Fetch latest sw.js from GitHub Pages to compare versions
+// Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
+const APP_VERSION='v41';
 async function checkRemoteVersion(){
   try{
-    const res=await fetch('https://raw.githubusercontent.com/wangxuanchun/xiafei-workstation/main/sw.js?_t='+Date.now(),{cache:'no-store'});
-    if(!res.ok) return;
+    // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
+    let res;
+    try{
+      res=await fetch('https://wangxuanchun.github.io/xiafei-workstation/sw.js?_t='+Date.now(),{cache:'no-store'});
+    }catch(e1){
+      // Fallback: try raw.githubusercontent.com (may work with VPN)
+      res=await fetch('https://raw.githubusercontent.com/wangxuanchun/xiafei-workstation/main/sw.js?_t='+Date.now(),{cache:'no-store'});
+    }
+    if(!res || !res.ok) return;
     const text=await res.text();
     const m=text.match(/recipe-atelier-(v\d+)/);
     if(m && m[1] !== APP_VERSION){
