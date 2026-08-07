@@ -863,7 +863,7 @@ function ensureWikiIngredients(){
   let changed=false;
   // Remove garbled wiki categories that couldn't be repaired (still contain mojibake)
   for(const k in state.wiki){
-    if(/[\u00C0-\u00FF]{2,}/.test(k)){
+    if(/[\u0080-\u017F]{2,}/.test(k) || /[\u0100-\u017F]/.test(k)){
       delete state.wiki[k];
       changed=true;
     }
@@ -983,6 +983,18 @@ function load(){
     }
   });
   if(catChanged) writeLocal();
+  // migrate: auto-lock all recipes that don't have locked field set
+  let recipeLockChanged=false;
+  if(state.recipes && state.recipes.length>0){
+    state.recipes.forEach(r=>{
+      if(r.locked===undefined){
+        r.locked=true;
+        r.lockPwd=r.lockPwd||DEFAULT_RECIPE_PWD;
+        recipeLockChanged=true;
+      }
+    });
+    if(recipeLockChanged) writeLocal();
+  }
 }
 
 /* ============================================================
@@ -1336,9 +1348,9 @@ async function syncPull(silent){
 // Detects mojibake like "Ã¥Â·Â´", "æ²¹è´¨ç±»", "ç²¾ç±»" and converts back to correct Chinese
 function repairText(s){
   if(typeof s!=='string' || !s) return s;
-  // Check if text looks like garbled UTF-8 (2+ consecutive high Latin-1 chars 0xC0-0xFF)
-  // This covers all mojibake patterns: Ã, Â, æ, è, ç, å, etc.
-  if(!/[\u00C0-\u00FF]{2,}/.test(s)) return s;
+  // Check if text looks like garbled UTF-8 (2+ consecutive high chars 0x80-0xFF or Latin Extended-A 0x100-0x17F)
+  // This covers: Ã, Â, æ, è, ç, å (0xC0-0xFF) AND Ā, ā, Ă (0x100-0x17F) mojibake patterns
+  if(!/[\u0080-\u017F]{2,}/.test(s)) return s;
   try{
     const repaired = decodeURIComponent(escape(s));
     // Verify the repaired text has CJK or common characters (confirms it was garbled)
@@ -1524,7 +1536,7 @@ function renderShowcase(){
             </div>
             <div class="sc-info">
               <div class="sc-name">${esc(item.name||'未命名')}</div>
-              <div class="sc-price">${item.price?esc(String(item.price).replace(/^¥\s*/,'')):'—'}</div>
+              <div class="sc-price"><span style="font-weight:800;margin-right:1px">&#xFFE5;</span>${item.price?esc(String(item.price).replace(/^[¥￥]\s*/,'')):'—'}</div>
               <div class="sc-desc">${esc(item.desc||'')}</div>
             </div>
             <button class="sc-del" data-del="${item.id}">✕</button>
@@ -2357,7 +2369,7 @@ function renderRecipeList(){
     </div>`;
   document.getElementById('backHome').onclick=()=>{ state.gView='home'; render(); window.scrollTo(0,0); };
   document.getElementById('newRecipe').onclick=()=>{
-    const r={ id:uid(), cat:state.catId, name:'未命名配方', updated:Date.now(), ingredients:[{name:'',gram:''}], steps:'', notes:'' };
+    const r={ id:uid(), cat:state.catId, name:'未命名配方', updated:Date.now(), ingredients:[{name:'',gram:''}], steps:'', notes:'', locked:true, lockPwd:DEFAULT_RECIPE_PWD };
     state.recipes.unshift(r); state.recipeId=r.id; state.gView='editor'; persist(true); render(); window.scrollTo(0,0);
   };
   // checkbox toggle
@@ -2977,7 +2989,7 @@ function renderProfile(){
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v39</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v40</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
@@ -3523,7 +3535,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub raw to compare versions
 // This catches cases where the old SW is still serving stale HTML
-const APP_VERSION='v39';
+const APP_VERSION='v40';
 async function checkRemoteVersion(){
   try{
     const res=await fetch('https://raw.githubusercontent.com/wangxuanchun/xiafei-workstation/main/sw.js?_t='+Date.now(),{cache:'no-store'});
