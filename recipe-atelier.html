@@ -2977,7 +2977,7 @@ function renderProfile(){
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v38</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v39</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
@@ -3519,6 +3519,37 @@ if('serviceWorker' in navigator){
     }
   });
 }
+
+// ---------- Remote Version Check ----------
+// Fetch latest sw.js from GitHub raw to compare versions
+// This catches cases where the old SW is still serving stale HTML
+const APP_VERSION='v39';
+async function checkRemoteVersion(){
+  try{
+    const res=await fetch('https://raw.githubusercontent.com/wangxuanchun/xiafei-workstation/main/sw.js?_t='+Date.now(),{cache:'no-store'});
+    if(!res.ok) return;
+    const text=await res.text();
+    const m=text.match(/recipe-atelier-(v\d+)/);
+    if(m && m[1] !== APP_VERSION){
+      // Version mismatch — force clear everything and reload
+      console.log('Version mismatch: local='+APP_VERSION+' remote='+m[1]+' — forcing update');
+      if('serviceWorker' in navigator){
+        const regs=await navigator.serviceWorker.getRegistrations();
+        for(const r of regs) await r.unregister();
+      }
+      if('caches' in window){
+        const keys=await caches.keys();
+        for(const k of keys) await caches.delete(k);
+      }
+      sessionStorage.removeItem('sw_reloaded');
+      window.location.reload(true);
+    }
+  }catch(e){ /* network error — skip */ }
+}
+// Check 3 seconds after page load
+setTimeout(checkRemoteVersion, 3000);
+// Check every 5 minutes
+setInterval(checkRemoteVersion, 300000);
 </script>
 </body>
 </html>
