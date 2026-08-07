@@ -163,7 +163,7 @@
   /* profile */
   .prof{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px 20px;text-align:center;margin-bottom:16px}
   .avatar{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,var(--brand-soft),var(--brand));margin:0 auto 14px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:800}
-  .prof .un{font-size:22px;font-weight:800}
+  .prof .un{font-size:22px;font-weight:800 !important;line-height:1.3}
   .prof .us{font-size:12px;color:var(--sub);margin-top:3px}
   .stat-row{display:flex;gap:12px;margin-top:18px}
   .stat{flex:1;background:var(--fill);border-radius:14px;padding:12px}
@@ -313,6 +313,7 @@
   .sc-card .sc-info{padding:10px 12px}
   .sc-card .sc-name{font-size:14px;font-weight:800;color:var(--ink);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sc-card .sc-price{font-size:14px;font-weight:700;color:var(--brand);margin-bottom:2px}
+  .sc-card .sc-price::before{content:"\FFE5\00A0";font-weight:800}
   .sc-card .sc-desc{font-size:11px;color:var(--sub);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .sc-card .sc-del{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;border:none;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;opacity:0;transition:opacity .2s}
   .sc-card:active .sc-del{opacity:1}
@@ -339,6 +340,98 @@
   .memo-item .memo-del{width:24px;height:24px;border-radius:6px;background:transparent;border:none;color:var(--sub);font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
   .memo-item .memo-del:active{background:rgba(196,92,72,.1);color:var(--accent,#C45C48)}
   .memo-empty{text-align:center;color:var(--sub);font-size:13px;padding:16px 0}
+
+  /* ===== Gallery Password Lock ===== */
+  .lock-overlay{position:fixed;inset:0;z-index:10000;background:radial-gradient(ellipse at center,#1a1a2e 0%,#0d0d1a 55%,#050508 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;animation:lockFadeIn .4s ease}
+  @keyframes lockFadeIn{from{opacity:0}to{opacity:1}}
+  .lock-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .lock-particles span{position:absolute;border-radius:50%;background:rgba(212,175,95,.5);animation:floatParticle linear infinite}
+  @keyframes floatParticle{0%{transform:translateY(105vh) scale(0);opacity:0}10%{opacity:.6}90%{opacity:.4}100%{transform:translateY(-5vh) scale(1);opacity:0}}
+  .lock-title{font-size:11px;letter-spacing:4px;color:rgba(212,175,95,.35);margin-bottom:6px;text-transform:uppercase;font-weight:600}
+  .lock-subtitle{font-size:14px;color:rgba(232,213,168,.55);margin-bottom:22px;font-weight:300;letter-spacing:1px}
+
+  /* Treasure Chest */
+  .chest-wrap{position:relative;width:220px;height:175px;margin-bottom:24px;perspective:800px}
+  .chest-lid{position:absolute;top:0;left:0;width:100%;height:70px;background:linear-gradient(180deg,#3a2418 0%,#2d1a0e 50%,#1f1208 100%);border-radius:14px 14px 4px 4px;border:2px solid #b8860b;border-bottom:none;transform-origin:bottom center;transition:transform 1s cubic-bezier(.34,1.4,.64,1);z-index:3;box-shadow:inset 0 2px 10px rgba(255,200,100,.12),0 -2px 12px rgba(0,0,0,.6)}
+  .chest-lid::before{content:'';position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);width:70%;height:2px;background:linear-gradient(90deg,transparent,#d4af60 20%,#f5d97a 50%,#d4af60 80%,transparent);border-radius:2px}
+  .chest-lid::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:36px;height:8px;background:linear-gradient(180deg,#d4af60,#b8860b);border-radius:0 0 4px 4px}
+  .chest-lid.open{transform:rotateX(-115deg)}
+  .chest-body{position:absolute;bottom:0;left:0;width:100%;height:110px;background:linear-gradient(180deg,#2d1a0e 0%,#1f1208 60%,#150a04 100%);border-radius:4px 4px 14px 14px;border:2px solid #b8860b;border-top:none;z-index:2;box-shadow:inset 0 -6px 16px rgba(0,0,0,.5),0 10px 28px rgba(0,0,0,.7)}
+  .chest-body::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:70%;height:2px;background:linear-gradient(90deg,transparent,#d4af60 20%,#f5d97a 50%,#d4af60 80%,transparent)}
+
+  /* Lock dial */
+  .chest-lock{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fae5a8,#d4af60 50%,#b8860b 90%);border:2.5px solid #8b6914;z-index:4;box-shadow:0 0 14px rgba(245,217,122,.35),inset 0 2px 6px rgba(255,255,255,.35),inset 0 -2px 4px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;animation:lockBreath 3s ease-in-out infinite;transition:transform .3s,box-shadow .3s}
+  .chest-lock::before{content:'';width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#7a5c1e,#4a3810);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 1px 2px rgba(255,255,255,.15)}
+  .chest-lock::after{content:'';position:absolute;inset:-2px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,rgba(255,255,255,.25) 30deg,transparent 60deg,rgba(255,255,255,.12) 120deg,transparent 150deg,rgba(255,255,255,.18) 240deg,transparent 270deg);animation:diamondShine 4s linear infinite;pointer-events:none}
+  @keyframes diamondShine{to{transform:rotate(360deg)}}
+  @keyframes lockBreath{0%,100%{box-shadow:0 0 14px rgba(245,217,122,.35),inset 0 2px 6px rgba(255,255,255,.35),inset 0 -2px 4px rgba(0,0,0,.2)}50%{box-shadow:0 0 22px rgba(245,217,122,.55),inset 0 2px 8px rgba(255,255,255,.45),inset 0 -2px 4px rgba(0,0,0,.2)}}
+
+  /* Light burst */
+  .chest-glow{position:absolute;top:8%;left:0;width:100%;height:55%;border-radius:12px;background:radial-gradient(circle at center,rgba(255,230,140,.95),rgba(255,185,50,.4) 30%,transparent 70%);opacity:0;z-index:1;transition:opacity .6s .3s;filter:blur(4px)}
+  .chest-glow.show{opacity:1}
+
+  /* Gold particles */
+  .gold-particle{position:fixed;border-radius:50%;background:radial-gradient(circle,#fff8e0,#ffd700);pointer-events:none;z-index:10001}
+
+  /* PIN display */
+  .pin-display{display:flex;gap:16px;margin-bottom:20px;justify-content:center}
+  .pin-dot{width:13px;height:13px;border-radius:50%;border:2px solid rgba(212,175,95,.3);background:transparent;transition:all .2s}
+  .pin-dot.filled{background:radial-gradient(circle,#f5d97a,#d4af60);border-color:#f5d97a;box-shadow:0 0 10px rgba(245,217,122,.6);transform:scale(1.15)}
+
+  /* Number pad */
+  .num-pad{display:grid;grid-template-columns:repeat(3,66px);gap:12px;justify-content:center}
+  .num-btn{width:66px;height:66px;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.01));border:1.5px solid rgba(212,175,95,.2);color:#e8d5a8;font-size:23px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:all .12s;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  .num-btn:active{background:linear-gradient(145deg,rgba(212,175,95,.18),rgba(212,175,95,.04));border-color:rgba(212,175,95,.5);transform:scale(.9);box-shadow:0 0 16px rgba(245,217,122,.25)}
+  .num-btn.fn{font-size:13px;color:rgba(212,175,95,.65);letter-spacing:.5px}
+
+  /* Error effects */
+  @keyframes lockShake{0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-7px)}20%,40%,60%,80%{transform:translateX(7px)}}
+  .shake{animation:lockShake .5s}
+  .lock-error-flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(196,92,72,.2),transparent 65%);opacity:0;z-index:10;pointer-events:none;border-radius:14px}
+  .lock-error-flash.show{animation:errorFlash .5s}
+  @keyframes errorFlash{0%,100%{opacity:0}40%{opacity:1}}
+  .lock-crack{position:absolute;top:0;left:50%;width:2px;height:100%;background:linear-gradient(180deg,transparent,rgba(255,100,80,.9),rgba(255,200,100,.7),transparent);opacity:0;z-index:5;pointer-events:none;filter:blur(.5px);transform:translateX(-50%) scaleY(0)}
+  .lock-crack.show{animation:crackFlash .6s}
+  @keyframes crackFlash{0%{opacity:0;transform:translateX(-50%) scaleY(0)}30%{opacity:1;transform:translateX(-50%) scaleY(1)}100%{opacity:0;transform:translateX(-50%) scaleY(1)}}
+  .lock-msg{font-size:13px;color:rgba(196,92,72,.95);margin-top:16px;height:18px;text-align:center;letter-spacing:.5px;transition:opacity .2s}
+
+  /* Success fade */
+  .lock-overlay.unlocking{animation:lockFadeOut .6s .8s forwards}
+  @keyframes lockFadeOut{to{opacity:0;visibility:hidden}}
+  .gallery-reveal{animation:galleryReveal .5s ease}
+  @keyframes galleryReveal{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+  @keyframes rayExpand{from{opacity:0;transform:scale(.3)}50%{opacity:1}to{opacity:0;transform:scale(2)}}
+
+  /* ===== Login Screen ===== */
+  .login-overlay{position:fixed;inset:0;z-index:20000;background:radial-gradient(ellipse at center,#1a1a2e 0%,#0d0d1a 55%,#050508 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;animation:lockFadeIn .4s ease}
+  .login-box{width:320px;max-width:90vw;padding:32px 28px;background:rgba(255,255,255,.04);border:1px solid rgba(212,175,95,.15);border-radius:20px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+  .login-logo{width:64px;height:64px;margin:0 auto 20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fae5a8,#d4af60 50%,#b8860b 90%);border:2.5px solid #8b6914;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(245,217,122,.4);animation:lockBreath 3s ease-in-out infinite}
+  .login-logo svg{width:30px;height:30px;color:#4a3810}
+  .login-title{text-align:center;font-size:20px;font-weight:800;color:#e8d5a8;margin-bottom:4px;letter-spacing:1px}
+  .login-sub{text-align:center;font-size:12px;color:rgba(232,213,168,.4);margin-bottom:24px;letter-spacing:.5px}
+  .login-field{margin-bottom:14px}
+  .login-field label{display:block;font-size:11px;color:rgba(212,175,95,.5);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;font-weight:600}
+  .login-field input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(212,175,95,.15);background:rgba(255,255,255,.03);color:#e8d5a8;font-size:14px;outline:none;transition:border-color .2s}
+  .login-field input:focus{border-color:rgba(212,175,95,.4)}
+  .login-field input::placeholder{color:rgba(232,213,168,.2)}
+  .login-btn{width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,#d4af60,#b8860b);color:#1a1a2e;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s;margin-top:6px}
+  .login-btn:active{opacity:.85}
+  .login-btn:disabled{opacity:.5;cursor:default}
+  .login-msg{text-align:center;font-size:12px;color:rgba(196,92,72,.9);margin-top:12px;min-height:16px}
+  .login-link{text-align:center;margin-top:16px;font-size:12px;color:rgba(212,175,95,.4);cursor:pointer;text-decoration:underline}
+  .login-link:active{color:rgba(212,175,95,.7)}
+
+  /* ===== Recipe Lock Badge ===== */
+  .rcard-lock{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(196,92,72,.12);color:#c45c48;flex-shrink:0;margin-left:6px}
+  .rcard-lock svg{width:13px;height:13px}
+  .lock-toggle{display:flex;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);margin-top:8px;cursor:pointer}
+  .lock-toggle.on{border-color:#c45c48;background:rgba(196,92,72,.05)}
+  .lock-toggle .lt-text{flex:1;font-size:13px;font-weight:600;color:var(--ink)}
+  .lock-toggle .lt-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+  .lock-toggle.on .lt-icon{color:#c45c48}
+  .lock-toggle:not(.on) .lt-icon{color:var(--sub)}
+  .lock-input{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:14px;outline:none;margin-top:8px}
+  .lock-input:focus{border-color:var(--brand-soft)}
 </style>
 </head>
 <body>
@@ -576,6 +669,8 @@ const ICONS = {
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
   showcase:'<path d="M4 21h16L12 4z"/><path d="M4 21h16" stroke-width="2.5"/><path d="M6.5 16h11"/><path d="M8 11.5h8"/>',
   'folder-plus':'<path d="M3 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M12 10v5M9.5 12.5h5" stroke-width="2"/>',
+  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
+  unlock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 017.5-2"/>',
 };
 function svg(name,sw){return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" ${sw?'stroke-width="'+sw+'"':''}>${ICONS[name]||''}</svg>`}
 
@@ -768,7 +863,7 @@ function ensureWikiIngredients(){
   let changed=false;
   // Remove garbled wiki categories that couldn't be repaired (still contain mojibake)
   for(const k in state.wiki){
-    if(/[\u00C0-\u00FF]{2,}/.test(k)){
+    if(/[\u0080-\u017F]{2,}/.test(k) || /[\u0100-\u017F]/.test(k)){
       delete state.wiki[k];
       changed=true;
     }
@@ -888,6 +983,18 @@ function load(){
     }
   });
   if(catChanged) writeLocal();
+  // migrate: auto-lock all recipes that don't have locked field set
+  let recipeLockChanged=false;
+  if(state.recipes && state.recipes.length>0){
+    state.recipes.forEach(r=>{
+      if(r.locked===undefined){
+        r.locked=true;
+        r.lockPwd=r.lockPwd||DEFAULT_RECIPE_PWD;
+        recipeLockChanged=true;
+      }
+    });
+    if(recipeLockChanged) writeLocal();
+  }
 }
 
 /* ============================================================
@@ -1207,6 +1314,21 @@ async function syncPull(silent){
       // Ensure reference recipes and wiki ingredients exist
       ensureReferenceRecipes();
       ensureWikiIngredients();
+      // Re-lock recipes after cloud merge (cloud data may lack 'locked' field)
+      let relockChanged=false;
+      if(state.recipes && state.recipes.length>0){
+        state.recipes.forEach(r=>{
+          if(r.locked===undefined){
+            r.locked=true;
+            r.lockPwd=r.lockPwd||DEFAULT_RECIPE_PWD;
+            relockChanged=true;
+          }
+        });
+        if(relockChanged){
+          state.sync.localUpdatedAt=Date.now();
+          writeLocal();
+        }
+      }
 
       state.sync.lastSyncedAt = remoteTs;
 
@@ -1222,11 +1344,14 @@ async function syncPull(silent){
       }
 
       // No local changes → fully synced
-      state.sync.localUpdatedAt = remoteTs;
+      // But if migrations/repairs changed data, push fixes to cloud
+      const migrated = (state.sync.localUpdatedAt > remoteTs);
+      if(!migrated) state.sync.localUpdatedAt = remoteTs;
       writeLocal();
       render();
-      if(!silent) toast('✓ 已从云端同步','success');
+      if(!silent) toast(migrated ? '✓ 已从云端同步并修复数据' : '✓ 已从云端同步','success');
       updateSyncStatusUI();
+      if(migrated) scheduleSyncPush();
       return true;
     }
     updateSyncStatusUI();
@@ -1241,9 +1366,9 @@ async function syncPull(silent){
 // Detects mojibake like "Ã¥Â·Â´", "æ²¹è´¨ç±»", "ç²¾ç±»" and converts back to correct Chinese
 function repairText(s){
   if(typeof s!=='string' || !s) return s;
-  // Check if text looks like garbled UTF-8 (2+ consecutive high Latin-1 chars 0xC0-0xFF)
-  // This covers all mojibake patterns: Ã, Â, æ, è, ç, å, etc.
-  if(!/[\u00C0-\u00FF]{2,}/.test(s)) return s;
+  // Check if text looks like garbled UTF-8 (2+ consecutive high chars 0x80-0xFF or Latin Extended-A 0x100-0x17F)
+  // This covers: Ã, Â, æ, è, ç, å (0xC0-0xFF) AND Ā, ā, Ă (0x100-0x17F) mojibake patterns
+  if(!/[\u0080-\u017F]{2,}/.test(s)) return s;
   try{
     const repaired = decodeURIComponent(escape(s));
     // Verify the repaired text has CJK or common characters (confirms it was garbled)
@@ -1429,7 +1554,7 @@ function renderShowcase(){
             </div>
             <div class="sc-info">
               <div class="sc-name">${esc(item.name||'未命名')}</div>
-              <div class="sc-price">${item.price?esc(item.price):'¥ —'}</div>
+              <div class="sc-price">${item.price?esc(String(item.price).replace(/^[¥￥]\s*/,'')):'—'}</div>
               <div class="sc-desc">${esc(item.desc||'')}</div>
             </div>
             <button class="sc-del" data-del="${item.id}">✕</button>
@@ -1492,7 +1617,7 @@ function openShowcaseEditor(existing){
   const isEdit=!!existing;
   let name=existing?existing.name:'';
   let desc=existing?existing.desc:'';
-  let price=existing?existing.price:'';
+  let price=existing?(existing.price||''):'';
   let image=existing?existing.image:'';
 
   const modal=document.getElementById('modal');
@@ -1506,7 +1631,10 @@ function openShowcaseEditor(existing){
       <div class="cm-label">成品名称</div>
       <input class="cm-input" id="scName" value="${esc(name)}" placeholder="输入名称" maxlength="30">
       <div class="cm-label" style="margin-top:12px">价格</div>
-      <input class="cm-input" id="scPrice" value="${esc(price)}" placeholder="如 ¥38 / 38元" maxlength="20">
+      <div style="display:flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;background:#fff;overflow:hidden">
+        <span style="padding:11px 4px 11px 13px;font-size:16px;font-weight:800;color:var(--brand);flex-shrink:0;line-height:1.5">￥</span>
+        <input id="scPrice" value="${esc(price.replace(/^[¥￥]\s*/,''))}" placeholder="输入价格数字" maxlength="20" style="flex:1;border:none;outline:none;padding:11px 13px 11px 0;font-size:14px;background:transparent;font-family:inherit;min-width:0" inputmode="decimal">
+      </div>
       <div class="cm-label" style="margin-top:12px">描述</div>
       <textarea class="cm-input" id="scDesc" placeholder="一段文字描述..." rows="3" style="width:100%;resize:none;font-family:inherit;padding:10px 14px;border-radius:12px;border:1.5px solid var(--rule);font-size:14px;color:var(--ink);background:var(--bg);outline:none">${esc(desc)}</textarea>
     </div>
@@ -1585,7 +1713,7 @@ function openShowcaseEditor(existing){
     if(imgProcessing){ toast('图片正在处理中，请稍候','error'); return; }
     const valName=nameInput.value.trim()||'未命名成品';
     const valDesc=descInput.value.trim();
-    const valPrice=document.getElementById('scPrice').value.trim();
+    let valPrice=document.getElementById('scPrice').value.trim().replace(/^[¥￥]\s*/,'');
     if(isEdit){
       existing.name=valName; existing.desc=valDesc; existing.price=valPrice; existing.image=image||'';
       persist(false);
@@ -1605,6 +1733,7 @@ function openShowcaseEditor(existing){
 
 /* ---------- Tab 1: Gallery ---------- */
 function renderGallery(){
+  if(!isGalleryUnlocked()){ renderGalleryLock(); return; }
   if(state.gView==='home') renderGalleryHome();
   else if(state.gView==='list') renderRecipeList();
   else if(state.gView==='editor') renderEditor();
@@ -1621,6 +1750,7 @@ function renderGalleryHome(){
             <p>经典配方，选一个，做成你的</p>
           </div>
           <div class="hd-actions">
+            <button class="hd-btn brand" id="lockAllBtn" title="全部上锁" style="font-size:11px;width:auto;padding:0 10px;gap:3px">${svg('lock',1.5)}<span>全部</span></button>
             <button class="hd-btn brand" id="catAdd">${svg('plus',2)}</button>
             <button class="hd-btn danger" id="catDel" disabled>${svg('trash')}</button>
           </div>
@@ -1669,6 +1799,29 @@ function renderGalleryHome(){
   });
   // add button
   document.getElementById('catAdd').onclick=()=>openCatEditor(null);
+  // lock all / unlock all toggle
+  document.getElementById('lockAllBtn').onclick=()=>{
+    const allLocked=state.recipes.length>0 && state.recipes.every(r=>r.locked);
+    if(allLocked){
+      openActionSheet('配方锁定','选择操作',[
+        {label:'全部解锁',action:()=>{
+          state.recipes.forEach(r=>{ r.locked=false; });
+          persist(true); renderGalleryHome();
+          toast('已解锁全部配方','success');
+        }},
+        {label:'取消'}
+      ]);
+    }else{
+      openActionSheet('配方锁定','选择操作',[
+        {label:'全部上锁',action:()=>{
+          state.recipes.forEach(r=>{ r.locked=true; if(!r.lockPwd) r.lockPwd=DEFAULT_RECIPE_PWD; });
+          persist(true); renderGalleryHome();
+          toast('已锁定全部配方','success');
+        }},
+        {label:'取消'}
+      ]);
+    }
+  };
   // delete button
   document.getElementById('catDel').onclick=()=>{
     if(catSelected.size===0) return;
@@ -2228,12 +2381,13 @@ function renderRecipeList(){
           <div class="rcard" data-recipe="${r.id}">
             <button class="rcard-check" data-rid="${r.id}">${svg('check')}</button>
             <div class="rcard-info"><div class="rt">${esc(r.name)}</div><div class="rd">${fmtDate(r.updated)}</div></div>
+            ${r.locked?'<span class="rcard-lock">'+svg('lock')+'</span>':''}
             <span class="arrow">${svg('chevR')}</span>
           </div>`).join('')}
     </div>`;
   document.getElementById('backHome').onclick=()=>{ state.gView='home'; render(); window.scrollTo(0,0); };
   document.getElementById('newRecipe').onclick=()=>{
-    const r={ id:uid(), cat:state.catId, name:'未命名配方', updated:Date.now(), ingredients:[{name:'',gram:''}], steps:'', notes:'' };
+    const r={ id:uid(), cat:state.catId, name:'未命名配方', updated:Date.now(), ingredients:[{name:'',gram:''}], steps:'', notes:'', locked:true, lockPwd:DEFAULT_RECIPE_PWD };
     state.recipes.unshift(r); state.recipeId=r.id; state.gView='editor'; persist(true); render(); window.scrollTo(0,0);
   };
   // checkbox toggle
@@ -2246,11 +2400,17 @@ function renderRecipeList(){
       updateRecipeDelBtn();
     };
   });
-  // card click -> open editor
+  // card click -> open editor (with lock check)
   document.querySelectorAll('.rcard').forEach(b=>{
     b.onclick=(e)=>{
       if(e.target.closest('.rcard-check')) return;
-      state.recipeId=b.dataset.recipe; state.gView='editor'; render(); window.scrollTo(0,0);
+      const rid=b.dataset.recipe;
+      const recipe=state.recipes.find(r=>r.id===rid);
+      if(recipe && recipe.locked){
+        promptRecipeUnlock(recipe);
+      }else{
+        state.recipeId=rid; state.gView='editor'; render(); window.scrollTo(0,0);
+      }
     };
   });
   // delete selected
@@ -2267,6 +2427,42 @@ function renderRecipeList(){
     const btn=document.getElementById('delRecipe');
     if(btn) btn.disabled = recipeSelected.size===0;
   }
+}
+
+/* ---------- Recipe Unlock Prompt ---------- */
+function promptRecipeUnlock(recipe){
+  const m=document.getElementById('modal');
+  m.innerHTML=`
+    <div class="msheet">
+      <div class="mb">
+        <div class="mt">${svg('lock')} 解锁配方</div>
+        <div class="md">输入密码查看"${esc(recipe.name)}"</div>
+      </div>
+      <div style="padding:0 20px 16px">
+        <input type="password" id="recipeUnlockInput" placeholder="输入密码" style="width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);font-size:15px;outline:none;text-align:center;letter-spacing:2px" autocomplete="off">
+      </div>
+      <div class="ma">
+        <button class="mb-cancel" id="mbCancel">取消</button>
+        <button class="mb-ok" id="mbOk">解锁</button>
+      </div>
+    </div>`;
+  m.classList.add('show');
+  const input=document.getElementById('recipeUnlockInput');
+  input.focus();
+  input.addEventListener('keydown',(e)=>{ if(e.key==='Enter') document.getElementById('mbOk').click(); });
+  document.getElementById('mbCancel').onclick=closeModal;
+  document.getElementById('mbOk').onclick=()=>{
+    const pwd=input.value.trim();
+    if(pwd===RECIPE_MASTER_PWD || pwd===(recipe.lockPwd||DEFAULT_RECIPE_PWD)){
+      closeModal();
+      state.recipeId=recipe.id; state.gView='editor'; render(); window.scrollTo(0,0);
+    }else{
+      input.style.borderColor='#c45c48';
+      input.value='';
+      input.placeholder='密码错误';
+      setTimeout(()=>{ input.placeholder='输入密码'; input.style.borderColor='var(--line)'; },1500);
+    }
+  };
 }
 
 /* ---------- Editor with autosave ---------- */
@@ -2334,6 +2530,18 @@ function renderEditor(){
         <textarea class="ed-area" id="edNotes" style="min-height:90px" placeholder="要点、替换方案、时间...">${esc(r.notes)}</textarea>
       </div>
 
+      <div class="ed-block">
+        <div class="ed-label">配方锁定</div>
+        <div class="lock-toggle ${r.locked?'on':''}" id="lockToggle">
+          <div class="lt-icon">${svg(r.locked?'lock':'unlock')}</div>
+          <div class="lt-text">${r.locked?'已锁定 — 需密码查看':'未锁定 — 任何人可查看'}</div>
+        </div>
+        <div id="lockPwdWrap" style="${r.locked?'':'display:none'}">
+          <input class="lock-input" id="edLockPwd" type="password" value="${esc(r.lockPwd||DEFAULT_RECIPE_PWD)}" placeholder="独立密码（默认1234）">
+          <div style="font-size:11px;color:var(--sub);margin-top:4px;padding:0 4px">主密码0823可解锁所有配方。此密码为该配方的独立密码。</div>
+        </div>
+      </div>
+
       <button class="del-recipe" id="delRecipe">${svg('trash')} &nbsp;删除此配方</button>
     </div>`;
 
@@ -2358,6 +2566,21 @@ function renderEditor(){
     rows[rows.length-1].focus();
   };
   bindIngRows();
+
+  // lock toggle
+  document.getElementById('lockToggle').onclick=()=>{
+    r.locked=!r.locked;
+    if(r.locked && !r.lockPwd) r.lockPwd=DEFAULT_RECIPE_PWD;
+    persist(true);
+    renderEditor();
+  };
+  const edLockPwd=document.getElementById('edLockPwd');
+  if(edLockPwd){
+    edLockPwd.addEventListener('input',()=>{
+      r.lockPwd=edLockPwd.value.trim()||DEFAULT_RECIPE_PWD;
+      scheduleSave();
+    });
+  }
 
   document.getElementById('delRecipe').onclick=()=>{
     openModal('删除配方？',`“${esc(r.name)}” 将被永久删除，此操作无法撤销。`,()=>{
@@ -2694,7 +2917,7 @@ function renderProfile(){
       <div class="hd"><h1>我的资料</h1></div>
       <div class="prof">
         <div class="avatar" id="profAvatar" style="${state.profile.avatar?'background-image:url('+state.profile.avatar+');background-size:cover;background-position:center':''}">${state.profile.avatar?'':'X'}</div>
-        <div class="un" id="profName" contenteditable="true" spellcheck="false">${esc(state.profile.name)}</div>
+        <div class="un" id="profName" contenteditable="plaintext-only" spellcheck="false">${esc(state.profile.name)}</div>
         <div class="us" id="profTagline" contenteditable="true" spellcheck="false">${esc(state.profile.tagline||'与木&Kimiko')}</div>
         <div class="stat-row">
           <div class="stat"><div class="v">${totalShowcases}</div><div class="l">Showcase</div></div>
@@ -2780,21 +3003,52 @@ function renderProfile(){
         </div>
       </div>
 
-      <div class="dm-card" style="margin-top:14px">
-        <div class="h">本地备份</div>
-        <button class="dm-item" id="exportBtn">
-          <span class="ic">${svg('download')}</span>
-          <span class="tx"><div class="t">导出备份</div><div class="d">将所有配方和食材库下载为 JSON</div></span>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 0 8px">
+        <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
+          ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <button class="dm-item" id="importBtn">
-          <span class="ic">${svg('upload')}</span>
-          <span class="tx"><div class="t">导入备份</div><div class="d">从 JSON 文件恢复（替换当前数据）</div></span>
-        </button>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v41</div>
+        <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
+        <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
     </div>`;
 
-  document.getElementById('exportBtn').onclick=exportData;
-  document.getElementById('importBtn').onclick=()=>document.getElementById('fileImport').click();
+  document.getElementById('backupTrashBtn').onmouseenter=function(){this.style.opacity='1'};
+  document.getElementById('backupTrashBtn').onmouseleave=function(){this.style.opacity='.5'};
+  document.getElementById('backupTrashBtn').onclick=()=>{
+    openActionSheet('本地备份','选择操作',[
+      {label:'导出备份',action:exportData},
+      {label:'导入备份',action:()=>document.getElementById('fileImport').click()},
+      {label:'锁定配方画廊',variant:'danger',action:()=>{
+        localStorage.removeItem(GALLERY_LOCK_KEY);
+        toast('配方画廊已锁定','success');
+        setTimeout(()=>{ state.activeTab='gallery'; state.gView='home'; render(); },500);
+      }}
+    ]);
+  };
+  document.getElementById('forceUpdateBtn').onclick=async function(){
+    this.textContent='更新中...'; this.disabled=true;
+    try{
+      if('serviceWorker' in navigator){
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for(const r of regs) await r.unregister();
+      }
+      const keys = await caches.keys();
+      for(const k of keys) await caches.delete(k);
+      sessionStorage.removeItem('sw_reloaded');
+      window.location.reload();
+    }catch(e){
+      window.location.reload();
+    }
+  };
+  const logoutEl=document.getElementById('logoutBtn');
+  if(logoutEl){
+    logoutEl.onclick=()=>{
+      openModal('退出登录？','退出后将清除同步凭证，需要重新输入Gitee令牌登录。本地数据不会被删除。',()=>{
+        logout();
+      });
+    };
+  }
   // Profile editing — avatar upload + name editing
   const profAvatar=document.getElementById('profAvatar');
   const profName=document.getElementById('profName');
@@ -3010,12 +3264,95 @@ function bindGlobalFocusScroll(){
 }
 
 /* ---------- Boot ---------- */
+// Gallery Password Lock constants (must be defined before render() call)
+const GALLERY_PASSWORD='0823';
+const GALLERY_LOCK_KEY='gallery_unlocked';
+const RECIPE_MASTER_PWD='0823';
+const DEFAULT_RECIPE_PWD='1234';
+const LOGIN_KEY='app_logged_in';
+function isGalleryUnlocked(){
+  return localStorage.getItem(GALLERY_LOCK_KEY)==='true';
+}
+
+/* ---------- Login Screen (Gitee token = account) ---------- */
+function isLoggedIn(){
+  return localStorage.getItem(LOGIN_KEY)==='true' || syncConfigured();
+}
+function showLoginScreen(){
+  const overlay=document.createElement('div');
+  overlay.className='login-overlay';
+  overlay.id='loginOverlay';
+  overlay.innerHTML=`
+    <div class="login-box">
+      <div class="login-logo">${svg('lock').replace('width="24" height="24"','width="30" height="30"')}</div>
+      <div class="login-title">甜品配方工作台</div>
+      <div class="login-sub">登录以同步你的配方</div>
+      <div class="login-field">
+        <label>Gitee 私人令牌</label>
+        <input type="password" id="loginToken" placeholder="在 Gitee → 设置 → 私人令牌 创建" autocomplete="off">
+      </div>
+      <div class="login-field">
+        <label>Gitee 仓库名（可选）</label>
+        <input type="text" id="loginRepo" placeholder="留空则自动创建" autocomplete="off">
+      </div>
+      <button class="login-btn" id="loginBtn">登 录</button>
+      <div class="login-msg" id="loginMsg"></div>
+      <div class="login-link" id="loginLocal">不登录，本地体验</div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const btn=document.getElementById('loginBtn');
+  const msg=document.getElementById('loginMsg');
+  btn.onclick=async()=>{
+    const token=document.getElementById('loginToken').value.trim();
+    const repo=document.getElementById('loginRepo').value.trim();
+    if(!token){ msg.textContent='请输入Gitee私人令牌'; return; }
+    btn.disabled=true; btn.textContent='验证中...'; msg.textContent='';
+    try{
+      const userInfo=await giteeValidateToken(token);
+      if(!userInfo || !userInfo.login) throw new Error('令牌无效');
+      state.sync.giteeToken=token;
+      let repoName=repo;
+      if(!repoName){
+        repoName='recipe-data';
+        try{ await giteeCreateRepo(token,repoName); }catch(e){ /* may already exist */ }
+      }
+      state.sync.giteeRepo=repoName;
+      localStorage.setItem(LOGIN_KEY,'true');
+      writeLocal();
+      overlay.remove();
+      // try to pull cloud data
+      syncPull(true).then(()=>{ render(); }).catch(()=>{});
+      render();
+    }catch(e){
+      msg.textContent='登录失败：'+(e.message||'令牌无效');
+      btn.disabled=false; btn.textContent='登 录';
+    }
+  };
+  document.getElementById('loginLocal').onclick=()=>{
+    localStorage.setItem(LOGIN_KEY,'local');
+    overlay.remove();
+    render();
+  };
+  document.getElementById('loginToken').addEventListener('keydown',(e)=>{
+    if(e.key==='Enter') btn.click();
+  });
+}
+function logout(){
+  disconnectSync();
+  localStorage.removeItem(LOGIN_KEY);
+  localStorage.removeItem(GALLERY_LOCK_KEY);
+  showLoginScreen();
+}
 bindGlobalFocusScroll();
 load();
 // Auto-repair garbled text from previous encoding bug
 const bootRepaired = repairAllData();
 // check URL for sync config (device pairing via link)
 const urlSyncApplied = checkUrlForSyncConfig();
+// Check login status — show login screen if not logged in
+if(!isLoggedIn()){
+  showLoginScreen();
+}
 render();
 if(bootRepaired){
   toast('已自动修复乱码数据','success');
@@ -3045,10 +3382,211 @@ if(syncConfigured()){
   setInterval(()=>{ if(!document.hidden) maybePullOnFocus(); }, 30000);
 }
 
+// ---------- Gallery Password Lock ----------
+// (constants & isGalleryUnlocked moved to Boot section above)
+
+function renderGalleryLock(){
+  content.innerHTML=`
+    <div class="lock-overlay" id="lockOverlay">
+      <div class="lock-particles" id="lockParticles"></div>
+      <div class="lock-title">Recipe Gallery</div>
+      <div class="lock-subtitle">输入密码开启配方宝箱</div>
+      <div class="chest-wrap" id="chestWrap">
+        <div class="chest-glow" id="chestGlow"></div>
+        <div class="chest-lid" id="chestLid"></div>
+        <div class="chest-body"></div>
+        <div class="chest-lock" id="chestLock"></div>
+        <div class="lock-crack" id="lockCrack"></div>
+        <div class="lock-error-flash" id="lockFlash"></div>
+      </div>
+      <div class="pin-display" id="pinDisplay">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="num-pad" id="numPad">
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="num-btn" data-num="${n}">${n}</button>`).join('')}
+        <button class="num-btn fn" id="numClear">清除</button>
+        <button class="num-btn" data-num="0">0</button>
+        <button class="num-btn fn" id="numConfirm">✓</button>
+      </div>
+      <div class="lock-msg" id="lockMsg"></div>
+    </div>`;
+
+  // floating particles
+  const pc=document.getElementById('lockParticles');
+  for(let i=0;i<28;i++){
+    const s=document.createElement('span');
+    s.style.left=Math.random()*100+'%';
+    s.style.animationDuration=(8+Math.random()*12)+'s';
+    s.style.animationDelay=Math.random()*10+'s';
+    s.style.opacity=0.15+Math.random()*0.35;
+    const sz=2+Math.random()*3;
+    s.style.width=sz+'px'; s.style.height=sz+'px';
+    pc.appendChild(s);
+  }
+
+  let pinInput='';
+  const pinDots=document.querySelectorAll('#pinDisplay .pin-dot');
+  const lockMsg=document.getElementById('lockMsg');
+
+  function updateDisplay(){
+    pinDots.forEach((d,i)=>d.classList.toggle('filled',i<pinInput.length));
+  }
+
+  function tryUnlock(){
+    if(pinInput===GALLERY_PASSWORD) unlockSuccess();
+    else unlockFail();
+  }
+
+  function unlockSuccess(){
+    const lid=document.getElementById('chestLid');
+    const glow=document.getElementById('chestGlow');
+    const overlay=document.getElementById('lockOverlay');
+    const cl=document.getElementById('chestLock');
+
+    cl.style.transform='translate(-50%,-50%) scale(1.3)';
+    cl.style.boxShadow='0 0 30px rgba(245,217,122,.9)';
+
+    setTimeout(()=>{
+      lid.classList.add('open');
+      glow.classList.add('show');
+      createGoldBurst();
+      localStorage.setItem(GALLERY_LOCK_KEY,'true');
+    },250);
+
+    setTimeout(()=>{ overlay.classList.add('unlocking'); },1000);
+
+    setTimeout(()=>{
+      state.gView='home';
+      renderGallery();
+      const sc=content.querySelector('.screen');
+      if(sc) sc.classList.add('gallery-reveal');
+    },1600);
+  }
+
+  function createGoldBurst(){
+    const chest=document.getElementById('chestWrap');
+    const r=chest.getBoundingClientRect();
+    const cx=r.left+r.width/2, cy=r.top+r.height/2;
+
+    for(let i=0;i<45;i++){
+      const p=document.createElement('div');
+      p.className='gold-particle';
+      p.style.left=cx+'px'; p.style.top=cy+'px';
+      document.body.appendChild(p);
+      const ang=Math.random()*Math.PI*2;
+      const dist=80+Math.random()*220;
+      const dx=Math.cos(ang)*dist;
+      const dy=Math.sin(ang)*dist-40;
+      const sz=3+Math.random()*7;
+      const dur=700+Math.random()*700;
+      p.style.width=sz+'px'; p.style.height=sz+'px';
+      p.style.transition='all '+dur+'ms cubic-bezier(.25,.46,.45,.94)';
+      requestAnimationFrame(()=>{
+        p.style.transform='translate('+dx+'px,'+dy+'px) scale(0)';
+        p.style.opacity='0';
+      });
+      setTimeout(()=>p.remove(),dur+100);
+    }
+
+    // light rays
+    const rays=document.createElement('div');
+    rays.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9998;pointer-events:none;background:radial-gradient(circle at '+cx+'px '+cy+'px,rgba(255,215,100,.3),transparent 50%);animation:rayExpand .8s ease forwards';
+    document.body.appendChild(rays);
+    setTimeout(()=>rays.remove(),800);
+  }
+
+  function unlockFail(){
+    const chest=document.getElementById('chestWrap');
+    const crack=document.getElementById('lockCrack');
+    const flash=document.getElementById('lockFlash');
+
+    chest.classList.add('shake');
+    crack.classList.add('show');
+    flash.classList.add('show');
+    lockMsg.textContent='密码错误，请重新输入';
+
+    setTimeout(()=>{
+      chest.classList.remove('shake');
+      crack.classList.remove('show');
+      flash.classList.remove('show');
+    },600);
+
+    pinInput='';
+    updateDisplay();
+
+    setTimeout(()=>{ lockMsg.textContent=''; },2500);
+  }
+
+  document.querySelectorAll('#numPad .num-btn[data-num]').forEach(btn=>{
+    btn.onclick=()=>{
+      if(pinInput.length<4){
+        pinInput+=btn.dataset.num;
+        updateDisplay();
+        if(pinInput.length===4) setTimeout(tryUnlock,200);
+      }
+    };
+  });
+  document.getElementById('numClear').onclick=()=>{
+    pinInput=''; updateDisplay(); lockMsg.textContent='';
+  };
+  document.getElementById('numConfirm').onclick=()=>{
+    if(pinInput.length===4) tryUnlock();
+  };
+}
+
 // ---------- PWA Service Worker Registration ----------
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    // Check for SW updates every 60 seconds
+    setInterval(()=>{ reg.update().catch(()=>{}); }, 60000);
+  }).catch(()=>{});
+  // When a new SW takes control, force reload to load new assets
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    // Prevent reload loop with a flag
+    if(!sessionStorage.getItem('sw_reloaded')){
+      sessionStorage.setItem('sw_reloaded','1');
+      window.location.reload();
+    }
+  });
 }
+
+// ---------- Remote Version Check ----------
+// Fetch latest sw.js from GitHub Pages to compare versions
+// Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
+const APP_VERSION='v41';
+async function checkRemoteVersion(){
+  try{
+    // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
+    let res;
+    try{
+      res=await fetch('https://wangxuanchun.github.io/xiafei-workstation/sw.js?_t='+Date.now(),{cache:'no-store'});
+    }catch(e1){
+      // Fallback: try raw.githubusercontent.com (may work with VPN)
+      res=await fetch('https://raw.githubusercontent.com/wangxuanchun/xiafei-workstation/main/sw.js?_t='+Date.now(),{cache:'no-store'});
+    }
+    if(!res || !res.ok) return;
+    const text=await res.text();
+    const m=text.match(/recipe-atelier-(v\d+)/);
+    if(m && m[1] !== APP_VERSION){
+      // Version mismatch — force clear everything and reload
+      console.log('Version mismatch: local='+APP_VERSION+' remote='+m[1]+' — forcing update');
+      if('serviceWorker' in navigator){
+        const regs=await navigator.serviceWorker.getRegistrations();
+        for(const r of regs) await r.unregister();
+      }
+      if('caches' in window){
+        const keys=await caches.keys();
+        for(const k of keys) await caches.delete(k);
+      }
+      sessionStorage.removeItem('sw_reloaded');
+      window.location.reload(true);
+    }
+  }catch(e){ /* network error — skip */ }
+}
+// Check 3 seconds after page load
+setTimeout(checkRemoteVersion, 3000);
+// Check every 5 minutes
+setInterval(checkRemoteVersion, 300000);
 </script>
 </body>
 </html>
