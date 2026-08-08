@@ -1265,7 +1265,10 @@ async function syncPush(silent){
   try{
     const backend = syncBackend();
     if(backend==='gitee'){
-      const [owner,repo] = state.sync.giteeRepo.split('/');
+      const parts = state.sync.giteeRepo.split('/');
+      const owner = parts[0] || state.sync.giteeOwner || '';
+      const repo = parts[1] || parts[0] || '';
+      console.log('[syncPush] giteeRepo='+state.sync.giteeRepo+' owner='+owner+' repo='+repo+' tokenLen='+(state.sync.giteeToken||'').length);
       // read current sha first
       let sha=null;
       try{ const f=await giteeReadFile(state.sync.giteeToken,owner,repo); if(f) sha=f.sha; }catch(e){}
@@ -1279,7 +1282,9 @@ async function syncPush(silent){
   }catch(e){
     console.warn('push failed',e);
     // always show sync errors (even in silent mode) so user knows data isn't synced
-    toast('云同步失败：'+(e.message||'网络错误'),'error');
+    const parts = (state.sync.giteeRepo||'').split('/');
+    const dbg = syncBackend()==='gitee' ? ' [owner='+(parts[0]||state.sync.giteeOwner||'?')+', repo='+(parts[1]||parts[0]||'?')+']' : '';
+    toast('云同步失败：'+(e.message||'网络错误')+dbg,'error');
   }
 }
 // PULL — read gist, apply remote if newer than last sync
@@ -1312,7 +1317,9 @@ async function syncPull(silent){
     const backend = syncBackend();
     let remote = null;
     if(backend==='gitee'){
-      const [owner,repo] = state.sync.giteeRepo.split('/');
+      const parts = state.sync.giteeRepo.split('/');
+      const owner = parts[0] || state.sync.giteeOwner || '';
+      const repo = parts[1] || parts[0] || '';
       const result = await giteeReadFile(state.sync.giteeToken, owner, repo);
       remote = result ? result.data : null;
     }else{
@@ -3057,7 +3064,7 @@ function renderProfile(){
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v46</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v48</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
@@ -4047,7 +4054,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v47';
+const APP_VERSION='v48';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
