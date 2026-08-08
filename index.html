@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -1733,10 +1733,12 @@ function openShowcaseEditor(existing){
 
 /* ---------- Tab 1: Gallery ---------- */
 function renderGallery(){
-  if(!isGalleryUnlocked()){ renderGalleryLock(); return; }
+  // Always render gallery content first (behind the lock overlay)
   if(state.gView==='home') renderGalleryHome();
   else if(state.gView==='list') renderRecipeList();
   else if(state.gView==='editor') renderEditor();
+  // Then overlay the lock on top if not unlocked
+  if(!isGalleryUnlocked()){ renderGalleryLock(); }
 }
 
 function renderGalleryHome(){
@@ -3007,7 +3009,7 @@ function renderProfile(){
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v41</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v42</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
@@ -3386,30 +3388,37 @@ if(syncConfigured()){
 // (constants & isGalleryUnlocked moved to Boot section above)
 
 function renderGalleryLock(){
-  content.innerHTML=`
-    <div class="lock-overlay" id="lockOverlay">
-      <div class="lock-particles" id="lockParticles"></div>
-      <div class="lock-title">Recipe Gallery</div>
-      <div class="lock-subtitle">输入密码开启配方宝箱</div>
-      <div class="chest-wrap" id="chestWrap">
-        <div class="chest-glow" id="chestGlow"></div>
-        <div class="chest-lid" id="chestLid"></div>
-        <div class="chest-body"></div>
-        <div class="chest-lock" id="chestLock"></div>
-        <div class="lock-crack" id="lockCrack"></div>
-        <div class="lock-error-flash" id="lockFlash"></div>
-      </div>
-      <div class="pin-display" id="pinDisplay">
-        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
-      </div>
-      <div class="num-pad" id="numPad">
-        ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="num-btn" data-num="${n}">${n}</button>`).join('')}
-        <button class="num-btn fn" id="numClear">清除</button>
-        <button class="num-btn" data-num="0">0</button>
-        <button class="num-btn fn" id="numConfirm">✓</button>
-      </div>
-      <div class="lock-msg" id="lockMsg"></div>
-    </div>`;
+  // Remove any existing lock overlay
+  const existing=document.getElementById('lockOverlay');
+  if(existing) existing.remove();
+  // Create overlay as independent element on body (gallery content stays underneath)
+  const overlay=document.createElement('div');
+  overlay.className='lock-overlay';
+  overlay.id='lockOverlay';
+  overlay.innerHTML=`
+    <div class="lock-particles" id="lockParticles"></div>
+    <div class="lock-title">Recipe Gallery</div>
+    <div class="lock-subtitle">输入密码开启配方宝箱</div>
+    <div class="chest-wrap" id="chestWrap">
+      <div class="chest-glow" id="chestGlow"></div>
+      <div class="chest-lid" id="chestLid"></div>
+      <div class="chest-body"></div>
+      <div class="chest-lock" id="chestLock"></div>
+      <div class="lock-crack" id="lockCrack"></div>
+      <div class="lock-error-flash" id="lockFlash"></div>
+    </div>
+    <div class="pin-display" id="pinDisplay">
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div class="num-pad" id="numPad">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="num-btn" data-num="${n}">${n}</button>`).join('')}
+      <button class="num-btn fn" id="numClear">清除</button>
+      <button class="num-btn" data-num="0">0</button>
+      <button class="num-btn fn" id="numConfirm">✓</button>
+    </div>
+    <div class="lock-msg" id="lockMsg"></div>
+  `;
+  document.body.appendChild(overlay);
 
   // floating particles
   const pc=document.getElementById('lockParticles');
@@ -3440,7 +3449,6 @@ function renderGalleryLock(){
   function unlockSuccess(){
     const lid=document.getElementById('chestLid');
     const glow=document.getElementById('chestGlow');
-    const overlay=document.getElementById('lockOverlay');
     const cl=document.getElementById('chestLock');
 
     cl.style.transform='translate(-50%,-50%) scale(1.3)';
@@ -3453,14 +3461,19 @@ function renderGalleryLock(){
       localStorage.setItem(GALLERY_LOCK_KEY,'true');
     },250);
 
+    // Start fading out the overlay (CSS has 0.8s delay + 0.6s fade)
     setTimeout(()=>{ overlay.classList.add('unlocking'); },1000);
 
+    // Reveal gallery content behind as overlay fades out
     setTimeout(()=>{
-      state.gView='home';
-      renderGallery();
       const sc=content.querySelector('.screen');
       if(sc) sc.classList.add('gallery-reveal');
-    },1600);
+    },1800);
+
+    // Remove overlay from DOM after fade completes
+    setTimeout(()=>{
+      overlay.remove();
+    },2400);
   }
 
   function createGoldBurst(){
@@ -3553,7 +3566,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v41';
+const APP_VERSION='v42';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
