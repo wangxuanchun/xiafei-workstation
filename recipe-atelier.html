@@ -168,6 +168,7 @@
   .wiki-card-edit .wk-fields{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
   .wiki-card-edit .wk-name{width:100%;border:none;font-size:14px;font-weight:700;color:var(--ink);background:transparent;outline:none;padding:2px 0}
   .wiki-card-edit .wk-desc{width:100%;border:none;font-size:12px;color:var(--sub);background:transparent;outline:none;padding:2px 0}
+  .wiki-card-edit .wk-name[readonly],.wiki-card-edit .wk-desc[readonly]{cursor:default;opacity:.85}
   .wiki-toolbar{display:flex;gap:10px;margin-top:16px}
   .wk-add{flex:1;padding:12px;border-radius:13px;border:1.6px dashed var(--brand-soft);color:var(--brand-deep);font-weight:700;font-size:13.5px;background:transparent;display:flex;align-items:center;justify-content:center;gap:5px}
   .wk-del{flex:1;padding:12px;border-radius:13px;background:#FBE7E4;color:var(--red);font-weight:700;font-size:13.5px;border:1.5px solid #F3CFCB;opacity:.5}
@@ -1966,6 +1967,7 @@ function renderGallery(){
 
 function renderGalleryHome(){
   catSelected.clear();
+  const isAdmin=isLoggedIn()&&isAdminPhone();
   content.innerHTML = `
     <div class="screen">
       <div class="hd">
@@ -1976,8 +1978,10 @@ function renderGalleryHome(){
           </div>
           <div class="hd-actions">
             <button class="hd-btn brand" id="lockAllBtn" title="全部上锁" style="font-size:11px;width:auto;padding:0 10px;gap:3px">${svg('lock',1.5)}<span>全部</span></button>
+            ${isAdmin?`
             <button class="hd-btn brand" id="catAdd">${svg('plus',2)}</button>
             <button class="hd-btn danger" id="catDel" disabled>${svg('trash')}</button>
+            `:''}
           </div>
         </div>
       </div>
@@ -1986,8 +1990,10 @@ function renderGalleryHome(){
           <div class="cat" data-cat="${c.id}">
             <div class="art">
               ${c.image?`<img src="${c.image}" alt="">`:`<span class="cat-placeholder">${esc(c.name.charAt(0))}</span>`}
+              ${isAdmin?`
               <button class="cat-check" data-cid="${c.id}">${svg('check')}</button>
               <button class="cat-edit" data-cid="${c.id}">${svg('pencil')}</button>
+              `:''}
             </div>
             <div class="meta">
               <div class="nm">${esc(c.name)}</div>
@@ -2004,66 +2010,90 @@ function renderGalleryHome(){
       state.catId=b.dataset.cat; state.gView='list'; render(); window.scrollTo(0,0);
     };
   });
-  // checkbox toggle
-  document.querySelectorAll('.cat-check').forEach(cb=>{
-    cb.onclick=(e)=>{
-      e.stopPropagation();
-      const cid=cb.dataset.cid;
-      if(cb.classList.contains('on')){ cb.classList.remove('on'); catSelected.delete(cid); }
-      else{ cb.classList.add('on'); catSelected.add(cid); }
-      updateCatDelBtn();
-    };
-  });
-  // edit button
-  document.querySelectorAll('.cat-edit').forEach(eb=>{
-    eb.onclick=(e)=>{
-      e.stopPropagation();
-      const c=state.categories.find(x=>x.id===eb.dataset.cid);
-      if(c) openCatEditor(c);
-    };
-  });
-  // add button
-  document.getElementById('catAdd').onclick=()=>openCatEditor(null);
+  // checkbox toggle (admin only)
+  if(isAdmin){
+    document.querySelectorAll('.cat-check').forEach(cb=>{
+      cb.onclick=(e)=>{
+        e.stopPropagation();
+        const cid=cb.dataset.cid;
+        if(cb.classList.contains('on')){ cb.classList.remove('on'); catSelected.delete(cid); }
+        else{ cb.classList.add('on'); catSelected.add(cid); }
+        updateCatDelBtn();
+      };
+    });
+  }
+  // edit button (admin only)
+  if(isAdmin){
+    document.querySelectorAll('.cat-edit').forEach(eb=>{
+      eb.onclick=(e)=>{
+        e.stopPropagation();
+        const c=state.categories.find(x=>x.id===eb.dataset.cid);
+        if(c) openCatEditor(c);
+      };
+    });
+  }
+  // add button (admin only)
+  if(isAdmin){
+    const catAddBtn=document.getElementById('catAdd');
+    if(catAddBtn) catAddBtn.onclick=()=>openCatEditor(null);
+  }
   // lock all / unlock all toggle
   document.getElementById('lockAllBtn').onclick=()=>{
-    const allLocked=state.recipes.length>0 && state.recipes.every(r=>r.locked);
-    if(allLocked){
-      openActionSheet('配方锁定','选择操作',[
-        {label:'全部解锁',action:()=>{
-          state.recipes.forEach(r=>{ r.locked=false; });
-          persist(true); renderGalleryHome();
-          toast('已解锁全部配方','success');
-        }},
-        {label:'取消'}
-      ]);
+    if(isAdmin){
+      const allLocked=state.recipes.length>0 && state.recipes.every(r=>r.locked);
+      if(allLocked){
+        openActionSheet('配方锁定','选择操作',[
+          {label:'全部解锁',action:()=>{
+            state.recipes.forEach(r=>{ r.locked=false; });
+            persist(true); renderGalleryHome();
+            toast('已解锁全部配方','success');
+          }},
+          {label:'取消'}
+        ]);
+      }else{
+        openActionSheet('配方锁定','选择操作',[
+          {label:'全部上锁',action:()=>{
+            state.recipes.forEach(r=>{ r.locked=true; if(!r.lockPwd) r.lockPwd=DEFAULT_RECIPE_PWD; });
+            persist(true); renderGalleryHome();
+            toast('已锁定全部配方','success');
+          }},
+          {label:'取消'}
+        ]);
+      }
     }else{
-      openActionSheet('配方锁定','选择操作',[
-        {label:'全部上锁',action:()=>{
-          state.recipes.forEach(r=>{ r.locked=true; if(!r.lockPwd) r.lockPwd=DEFAULT_RECIPE_PWD; });
-          persist(true); renderGalleryHome();
-          toast('已锁定全部配方','success');
-        }},
-        {label:'取消'}
-      ]);
+      // Non-admin: show password lock to unlock
+      if(!isGalleryUnlocked()){
+        renderGalleryLock();
+      }else{
+        // Already unlocked — allow re-locking
+        localStorage.removeItem(GALLERY_LOCK_KEY);
+        state.recipes.forEach(r=>{ r.locked=true; if(!r.lockPwd) r.lockPwd=DEFAULT_RECIPE_PWD; });
+        persist(true);
+        renderGallery();
+        toast('配方画廊已锁定','success');
+      }
     }
   };
-  // delete button
-  document.getElementById('catDel').onclick=()=>{
-    if(catSelected.size===0) return;
-    const count=catSelected.size;
-    openModal('删除选中的分类？',`确认删除选中的 ${count} 个分类？分类下的配方不会被删除，但需要重新归类。此操作无法撤销。`,()=>{
-      state.categories=state.categories.filter(c=>!catSelected.has(c.id));
-      persist(true);
-      renderGalleryHome();
-      toast('已删除选中分类','success');
-    });
-  };
+  // delete button (admin only)
+  if(isAdmin){
+    const catDelBtn=document.getElementById('catDel');
+    if(catDelBtn) catDelBtn.onclick=()=>{
+      if(catSelected.size===0) return;
+      const count=catSelected.size;
+      openModal('删除选中的分类？',`确认删除选中的 ${count} 个分类？分类下的配方不会被删除，但需要重新归类。此操作无法撤销。`,()=>{
+        state.categories=state.categories.filter(c=>!catSelected.has(c.id));
+        persist(true);
+        renderGalleryHome();
+        toast('已删除选中分类','success');
+      });
+    };
+  }
   function updateCatDelBtn(){
     const btn=document.getElementById('catDel');
     if(btn) btn.disabled=catSelected.size===0;
   }
-  // init long-press drag-to-reorder
-  initCategoryDrag();
+  // init long-press drag-to-reorder (admin only)
+  if(isAdmin) initCategoryDrag();
 }
 
 /* ---------- Long-press drag-to-reorder for category cards (FLIP animation) ---------- */
@@ -2933,6 +2963,7 @@ function renderWiki(){
   if(!data){ content.innerHTML='<div class="screen"><div class="empty">暂无数据</div></div>'; return; }
   wikiSelected.clear();
   const selCount=()=>wikiSelected.size;
+  const isAdmin=isLoggedIn()&&isAdminPhone();
 
   content.innerHTML=`
     <div class="screen">
@@ -2942,17 +2973,19 @@ function renderWiki(){
             <h1>烘焙百科</h1>
             <p>每种食材都有它的故事</p>
           </div>
+          ${isAdmin?`
           <div class="hd-actions">
             <button class="hd-btn brand" id="wikiAdd">${svg('plus',2)}</button>
             <button class="hd-btn danger" id="wikiDel">${svg('trash')}</button>
           </div>
+          `:''}
         </div>
       </div>
       <div class="wiki-tabs">
         ${cats.map(c=>`<button class="wtab ${c===active?'on':''}" data-wcat="${c}">${c}</button>`).join('')}
       </div>
       <div class="wiki-grid" id="wikiGrid">
-        ${data.items.map((it,i)=>wikiCardHTML(it,i,data.icon)).join('')}
+        ${data.items.map((it,i)=>wikiCardHTML(it,i,data.icon,isAdmin)).join('')}
       </div>
     </div>`;
 
@@ -2961,7 +2994,8 @@ function renderWiki(){
     b.onclick=()=>{ saveWikiNow(); state.wikiCat=b.dataset.wcat; renderWiki(); };
   });
 
-  // add — chooser: category or item
+  // add — chooser: category or item (admin only)
+  if(isAdmin){
   document.getElementById('wikiAdd').onclick=()=>{
     openActionSheet('添加','请选择添加类型',[
       {label:'添加分类',variant:'brand',action:()=>{
@@ -3031,26 +3065,24 @@ function renderWiki(){
     opts.push({label:'取消'});
     openActionSheet('删除','请选择删除类型',opts);
   };
+  } // end if(isAdmin)
 
-  // auto-save on input
-  document.querySelectorAll('.wk-name, .wk-desc').forEach(el=>{
-    el.addEventListener('input',scheduleWikiSave);
-  });
+  // auto-save on input (admin only — non-admin inputs are readonly)
+  if(isAdmin){
+    document.querySelectorAll('.wk-name, .wk-desc').forEach(el=>{
+      el.addEventListener('input',scheduleWikiSave);
+    });
 
-  // checkbox toggle
-  document.querySelectorAll('.wk-check').forEach(cb=>{
-    cb.onclick=()=>{
-      const idx=parseInt(cb.dataset.idx,10);
-      if(cb.classList.contains('on')){ cb.classList.remove('on'); wikiSelected.delete(idx); }
-      else{ cb.classList.add('on'); wikiSelected.add(idx); }
-      updateWikiDelBtn();
-    };
-  });
-
-  // add item — insert at TOP so user doesn't need to scroll down
-  // (moved to wikiAdd action sheet above)
-
-  // delete selected — (moved to wikiDel action sheet above)
+    // checkbox toggle (admin only)
+    document.querySelectorAll('.wk-check').forEach(cb=>{
+      cb.onclick=()=>{
+        const idx=parseInt(cb.dataset.idx,10);
+        if(cb.classList.contains('on')){ cb.classList.remove('on'); wikiSelected.delete(idx); }
+        else{ cb.classList.add('on'); wikiSelected.add(idx); }
+        updateWikiDelBtn();
+      };
+    });
+  }
 
   function updateWikiDelBtn(){
     const btn=document.getElementById('wikiDel');
@@ -3058,14 +3090,16 @@ function renderWiki(){
   }
 }
 
-function wikiCardHTML(it,i,iconName){
+function wikiCardHTML(it,i,iconName,canEdit){
+  const ro=canEdit?'':'readonly';
+  const chk=canEdit?`<button class="wk-check" data-idx="${i}">${svg('check')}</button>`:'';
   return `<div class="wiki-card-edit">
-    <button class="wk-check" data-idx="${i}">${svg('check')}</button>
+    ${chk}
     <div class="wk-body">
       <div class="wk-icon">${svg(iconName)}</div>
       <div class="wk-fields">
-        <input class="wk-name" value="${esc(it.n)}" placeholder="食材名称">
-        <input class="wk-desc" value="${esc(it.d)}" placeholder="简短描述">
+        <input class="wk-name" value="${esc(it.n)}" placeholder="食材名称" ${ro}>
+        <input class="wk-desc" value="${esc(it.d)}" placeholder="简短描述" ${ro}>
       </div>
     </div>
   </div>`;
@@ -3237,11 +3271,23 @@ function renderProfile(){
       </div>
       `:''}
 
+      <div class="dm-card" style="margin-top:16px">
+        <div class="h"><span>💗 品牌理念</span></div>
+        <div style="padding:18px 16px">
+          <div style="font-size:14px;line-height:1.8;color:var(--ink);text-align:center">
+            <span style="font-size:24px;display:block;margin-bottom:8px">🌸</span>
+            <span style="font-weight:700;font-size:15px;color:var(--brand-deep)">用甜蜜传递温暖</span>
+            <br><br>
+            <span style="color:var(--sub);font-size:13px">（品牌理念文案待补充）</span>
+          </div>
+        </div>
+      </div>
+
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 0 8px">
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v53</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v54</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
@@ -4426,7 +4472,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v53';
+const APP_VERSION='v54';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
