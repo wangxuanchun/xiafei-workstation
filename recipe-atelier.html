@@ -15,43 +15,57 @@
 <title>甜品配方工作台</title>
 <style>
   :root{
-    --bg:#F7F3EC; --brand:#6B8E4E; --brand-deep:#556B2F; --brand-soft:#B5C99A;
-    --card:#FFFFFF; --ink:#3D2E1F; --sub:#8B7355; --line:#E8DCC8; --fill:#F0E8D8;
-    --green:#6B8E4E; --red:#C45C48;
-    --shadow:0 3px 10px rgba(139,111,78,.06); --shadow-lg:0 10px 30px rgba(139,111,78,.10);
-    --radius:16px; --radius-sm:12px;
-    --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
+    --bg:#FFF5EE; --brand:#E8A0BF; --brand-deep:#D2691E; --brand-soft:#FFDAB9;
+    --card:rgba(255,255,255,.7); --ink:#5C3D3D; --sub:#A0826D; --line:#FFE4E1; --fill:#FFF0F5;
+    --green:#B5EAD7; --red:#C45C48; --accent:#E6D0F0; --gold:#F7E7CE;
+    --shadow:0 3px 12px rgba(255,182,193,.12); --shadow-lg:0 8px 28px rgba(255,182,193,.18);
+    --radius:20px; --radius-sm:16px;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Helvetica Neue',sans-serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
   body{
-    font-family:var(--font); background:var(--bg); color:var(--ink);
+    font-family:var(--font); color:var(--ink);
     font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
-    padding-bottom:72px; /* space for fixed nav */
+    padding-bottom:80px;
+    background:linear-gradient(160deg,#FFF5EE 0%,#FFE4E1 20%,#FFDAB9 45%,#F0E6F6 75%,#E6D0F0 100%);
+    background-attachment:fixed;
   }
   input,textarea,select,button{font-family:inherit;color:inherit}
   button{cursor:pointer;border:none;background:none}
-  ::placeholder{color:#C9B6A8}
+  ::placeholder{color:#D4A5A5}
   svg{flex-shrink:0}
 
+  /* global background decorations — bubbles & petals */
+  .bg-decor{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .bg-bubble{position:absolute;bottom:-60px;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.5),rgba(255,182,193,.12));border:1px solid rgba(255,255,255,.3);animation:bgBubbleRise linear infinite}
+  @keyframes bgBubbleRise{0%{transform:translateY(0) scale(.8);opacity:0}10%{opacity:.4}90%{opacity:.2}100%{transform:translateY(-110vh) scale(1.1);opacity:0}}
+  .bg-petal{position:absolute;top:-20px;animation:bgPetalFall linear infinite;opacity:.5;user-select:none}
+  @keyframes bgPetalFall{0%{transform:translateY(0) rotate(0deg) translateX(0);opacity:0}10%{opacity:.5}100%{transform:translateY(110vh) rotate(360deg) translateX(40px);opacity:0}}
+  .bg-sparkle{position:absolute;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,182,193,.15));animation:bgSparkleTwinkle ease-in-out infinite}
+  @keyframes bgSparkleTwinkle{0%,100%{opacity:0;transform:scale(0)}50%{opacity:.6;transform:scale(1.2)}}
+  /* static sugar sprinkles */
+  .sugar-sprinkle{position:fixed;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:0;opacity:.4}
+
   /* layout */
-  #app{max-width:560px;margin:0 auto;min-height:100vh}
-  .screen{padding:20px 18px 32px;animation:fade .28s ease}
-  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  #app{max-width:560px;margin:0 auto;min-height:100vh;position:relative;z-index:1}
+  .screen{padding:20px 18px 32px;animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
 
   /* header */
   .hd{padding:26px 4px 18px}
-  .hd h1{font-size:27px;font-weight:800;letter-spacing:-.4px;margin:0;color:var(--ink)}
+  .hd h1{font-size:27px;font-weight:800;letter-spacing:.5px;margin:0;color:var(--ink);text-shadow:0 2px 8px rgba(255,182,193,.3)}
   .hd p{margin:6px 0 0;font-size:13.5px;color:var(--sub)}
   .hd .crumb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);margin-bottom:10px}
-  .hd .crumb .back{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:12px;background:var(--card);box-shadow:var(--shadow);color:var(--ink)}
+  .hd .crumb .back{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.6);box-shadow:var(--shadow);color:var(--ink);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.5)}
   .hd .crumb .back svg{width:20px!important;height:20px!important;stroke:currentColor!important;stroke-width:2.2;fill:none!important;flex-shrink:0}
   .hd-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
   .hd-actions{display:flex;gap:8px;flex-shrink:0;margin-top:2px}
-  .hd-btn{width:38px;height:38px;border-radius:12px;background:var(--card);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;color:var(--ink);transition:transform .15s;flex-shrink:0}
-  .hd-btn:active{transform:scale(.92)}
+  .hd-btn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.6);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;color:var(--ink);transition:all .2s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.5)}
+  .hd-btn:hover{transform:scale(1.08)}
+  .hd-btn:active{transform:scale(.88) translateY(2px)}
   .hd-btn svg{width:19px!important;height:19px!important;stroke:currentColor!important;stroke-width:2;fill:none!important;flex-shrink:0}
-  .hd-btn.brand{background:var(--brand);color:#fff}
+  .hd-btn.brand{background:linear-gradient(135deg,#FFB6C1,#E8A0BF);color:#fff;border-color:rgba(255,255,255,.6)}
   .hd-btn.brand svg{stroke:#fff}
   .hd-btn.danger{color:var(--red);opacity:.4;cursor:not-allowed}
   .hd-btn.danger:not(:disabled){opacity:1;cursor:pointer}
@@ -59,7 +73,7 @@
 
   /* category grid — polaroid style */
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;position:relative}
-  .cat{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;text-align:left;transition:transform .28s cubic-bezier(.2,.9,.3,1), box-shadow .28s ease, opacity .28s ease;width:100%;cursor:pointer;border:1px solid rgba(0,0,0,.04);will-change:transform}
+  .cat{background:rgba(255,255,255,.65);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;text-align:left;transition:transform .28s cubic-bezier(.2,.9,.3,1), box-shadow .28s ease, opacity .28s ease;width:100%;cursor:pointer;border:1px solid rgba(255,255,255,.5);will-change:transform;backdrop-filter:blur(12px) saturate(1.2);-webkit-backdrop-filter:blur(12px) saturate(1.2)}
   .cat:active{transform:scale(.97)}
   .cat.dragging{position:fixed;z-index:9999;opacity:.95;box-shadow:0 20px 50px rgba(61,44,30,.3);transition:transform .12s ease, box-shadow .12s ease;pointer-events:none;transform-origin:center center}
   .cat.drag-ghost{opacity:.12;border:2px dashed rgba(196,140,92,.4);box-shadow:none}
@@ -77,7 +91,7 @@
   .cat .art .cat-edit{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;z-index:2;transition:transform .15s}
   .cat .art .cat-edit:active{transform:scale(.9)}
   .cat .art .cat-edit svg{width:13px;height:13px;stroke:var(--ink);stroke-width:2;fill:none}
-  .cat .meta{padding:10px 12px 14px;background:#fff}
+  .cat .meta{padding:10px 12px 14px;background:rgba(255,255,255,.5)}
   .cat .meta .nm{font-size:14px;font-weight:700;color:var(--ink);line-height:1.25}
   .cat .meta .ct{font-size:11px;color:var(--sub);margin-top:3px}
   .g1{background:linear-gradient(135deg,#E8B894,#D48C5C)}
@@ -179,12 +193,16 @@
   .dm-item .tx .d{font-size:12px;color:var(--sub);margin-top:2px}
 
   /* bottom nav */
-  nav#nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line);z-index:500}
-  nav#nav .inner{max-width:560px;margin:0 auto;display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
-  .navbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;color:var(--sub);font-size:10.5px;font-weight:600}
-  .navbtn svg{width:23px!important;height:23px!important;stroke:currentColor!important;stroke-width:1.8;fill:none!important;flex-shrink:0;transition:transform .18s}
-  .navbtn.on{color:#C48C5C}
-  .navbtn.on svg{transform:translateY(-2px)}
+  nav#nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.6);backdrop-filter:blur(20px) saturate(1.3);-webkit-backdrop-filter:blur(20px) saturate(1.3);border-top:1px solid rgba(255,228,225,.6);z-index:500;box-shadow:0 -4px 20px rgba(255,182,193,.08)}
+  nav#nav .inner{max-width:560px;margin:0 auto;display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom));gap:4px}
+  .navbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0;color:var(--sub);font-size:10px;font-weight:700;border-radius:20px;transition:all .25s cubic-bezier(.34,1.56,.64,1);position:relative}
+  .navbtn svg{width:22px!important;height:22px!important;stroke:currentColor!important;stroke-width:1.8;fill:none!important;flex-shrink:0;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+  .navbtn:hover{transform:scale(1.05)}
+  .navbtn:active{transform:scale(.9)}
+  .navbtn.on{color:#fff;background:linear-gradient(135deg,#FFB6C1,#E8A0BF);box-shadow:0 4px 14px rgba(255,182,193,.35)}
+  .navbtn.on svg{transform:translateY(-2px) scale(1.1)}
+  .navbtn.on::after{content:'♥';position:absolute;top:-2px;right:50%;transform:translateX(20px);font-size:10px;color:#FF69B4;animation:navHeartBeat 1.5s ease-in-out infinite}
+  @keyframes navHeartBeat{0%,100%{transform:translateX(20px) scale(1);opacity:.7}50%{transform:translateX(20px) scale(1.3);opacity:1}}
 
   /* toast */
   #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-24px);opacity:0;transition:opacity .3s,transform .3s;padding:11px 22px;border-radius:14px;font-size:13.5px;font-weight:700;z-index:1000;pointer-events:none;box-shadow:var(--shadow-lg);white-space:nowrap}
@@ -496,9 +514,85 @@
   .lock-toggle:not(.on) .lt-icon{color:var(--sub)}
   .lock-input{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:14px;outline:none;margin-top:8px}
   .lock-input:focus{border-color:var(--brand-soft)}
+
+  /* ===== Global Sweet Theme Override ===== */
+  /* Frosted glass cards */
+  .rcard,.ed-block,.sc-card,.wiki-card-edit,.prof,.dm-card,.pantry-top,.ing-list,.search,.msheet,.cat-modal,.memo-card,.sync-body,.device-swipe-content{
+    background:rgba(255,255,255,.62)!important;
+    backdrop-filter:blur(14px) saturate(1.3)!important;
+    -webkit-backdrop-filter:blur(14px) saturate(1.3)!important;
+    border:1px solid rgba(255,255,255,.5)!important;
+    box-shadow:0 4px 16px rgba(255,182,193,.1)!important;
+  }
+  .dm-card .h,.sync-dot.on{background:rgba(255,228,225,.5)}
+  /* Sweet buttons */
+  .new-btn,.sync-btn.primary,.login-btn,.mb-ok,.ma-opt.brand,.cm-aigen:not(:disabled){
+    background:linear-gradient(135deg,#FFB6C1,#E8A0BF)!important;
+    color:#fff!important;
+    border:none!important;
+    box-shadow:0 4px 14px rgba(255,182,193,.3)!important;
+    transition:all .2s cubic-bezier(.34,1.56,.64,1)!important;
+  }
+  .new-btn:hover,.sync-btn.primary:hover,.login-btn:hover{transform:scale(1.03)}
+  .new-btn:active,.sync-btn.primary:active,.login-btn:active,.mb-ok:active,.ma-opt.brand:active{transform:scale(.92) translateY(2px)}
+  .sync-btn.ghost,.mb-cancel,.ma-opt:not(.brand):not(.danger),.cm-input{
+    background:rgba(255,228,225,.4)!important;
+    color:var(--ink)!important;
+    border:1px solid rgba(255,255,255,.5)!important;
+  }
+  /* Input fields */
+  .ed-name,.ed-sel,.in-name,.in-gram,.ed-area,.cm-input,.lock-input,.sync-field input,.login-field input{
+    background:rgba(255,255,255,.5)!important;
+    border-color:rgba(255,182,193,.3)!important;
+    border-radius:var(--radius-sm)!important;
+  }
+  .ed-name:focus,.ed-sel:focus,.in-name:focus,.in-gram:focus,.ed-area:focus,.cm-input:focus,.lock-input:focus,.sync-field input:focus,.login-field input:focus{
+    border-color:#FFB6C1!important;
+    box-shadow:0 0 0 3px rgba(255,182,193,.15)!important;
+  }
+  /* Modal */
+  #modal{background:rgba(255,182,193,.3)!important;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  .msheet,.cat-modal{border-radius:24px!important}
+  .msheet .mt,.cat-modal .cm-title{color:var(--ink)!important}
+  /* Toast */
+  #toast.success{background:linear-gradient(135deg,#B5EAD7,#7FD1B9)!important;color:#3D5A4E!important}
+  #toast.error{background:linear-gradient(135deg,#FFB6C1,#FF69B4)!important;color:#fff!important}
+  #toast.info{background:linear-gradient(135deg,#FFDAB9,#FFB6C1)!important;color:#5C3D3D!important}
+  /* Wiki tabs */
+  .wtab{background:rgba(255,255,255,.5)!important;border:1px solid rgba(255,255,255,.4)!important}
+  .wtab.on{background:linear-gradient(135deg,#FFB6C1,#E8A0BF)!important;color:#fff!important;border-color:transparent!important}
+  /* Header title accent */
+  .hd h1{background:linear-gradient(135deg,#E8A0BF,#D2691E,#E8A0BF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  /* Gradient overlays on category art */
+  .g1{background:linear-gradient(135deg,#FFDAB9,#FFB6C1)!important}
+  .g2{background:linear-gradient(135deg,#FFB6C1,#E8A0BF)!important}
+  .g3{background:linear-gradient(135deg,#F7E7CE,#FFDAB9)!important}
+  .g4{background:linear-gradient(135deg,#E6D0F0,#FFB6C1)!important}
+  .g5{background:linear-gradient(135deg,#B5EAD7,#F7E7CE)!important}
+  .g6{background:linear-gradient(135deg,#FFDAB9,#E6D0F0)!important}
+  .g7{background:linear-gradient(135deg,#FFB6C1,#F7E7CE)!important}
+  .g8{background:linear-gradient(135deg,#E8A0BF,#B5EAD7)!important}
+  /* Add button */
+  .add-ing,.add-ing-small,.wk-add{border-color:rgba(255,182,193,.5)!important;color:#D2691E!important;background:rgba(255,255,255,.3)!important}
+  /* Toggle switch */
+  .toggle.on{background:linear-gradient(135deg,#FFB6C1,#E8A0BF)!important}
+  /* Profile avatar */
+  .avatar{background:linear-gradient(135deg,#FFDAB9,#FFB6C1,#E8A0BF)!important;box-shadow:0 0 0 4px rgba(255,182,193,.2),0 4px 16px rgba(255,182,193,.3)}
+  /* Rcard arrow */
+  .rcard .arrow{color:#E8A0BF!important}
+  /* Del recipe button */
+  .del-recipe{background:rgba(255,182,193,.2)!important;color:#C45C48!important;border-color:rgba(255,182,193,.3)!important}
+  /* Lace divider */
+  .lace-divider{display:flex;align-items:center;gap:8px;margin:16px 0;color:rgba(255,182,193,.5);font-size:12px}
+  .lace-divider::before,.lace-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,182,193,.3),transparent)}
+  .lace-divider span{font-size:14px}
+  /* Empty state */
+  .empty{color:var(--sub)!important}
+  .empty::before{content:'🍰 ';font-size:32px;display:block;margin-bottom:8px}
 </style>
 </head>
 <body>
+<div class="bg-decor" id="bgDecor"></div>
 <div id="app">
   <main id="content"></main>
   <nav id="nav"><div class="inner"></div></nav>
@@ -514,6 +608,61 @@
    Recipe Atelier — single-file baking workbench
    Storage: localStorage (instant autosave) + JSON export/import (cross-device)
    ============================================================ */
+
+/* ---------- Background Animations — bubbles, petals, sparkles ---------- */
+function initBgDecor(){
+  const decor=document.getElementById('bgDecor');
+  if(!decor) return;
+  decor.innerHTML='';
+  // Bubbles
+  for(let i=0;i<14;i++){
+    const b=document.createElement('div');
+    b.className='bg-bubble';
+    const sz=20+Math.random()*60;
+    b.style.width=sz+'px'; b.style.height=sz+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.animationDuration=(12+Math.random()*18)+'s';
+    b.style.animationDelay=Math.random()*15+'s';
+    decor.appendChild(b);
+  }
+  // Petals
+  const petals=['🌸','🌺','🌷','💮','🏵️'];
+  for(let i=0;i<10;i++){
+    const p=document.createElement('div');
+    p.className='bg-petal';
+    p.textContent=petals[Math.floor(Math.random()*petals.length)];
+    p.style.left=Math.random()*100+'%';
+    p.style.animationDuration=(10+Math.random()*12)+'s';
+    p.style.animationDelay=Math.random()*10+'s';
+    p.style.fontSize=(14+Math.random()*10)+'px';
+    decor.appendChild(p);
+  }
+  // Sparkles
+  for(let i=0;i<18;i++){
+    const s=document.createElement('div');
+    s.className='bg-sparkle';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.animationDuration=(2+Math.random()*4)+'s';
+    s.style.animationDelay=Math.random()*4+'s';
+    const sz=3+Math.random()*5;
+    s.style.width=sz+'px'; s.style.height=sz+'px';
+    decor.appendChild(s);
+  }
+  // Static sugar sprinkles
+  const sprinkleColors=['#FFB6C1','#FFDAB9','#B5EAD7','#E6D0F0','#F7E7CE'];
+  for(let i=0;i<20;i++){
+    const s=document.createElement('div');
+    s.className='sugar-sprinkle';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.background=sprinkleColors[Math.floor(Math.random()*sprinkleColors.length)];
+    s.style.width=(4+Math.random()*4)+'px';
+    s.style.height=s.style.width;
+    decor.appendChild(s);
+  }
+}
+initBgDecor();
 
 /* ---------- Data: default categories (can be customized by user) ---------- */
 const DEFAULT_CATEGORIES = [
@@ -1611,8 +1760,8 @@ function renderShowcase(){
       <div class="hd">
         <div class="hd-row">
           <div>
-            <h1>Showcase</h1>
-            <p>展示你的烘焙成品</p>
+            <h1>甜品橱窗</h1>
+            <p>展示你的烘焙成品 🧁</p>
           </div>
           <div class="hd-actions">
             <button class="hd-btn brand" id="scAdd">${svg('plus',2)}</button>
@@ -3092,7 +3241,7 @@ function renderProfile(){
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v52</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v53</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
@@ -4277,7 +4426,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v52';
+const APP_VERSION='v53';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
