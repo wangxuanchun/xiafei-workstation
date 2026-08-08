@@ -3586,7 +3586,7 @@ async function tryOneClickLogin(msgEl,overlay){
                 sdk.closeLoginPage();
                 setAuthState({phone:phoneRes.phone,token:phoneRes.token,giteeOwner:phoneRes.giteeOwner,giteeRepo:phoneRes.giteeRepo});
                 state.sync.giteeToken=phoneRes.token;
-                state.sync.giteeRepo=phoneRes.giteeRepo;
+                state.sync.giteeRepo=phoneRes.giteeOwner+'/'+phoneRes.giteeRepo;
                 state.sync.giteeOwner=phoneRes.giteeOwner;
                 writeLocal();
                 overlay.remove();
@@ -3737,7 +3737,7 @@ function showAuthScreen(){
       if(res.success){
         setAuthState({phone:res.phone,token:res.token,giteeOwner:res.giteeOwner,giteeRepo:res.giteeRepo});
         state.sync.giteeToken=res.token;
-        state.sync.giteeRepo=res.giteeRepo;
+        state.sync.giteeRepo=res.giteeOwner+'/'+res.giteeRepo;
         state.sync.giteeOwner=res.giteeOwner;
         writeLocal();
         overlay.remove();
@@ -3783,7 +3783,7 @@ function showAuthScreen(){
         if(loginRes.success){
           setAuthState({phone:loginRes.phone,token:loginRes.token,giteeOwner:loginRes.giteeOwner,giteeRepo:loginRes.giteeRepo});
           state.sync.giteeToken=loginRes.token;
-          state.sync.giteeRepo=loginRes.giteeRepo;
+          state.sync.giteeRepo=loginRes.giteeOwner+'/'+loginRes.giteeRepo;
           state.sync.giteeOwner=loginRes.giteeOwner;
           writeLocal();
           overlay.remove();
@@ -3818,6 +3818,11 @@ bindGlobalFocusScroll();
 load();
 // Auto-repair garbled text from previous encoding bug
 const bootRepaired = repairAllData();
+// Fix giteeRepo format: ensure it's "owner/repo" not just "repo"
+if(state.sync.giteeOwner && state.sync.giteeRepo && !state.sync.giteeRepo.includes('/')){
+  state.sync.giteeRepo = state.sync.giteeOwner + '/' + state.sync.giteeRepo;
+  writeLocal();
+}
 // check URL for sync config (device pairing via link)
 const urlSyncApplied = checkUrlForSyncConfig();
 // Check login status — show auth screen if not logged in
@@ -4042,7 +4047,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v46';
+const APP_VERSION='v47';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
