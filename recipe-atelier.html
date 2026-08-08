@@ -341,97 +341,115 @@
   .memo-item .memo-del:active{background:rgba(196,92,72,.1);color:var(--accent,#C45C48)}
   .memo-empty{text-align:center;color:var(--sub);font-size:13px;padding:16px 0}
 
-  /* ===== Gallery Password Lock ===== */
-  .lock-overlay{position:fixed;inset:0;z-index:10000;background:radial-gradient(ellipse at center,#1a1a2e 0%,#0d0d1a 55%,#050508 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;animation:lockFadeIn .4s ease}
+  /* ===== Gallery Password Lock — 甜美氛围感 ===== */
+  .lock-overlay{position:fixed;inset:0;z-index:10000;background:linear-gradient(160deg,#FFF0F5 0%,#FFE4E1 20%,#FFD1DC 40%,#E8D5F2 70%,#D4B8E8 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;animation:lockFadeIn .5s ease}
   @keyframes lockFadeIn{from{opacity:0}to{opacity:1}}
-  .lock-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-  .lock-particles span{position:absolute;border-radius:50%;background:rgba(212,175,95,.5);animation:floatParticle linear infinite}
-  @keyframes floatParticle{0%{transform:translateY(105vh) scale(0);opacity:0}10%{opacity:.6}90%{opacity:.4}100%{transform:translateY(-5vh) scale(1);opacity:0}}
-  .lock-title{font-size:11px;letter-spacing:4px;color:rgba(212,175,95,.35);margin-bottom:6px;text-transform:uppercase;font-weight:600}
-  .lock-subtitle{font-size:14px;color:rgba(232,213,168,.55);margin-bottom:22px;font-weight:300;letter-spacing:1px}
 
-  /* Treasure Chest */
-  .chest-wrap{position:relative;width:220px;height:175px;margin-bottom:24px;perspective:800px}
-  .chest-lid{position:absolute;top:0;left:0;width:100%;height:70px;background:linear-gradient(180deg,#3a2418 0%,#2d1a0e 50%,#1f1208 100%);border-radius:14px 14px 4px 4px;border:2px solid #b8860b;border-bottom:none;transform-origin:bottom center;transition:transform 1s cubic-bezier(.34,1.4,.64,1);z-index:3;box-shadow:inset 0 2px 10px rgba(255,200,100,.12),0 -2px 12px rgba(0,0,0,.6)}
-  .chest-lid::before{content:'';position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);width:70%;height:2px;background:linear-gradient(90deg,transparent,#d4af60 20%,#f5d97a 50%,#d4af60 80%,transparent);border-radius:2px}
-  .chest-lid::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:36px;height:8px;background:linear-gradient(180deg,#d4af60,#b8860b);border-radius:0 0 4px 4px}
-  .chest-lid.open{transform:rotateX(-115deg)}
-  .chest-body{position:absolute;bottom:0;left:0;width:100%;height:110px;background:linear-gradient(180deg,#2d1a0e 0%,#1f1208 60%,#150a04 100%);border-radius:4px 4px 14px 14px;border:2px solid #b8860b;border-top:none;z-index:2;box-shadow:inset 0 -6px 16px rgba(0,0,0,.5),0 10px 28px rgba(0,0,0,.7)}
-  .chest-body::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:70%;height:2px;background:linear-gradient(90deg,transparent,#d4af60 20%,#f5d97a 50%,#d4af60 80%,transparent)}
+  /* Background decorations — bubbles, petals, sparkles */
+  .lock-bg-decor{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .lock-bubble{position:absolute;bottom:-60px;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.6),rgba(255,182,193,.15));border:1px solid rgba(255,255,255,.3);animation:bubbleRise linear infinite}
+  @keyframes bubbleRise{0%{transform:translateY(0) scale(.8);opacity:0}10%{opacity:.5}90%{opacity:.3}100%{transform:translateY(-110vh) scale(1.1);opacity:0}}
+  .lock-petal{position:absolute;top:-20px;animation:petalFall linear infinite;opacity:.6;user-select:none}
+  @keyframes petalFall{0%{transform:translateY(0) rotate(0deg) translateX(0);opacity:0}10%{opacity:.6}100%{transform:translateY(110vh) rotate(360deg) translateX(40px);opacity:0}}
+  .lock-sparkle{position:absolute;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,182,193,.2));animation:sparkleTwinkle ease-in-out infinite}
+  @keyframes sparkleTwinkle{0%,100%{opacity:0;transform:scale(0)}50%{opacity:.8;transform:scale(1.2)}}
 
-  /* Lock dial */
-  .chest-lock{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fae5a8,#d4af60 50%,#b8860b 90%);border:2.5px solid #8b6914;z-index:4;box-shadow:0 0 14px rgba(245,217,122,.35),inset 0 2px 6px rgba(255,255,255,.35),inset 0 -2px 4px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;animation:lockBreath 3s ease-in-out infinite;transition:transform .3s,box-shadow .3s}
-  .chest-lock::before{content:'';width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#7a5c1e,#4a3810);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 1px 2px rgba(255,255,255,.15)}
-  .chest-lock::after{content:'';position:absolute;inset:-2px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,rgba(255,255,255,.25) 30deg,transparent 60deg,rgba(255,255,255,.12) 120deg,transparent 150deg,rgba(255,255,255,.18) 240deg,transparent 270deg);animation:diamondShine 4s linear infinite;pointer-events:none}
-  @keyframes diamondShine{to{transform:rotate(360deg)}}
-  @keyframes lockBreath{0%,100%{box-shadow:0 0 14px rgba(245,217,122,.35),inset 0 2px 6px rgba(255,255,255,.35),inset 0 -2px 4px rgba(0,0,0,.2)}50%{box-shadow:0 0 22px rgba(245,217,122,.55),inset 0 2px 8px rgba(255,255,255,.45),inset 0 -2px 4px rgba(0,0,0,.2)}}
+  /* Lock body — macaron shape */
+  .lock-body{position:relative;z-index:1;width:300px;max-width:88vw;padding:28px 24px 24px;background:linear-gradient(160deg,rgba(255,255,255,.55),rgba(255,228,225,.35));border:1.5px solid rgba(255,255,255,.7);border-radius:32px;backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);box-shadow:0 8px 32px rgba(255,182,193,.3),0 2px 8px rgba(210,105,30,.06),inset 0 1px 0 rgba(255,255,255,.6);display:flex;flex-direction:column;align-items:center;animation:lockBodyFloat .6s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes lockBodyFloat{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:none}}
+  .lock-icon{width:56px;height:56px;margin-bottom:12px;border-radius:50%;background:linear-gradient(135deg,#FFB6C1,#FFDAB9 50%,#D2691E);border:2.5px solid rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(255,182,193,.4),0 0 0 4px rgba(255,182,193,.1);animation:lockIconBounce 3s ease-in-out infinite}
+  @keyframes lockIconBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .lock-title{font-size:13px;letter-spacing:3px;color:rgba(210,105,30,.5);margin-bottom:4px;font-weight:700;text-transform:uppercase}
+  .lock-subtitle{font-size:13px;color:rgba(210,105,30,.45);margin-bottom:20px;font-weight:500;letter-spacing:.5px}
 
-  /* Light burst */
-  .chest-glow{position:absolute;top:8%;left:0;width:100%;height:55%;border-radius:12px;background:radial-gradient(circle at center,rgba(255,230,140,.95),rgba(255,185,50,.4) 30%,transparent 70%);opacity:0;z-index:1;transition:opacity .6s .3s;filter:blur(4px)}
-  .chest-glow.show{opacity:1}
+  /* PIN display — cream white with strawberry pink dots */
+  .pin-display{display:flex;gap:14px;margin-bottom:20px;justify-content:center}
+  .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,182,193,.35);background:rgba(255,255,255,.4);transition:all .25s cubic-bezier(.34,1.56,.64,1)}
+  .pin-dot.filled{background:radial-gradient(circle,#FFB6C1,#FF69B4);border-color:#FFB6C1;box-shadow:0 0 12px rgba(255,105,180,.5);transform:scale(1.2)}
+  .pin-display.error .pin-dot{border-color:rgba(255,68,68,.4);background:rgba(255,68,68,.1)}
+  .pin-display.error .pin-dot.filled{background:radial-gradient(circle,#FF6B6B,#FF4444);border-color:#FF4444;box-shadow:0 0 12px rgba(255,68,68,.4)}
 
-  /* Gold particles */
-  .gold-particle{position:fixed;border-radius:50%;background:radial-gradient(circle,#fff8e0,#ffd700);pointer-events:none;z-index:10001}
+  /* Number pad — soft candy / macaron buttons */
+  .num-pad{display:grid;grid-template-columns:repeat(3,68px);gap:12px;justify-content:center}
+  .num-btn{width:68px;height:68px;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.6),rgba(255,228,225,.3));border:1.5px solid rgba(255,255,255,.6);color:#D2691E;font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .15s cubic-bezier(.34,1.56,.64,1);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 4px 12px rgba(255,182,193,.15),inset 0 1px 0 rgba(255,255,255,.5);cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  .num-btn:hover{transform:scale(1.08);box-shadow:0 6px 18px rgba(255,182,193,.25),inset 0 1px 0 rgba(255,255,255,.5)}
+  .num-btn:active{transform:scale(.88) translateY(2px);box-shadow:0 2px 8px rgba(255,182,193,.12),inset 0 1px 3px rgba(210,105,30,.08);background:linear-gradient(145deg,rgba(255,182,193,.3),rgba(255,228,225,.15))}
+  .num-btn.fn{font-size:13px;color:rgba(210,105,30,.5);font-weight:600}
+  .num-btn.fn.confirm{font-size:24px;color:#FF69B4;background:linear-gradient(145deg,rgba(255,182,193,.4),rgba(255,105,180,.15))}
 
-  /* PIN display */
-  .pin-display{display:flex;gap:16px;margin-bottom:20px;justify-content:center}
-  .pin-dot{width:13px;height:13px;border-radius:50%;border:2px solid rgba(212,175,95,.3);background:transparent;transition:all .2s}
-  .pin-dot.filled{background:radial-gradient(circle,#f5d97a,#d4af60);border-color:#f5d97a;box-shadow:0 0 10px rgba(245,217,122,.6);transform:scale(1.15)}
+  /* Error bubble — gentle cute prompt */
+  .lock-msg-bubble{margin-top:14px;padding:8px 18px;background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(255,228,225,.4));border:1.5px solid rgba(255,105,180,.25);border-radius:20px;font-size:12px;color:#C45C48;font-weight:600;box-shadow:0 4px 12px rgba(255,105,180,.12);opacity:0;transition:opacity .2s;min-height:0}
+  .lock-msg-bubble.show{opacity:1;animation:bubblePop .3s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes bubblePop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
 
-  /* Number pad */
-  .num-pad{display:grid;grid-template-columns:repeat(3,66px);gap:12px;justify-content:center}
-  .num-btn{width:66px;height:66px;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.01));border:1.5px solid rgba(212,175,95,.2);color:#e8d5a8;font-size:23px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:all .12s;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-  .num-btn:active{background:linear-gradient(145deg,rgba(212,175,95,.18),rgba(212,175,95,.04));border-color:rgba(212,175,95,.5);transform:scale(.9);box-shadow:0 0 16px rgba(245,217,122,.25)}
-  .num-btn.fn{font-size:13px;color:rgba(212,175,95,.65);letter-spacing:.5px}
+  /* Gentle shake — cute wobble */
+  @keyframes lockShakeSweet{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px) rotate(-1deg)}40%{transform:translateX(4px) rotate(1deg)}60%{transform:translateX(-3px) rotate(-.5deg)}80%{transform:translateX(3px) rotate(.5deg)}}
+  .shake-sweet{animation:lockShakeSweet .4s ease}
 
-  /* Error effects */
-  @keyframes lockShake{0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-7px)}20%,40%,60%,80%{transform:translateX(7px)}}
-  .shake{animation:lockShake .5s}
-  .lock-error-flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(196,92,72,.2),transparent 65%);opacity:0;z-index:10;pointer-events:none;border-radius:14px}
-  .lock-error-flash.show{animation:errorFlash .5s}
-  @keyframes errorFlash{0%,100%{opacity:0}40%{opacity:1}}
-  .lock-crack{position:absolute;top:0;left:50%;width:2px;height:100%;background:linear-gradient(180deg,transparent,rgba(255,100,80,.9),rgba(255,200,100,.7),transparent);opacity:0;z-index:5;pointer-events:none;filter:blur(.5px);transform:translateX(-50%) scaleY(0)}
-  .lock-crack.show{animation:crackFlash .6s}
-  @keyframes crackFlash{0%{opacity:0;transform:translateX(-50%) scaleY(0)}30%{opacity:1;transform:translateX(-50%) scaleY(1)}100%{opacity:0;transform:translateX(-50%) scaleY(1)}}
-  .lock-msg{font-size:13px;color:rgba(196,92,72,.95);margin-top:16px;height:18px;text-align:center;letter-spacing:.5px;transition:opacity .2s}
+  /* Success — melt away like cream */
+  .lock-overlay.unlocking{animation:lockMeltAway .8s ease forwards}
+  @keyframes lockMeltAway{0%{opacity:1;transform:scale(1);filter:blur(0)}100%{opacity:0;transform:scale(1.05);filter:blur(12px);visibility:hidden}}
 
-  /* Success fade */
-  .lock-overlay.unlocking{animation:lockFadeOut .6s .8s forwards}
-  @keyframes lockFadeOut{to{opacity:0;visibility:hidden}}
-  .gallery-reveal{animation:galleryReveal .5s ease}
+  /* Success — heart glow expansion */
+  .heart-glow{position:fixed;z-index:10003;pointer-events:none;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(255,105,180,.6),rgba(255,182,193,.2) 50%,transparent 70%);animation:heartGlowExpand 1s ease-out forwards}
+  @keyframes heartGlowExpand{0%{transform:translate(-50%,-50%) scale(0);opacity:1}50%{transform:translate(-50%,-50%) scale(3);opacity:.8}100%{transform:translate(-50%,-50%) scale(5);opacity:0}}
+
+  /* Success — screen brighten */
+  .success-brighten{position:fixed;inset:0;z-index:10002;pointer-events:none;background:radial-gradient(circle at center,rgba(255,255,255,.5),rgba(255,182,193,.15) 30%,transparent 70%);animation:brightenFlash .8s ease forwards}
+  @keyframes brightenFlash{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+
+  /* Success — welcome banner */
+  .welcome-banner{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;text-align:center;font-size:22px;font-weight:800;color:#D2691E;text-shadow:0 2px 12px rgba(255,182,193,.5);animation:welcomeShow 1.5s ease forwards;pointer-events:none}
+  @keyframes welcomeShow{0%{opacity:0;transform:translate(-50%,-50%) scale(.8)}30%{opacity:1;transform:translate(-50%,-50%) scale(1)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.1)}}
+
+  /* Gallery reveal & misc */
+  .gallery-reveal{animation:galleryReveal .6s cubic-bezier(.34,1.56,.64,1)}
   @keyframes galleryReveal{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
   @keyframes rayExpand{from{opacity:0;transform:scale(.3)}50%{opacity:1}to{opacity:0;transform:scale(2)}}
 
-  /* ===== Login Screen ===== */
-  .login-overlay{position:fixed;inset:0;z-index:20000;background:radial-gradient(ellipse at center,#1a1a2e 0%,#0d0d1a 55%,#050508 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;animation:lockFadeIn .4s ease}
-  .login-box{width:320px;max-width:90vw;padding:32px 28px;background:rgba(255,255,255,.04);border:1px solid rgba(212,175,95,.15);border-radius:20px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-  .login-logo{width:64px;height:64px;margin:0 auto 20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fae5a8,#d4af60 50%,#b8860b 90%);border:2.5px solid #8b6914;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(245,217,122,.4);animation:lockBreath 3s ease-in-out infinite}
-  .login-logo svg{width:30px;height:30px;color:#4a3810}
-  .login-title{text-align:center;font-size:20px;font-weight:800;color:#e8d5a8;margin-bottom:4px;letter-spacing:1px}
-  .login-sub{text-align:center;font-size:12px;color:rgba(232,213,168,.4);margin-bottom:24px;letter-spacing:.5px}
+  /* ===== Login Screen — 甜美氛围感 ===== */
+  .login-overlay{position:fixed;inset:0;z-index:20000;background:linear-gradient(135deg,#FFF5EE 0%,#FFE4E1 25%,#FFDAB9 50%,#FFB6C1 80%,#FFA07A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;animation:lockFadeIn .4s ease}
+  .login-overlay::before{content:'';position:absolute;inset:-50%;background-image:radial-gradient(circle,rgba(255,255,255,.4) 1px,transparent 1.5px),radial-gradient(circle,rgba(255,182,193,.25) 2px,transparent 3px);background-size:50px 50px,80px 80px;background-position:0 0,25px 25px;animation:sugarDrift 20s linear infinite;pointer-events:none}
+  @keyframes sugarDrift{from{transform:translate(0,0)}to{transform:translate(50px,50px)}}
+  .login-decor{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .sugar-dot{position:absolute;border-radius:50%;background:radial-gradient(circle,#fff,#FFB6C1);box-shadow:0 0 6px rgba(255,182,193,.5);animation:sugarFloat 4s ease-in-out infinite}
+  @keyframes sugarFloat{0%,100%{transform:translateY(0) scale(1);opacity:.6}50%{transform:translateY(-15px) scale(1.2);opacity:1}}
+  .sugar-star{position:absolute;font-size:14px;color:rgba(255,182,193,.5);animation:sugarFloat 5s ease-in-out infinite;text-shadow:0 0 8px rgba(255,182,193,.4)}
+  .dessert-silhouette{position:absolute;width:200px;height:200px;opacity:.05;animation:slowSpin 45s linear infinite;pointer-events:none}
+  @keyframes slowSpin{to{transform:rotate(360deg)}}
+  .login-box{position:relative;z-index:1;width:330px;max-width:90vw;padding:36px 28px 32px;background:rgba(255,255,255,.5);border:1.5px solid rgba(255,255,255,.7);border-radius:28px;backdrop-filter:blur(20px) saturate(1.3);-webkit-backdrop-filter:blur(20px) saturate(1.3);box-shadow:0 8px 32px rgba(255,182,193,.35),0 2px 8px rgba(210,105,30,.08),inset 0 1px 0 rgba(255,255,255,.6);animation:cardFloat .6s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes cardFloat{from{opacity:0;transform:translateY(24px) scale(.95)}to{opacity:1;transform:none}}
+  .login-logo{width:72px;height:72px;margin:0 auto 18px;border-radius:50%;background:linear-gradient(135deg,#FFB6C1 0%,#FFDAB9 40%,#D2691E 100%);border:3px solid rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(255,182,193,.5),0 0 0 5px rgba(255,182,193,.12);animation:logoBounce 3s ease-in-out infinite}
+  @keyframes logoBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  .login-logo svg{width:34px;height:34px;color:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.1))}
+  .login-title{text-align:center;font-size:26px;font-weight:800;color:#D2691E;margin-bottom:6px;letter-spacing:3px;text-shadow:0 2px 8px rgba(255,182,193,.4)}
+  .login-sub{text-align:center;font-size:12px;color:rgba(210,105,30,.55);margin-bottom:24px;letter-spacing:.5px;line-height:1.6;font-weight:500}
   .login-field{margin-bottom:14px}
-  .login-field label{display:block;font-size:11px;color:rgba(212,175,95,.5);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;font-weight:600}
-  .login-field input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(212,175,95,.15);background:rgba(255,255,255,.03);color:#e8d5a8;font-size:14px;outline:none;transition:border-color .2s}
-  .login-field input:focus{border-color:rgba(212,175,95,.4)}
-  .login-field input::placeholder{color:rgba(232,213,168,.2)}
-  .login-btn{width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,#d4af60,#b8860b);color:#1a1a2e;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s;margin-top:6px}
-  .login-btn:active{opacity:.85}
-  .login-btn:disabled{opacity:.5;cursor:default}
-  .login-msg{text-align:center;font-size:12px;color:rgba(196,92,72,.9);margin-top:12px;min-height:16px}
-  .login-link{text-align:center;margin-top:16px;font-size:12px;color:rgba(212,175,95,.4);cursor:pointer;text-decoration:underline}
-  .login-link:active{color:rgba(212,175,95,.7)}
+  .login-field label{display:block;font-size:11px;color:rgba(210,105,30,.6);margin-bottom:6px;letter-spacing:.8px;font-weight:700}
+  .login-field input{width:100%;padding:13px 18px;border-radius:24px;border:1.5px solid rgba(255,182,193,.4);background:rgba(255,255,255,.55);color:#8B4513;font-size:14px;outline:none;transition:all .25s ease;box-sizing:border-box}
+  .login-field input:focus{border-color:#FFB6C1;background:rgba(255,255,255,.75);transform:scale(1.02);box-shadow:0 0 0 4px rgba(255,182,193,.18)}
+  .login-field input::placeholder{color:rgba(210,105,30,.3)}
+  .login-btn{width:100%;padding:14px;border-radius:24px;border:none;background:linear-gradient(135deg,#FFB6C1,#D2691E);color:#fff;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);margin-top:6px;box-shadow:0 4px 14px rgba(210,105,30,.25);letter-spacing:1px}
+  .login-btn:active{transform:scale(.94) translateY(2px);box-shadow:0 1px 6px rgba(210,105,30,.2)}
+  .login-btn:disabled{opacity:.5;cursor:default;transform:none}
+  .login-msg{text-align:center;font-size:12px;color:#C45C48;margin-top:12px;min-height:16px;font-weight:600}
+  .login-link{text-align:center;margin-top:16px;font-size:12px;color:rgba(210,105,30,.5);cursor:pointer;text-decoration:underline;transition:color .2s}
+  .login-link:active{color:#D2691E}
 
-  /* ===== Auth Tabs ===== */
-  .auth-tabs{display:flex;margin-bottom:20px;border-bottom:1px solid rgba(212,175,95,.15)}
-  .auth-tab{flex:1;padding:10px 0;text-align:center;font-size:13px;color:rgba(212,175,95,.4);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-weight:600;background:none;border-left:none;border-right:none;border-top:none}
-  .auth-tab.on{color:#e8d5a8;border-bottom-color:#d4af60}
+  /* ===== Auth Tabs — 胶囊切换 ===== */
+  .auth-tabs{display:flex;margin-bottom:20px;background:rgba(255,255,255,.45);border-radius:22px;padding:3px;gap:3px}
+  .auth-tab{flex:1;padding:9px 0;text-align:center;font-size:13px;color:rgba(210,105,30,.5);cursor:pointer;border-radius:20px;transition:all .25s ease;font-weight:700;background:none;border:none}
+  .auth-tab.on{color:#fff;background:linear-gradient(135deg,#FFB6C1,#D2691E);box-shadow:0 2px 8px rgba(210,105,30,.2)}
   .auth-form{display:none}
-  .auth-form.on{display:block}
+  .auth-form.on{display:block;animation:formSlideIn .35s ease}
+  @keyframes formSlideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
   .code-row{display:flex;gap:8px}
   .code-row input{flex:1;min-width:0}
-  .code-btn{padding:12px 14px;border-radius:12px;border:1.5px solid rgba(212,175,95,.15);background:rgba(212,175,95,.08);color:#d4af60;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .2s;min-width:90px}
-  .code-btn:active{opacity:.7}
-  .code-btn:disabled{opacity:.4;cursor:default}
+  .code-btn{padding:13px 14px;border-radius:24px;border:1.5px solid rgba(255,182,193,.4);background:rgba(255,255,255,.55);color:#D2691E;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .25s ease;min-width:92px;font-weight:700}
+  .code-btn.pulsing{animation:btnBreath 1.8s ease-in-out infinite}
+  @keyframes btnBreath{0%,100%{box-shadow:0 0 0 0 rgba(255,182,193,.5);transform:scale(1)}50%{box-shadow:0 0 0 8px rgba(255,182,193,0);transform:scale(1.03)}}
+  .code-btn:active{transform:scale(.94)}
+  .code-btn:disabled{opacity:.4;cursor:default;animation:none}
 
   /* ===== Device Management ===== */
   .device-card{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--bg2);margin-bottom:8px}
@@ -451,11 +469,11 @@
   .device-lock-btn.unlock{background:rgba(107,142,78,.1);color:#6B8E4E}
 
   /* ===== Device Locked Overlay ===== */
-  .device-locked-overlay{position:fixed;inset:0;z-index:20000;background:radial-gradient(ellipse at center,#1a1a2e 0%,#0d0d1a 55%,#050508 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:lockFadeIn .4s ease}
-  .device-locked-icon{width:80px;height:80px;border-radius:50%;background:rgba(196,92,72,.15);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+  .device-locked-overlay{position:fixed;inset:0;z-index:20000;background:linear-gradient(135deg,#FFF5EE 0%,#FFE4E1 30%,#FFB6C1 70%,#FFA07A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:lockFadeIn .4s ease}
+  .device-locked-icon{width:80px;height:80px;border-radius:50%;background:rgba(196,92,72,.12);display:flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 4px 16px rgba(196,92,72,.2)}
   .device-locked-icon svg{width:40px;height:40px;color:#C45C48}
-  .device-locked-title{font-size:20px;font-weight:800;color:#e8d5a8;margin-bottom:8px}
-  .device-locked-msg{font-size:13px;color:rgba(232,213,168,.4);text-align:center;max-width:280px;line-height:1.6}
+  .device-locked-title{font-size:20px;font-weight:800;color:#D2691E;margin-bottom:8px;letter-spacing:1px}
+  .device-locked-msg{font-size:13px;color:rgba(210,105,30,.55);text-align:center;max-width:280px;line-height:1.6}
 
   /* ===== Recipe Lock Badge ===== */
   .rcard-lock{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(196,92,72,.12);color:#c45c48;flex-shrink:0;margin-left:6px}
@@ -3064,7 +3082,7 @@ function renderProfile(){
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v49</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v51</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
@@ -3633,17 +3651,42 @@ function showAuthScreen(){
   overlay.className='login-overlay';
   overlay.id='authOverlay';
   overlay.innerHTML=`
+    <div class="login-decor">
+      <div class="sugar-dot" style="top:8%;left:12%;width:6px;height:6px;animation-delay:0s"></div>
+      <div class="sugar-dot" style="top:15%;right:15%;width:4px;height:4px;animation-delay:.5s"></div>
+      <div class="sugar-dot" style="top:70%;left:8%;width:5px;height:5px;animation-delay:1s"></div>
+      <div class="sugar-dot" style="bottom:12%;right:10%;width:7px;height:7px;animation-delay:1.5s"></div>
+      <div class="sugar-dot" style="top:30%;left:5%;width:3px;height:3px;animation-delay:2s"></div>
+      <div class="sugar-dot" style="bottom:25%;left:18%;width:4px;height:4px;animation-delay:2.5s"></div>
+      <div class="sugar-dot" style="top:45%;right:6%;width:5px;height:5px;animation-delay:3s"></div>
+      <div class="sugar-dot" style="bottom:35%;right:22%;width:3px;height:3px;animation-delay:3.5s"></div>
+      <div class="sugar-star" style="top:20%;left:20%;animation-delay:0s">✦</div>
+      <div class="sugar-star" style="top:60%;right:20%;animation-delay:1.2s">✦</div>
+      <div class="sugar-star" style="bottom:15%;left:30%;animation-delay:2.4s">✦</div>
+      <div class="sugar-star" style="top:40%;right:8%;animation-delay:3.6s">✦</div>
+      <svg class="dessert-silhouette" style="top:-40px;right:-40px" viewBox="0 0 100 100" fill="#D2691E"><path d="M50 15c-12 0-22 8-22 20 0 3 1 6 2 8H26c-2 0-4 2-4 4s2 4 4 4h48c2 0 4-2 4-4s-2-4-4-4h-4c1-2 2-5 2-8 0-12-10-20-22-20z M30 55h40v25c0 3-2 5-5 5H35c-3 0-5-2-5-5V55z M35 85h30v5c0 2-2 4-4 4H39c-2 0-4-2-4-4v-5z"/></svg>
+      <svg class="dessert-silhouette" style="bottom:-40px;left:-40px;animation-direction:reverse" viewBox="0 0 100 100" fill="#FFB6C1"><path d="M50 15c-12 0-22 8-22 20 0 3 1 6 2 8H26c-2 0-4 2-4 4s2 4 4 4h48c2 0 4-2 4-4s-2-4-4-4h-4c1-2 2-5 2-8 0-12-10-20-22-20z M30 55h40v25c0 3-2 5-5 5H35c-3 0-5-2-5-5V55z M35 85h30v5c0 2-2 4-4 4H39c-2 0-4-2-4-4v-5z"/></svg>
+    </div>
     <div class="login-box">
-      <div class="login-logo">${svg('lock').replace('width="24" height="24"','width="30" height="30"')}</div>
-      <div class="login-title">甜品配方工作台</div>
-      <div class="login-sub">注册/登录以使用</div>
-      ${!FC_API_URL?'<div style="font-size:11px;color:rgba(196,92,72,.7);text-align:center;margin-bottom:12px;padding:6px 10px;background:rgba(196,92,72,.08);border-radius:8px">⚠ 后端服务未配置，请联系管理员</div>':''}
+      <div class="login-logo">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2C9 2 7 4.5 7 7.5c0 .8.2 1.5.4 2.2L6 11h12l-1.4-1.3c.2-.7.4-1.4.4-2.2C17 4.5 15 2 12 2z"/>
+          <path d="M8 11h8l-1 3H9l-1-3z"/>
+          <path d="M9 14v6a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6"/>
+          <path d="M10 21h4"/>
+          <circle cx="10.5" cy="6" r=".5" fill="white"/>
+          <circle cx="13.5" cy="7" r=".5" fill="white"/>
+        </svg>
+      </div>
+      <div class="login-title">甜蜜启程</div>
+      <div class="login-sub">输入手机号，解锁您的专属甜点之旅</div>
+      ${!FC_API_URL?'<div style="font-size:11px;color:#C45C48;text-align:center;margin-bottom:12px;padding:6px 10px;background:rgba(196,92,72,.08);border-radius:12px">⚠ 后端服务未配置，请联系管理员</div>':''}
       <div style="margin-bottom:16px">
-        <button class="login-btn" id="oneClickBtn" style="background:linear-gradient(135deg,#C48C5C,#C45C48);font-size:15px;letter-spacing:1px">📱 一键登录</button>
+        <button class="login-btn" id="oneClickBtn" style="background:linear-gradient(135deg,#FFB6C1,#D2691E);font-size:15px;letter-spacing:1px">📱 一键登录</button>
         <div style="display:flex;align-items:center;margin:14px 0;gap:10px">
-          <div style="flex:1;height:1px;background:rgba(0,0,0,.1)"></div>
-          <span style="font-size:11px;color:var(--sub);white-space:nowrap">或使用其他方式</span>
-          <div style="flex:1;height:1px;background:rgba(0,0,0,.1)"></div>
+          <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,182,193,.5),transparent)"></div>
+          <span style="font-size:11px;color:rgba(210,105,30,.4);white-space:nowrap;font-weight:600">或使用其他方式</span>
+          <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,182,193,.5),transparent)"></div>
         </div>
       </div>
       <div class="auth-tabs">
@@ -3671,7 +3714,7 @@ function showAuthScreen(){
           <label>验证码</label>
           <div class="code-row">
             <input type="text" id="regCode" placeholder="6位验证码" maxlength="6" inputmode="numeric">
-            <button class="code-btn" id="regSendBtn">发送验证码</button>
+            <button class="code-btn" id="regSendBtn">获取验证码</button>
           </div>
         </div>
         <div class="login-field">
@@ -3689,7 +3732,7 @@ function showAuthScreen(){
           <label>验证码</label>
           <div class="code-row">
             <input type="text" id="codeLoginCode" placeholder="6位验证码" maxlength="6" inputmode="numeric">
-            <button class="code-btn" id="codeSendBtn">发送验证码</button>
+            <button class="code-btn" id="codeSendBtn">获取验证码</button>
           </div>
         </div>
         <button class="login-btn" id="codeLoginBtn">登 录</button>
@@ -3723,21 +3766,21 @@ function showAuthScreen(){
   document.getElementById('backToPwdLogin').onclick=()=>switchForm('loginForm');
 
   function startCountdown(btn){
-    let cd=60; btn.disabled=true; btn.textContent=cd+'s';
+    let cd=60; btn.disabled=true; btn.classList.remove('pulsing'); btn.textContent=cd+'s';
     const timer=setInterval(()=>{
       cd--; btn.textContent=cd+'s';
-      if(cd<=0){clearInterval(timer);btn.disabled=false;btn.textContent='发送验证码';}
+      if(cd<=0){clearInterval(timer);btn.disabled=false;btn.textContent='获取验证码';}
     },1000);
   }
 
   async function doSendCode(phone,btn){
     if(!/^1[3-9]\d{9}$/.test(phone)){msg.textContent='请输入正确的手机号';return;}
-    btn.disabled=true;
+    btn.disabled=true; btn.classList.remove('pulsing');
     try{
       const res=await callBackend('sendCode',{phone});
       if(res.success){msg.textContent='验证码已发送';startCountdown(btn);}
-      else{msg.textContent=res.error||'发送失败';btn.disabled=false;btn.textContent='发送验证码';}
-    }catch(e){msg.textContent='网络错误或后端未配置';btn.disabled=false;btn.textContent='发送验证码';}
+      else{msg.textContent=res.error||'发送失败';btn.disabled=false;btn.textContent='获取验证码';}
+    }catch(e){msg.textContent='网络错误或后端未配置';btn.disabled=false;btn.textContent='获取验证码';}
   }
 
   document.getElementById('regSendBtn').onclick=()=>{
@@ -3746,6 +3789,22 @@ function showAuthScreen(){
   document.getElementById('codeSendBtn').onclick=()=>{
     doSendCode(document.getElementById('codeLoginPhone').value.trim(),document.getElementById('codeSendBtn'));
   };
+
+  // 获取验证码按钮呼吸灯动画 — 输入有效手机号时自动脉动
+  function bindPhonePulse(phoneId,btnId){
+    const phoneInput=document.getElementById(phoneId);
+    const codeBtn=document.getElementById(btnId);
+    if(!phoneInput||!codeBtn) return;
+    phoneInput.addEventListener('input',()=>{
+      if(/^1[3-9]\d{9}$/.test(phoneInput.value.trim())&&!codeBtn.disabled){
+        codeBtn.classList.add('pulsing');
+      }else{
+        codeBtn.classList.remove('pulsing');
+      }
+    });
+  }
+  bindPhonePulse('regPhone','regSendBtn');
+  bindPhonePulse('codeLoginPhone','codeSendBtn');
 
   async function doLogin(action,phone,extra,btn,btnText){
     btn.disabled=true;btn.textContent='登录中...';msg.textContent='';
@@ -3886,54 +3945,78 @@ if(syncConfigured()){
 // (constants & isGalleryUnlocked moved to Boot section above)
 
 function renderGalleryLock(){
-  // Remove any existing lock overlay
   const existing=document.getElementById('lockOverlay');
   if(existing) existing.remove();
-  // Create overlay as independent element on body (gallery content stays underneath)
   const overlay=document.createElement('div');
   overlay.className='lock-overlay';
   overlay.id='lockOverlay';
   overlay.innerHTML=`
-    <div class="lock-particles" id="lockParticles"></div>
-    <div class="lock-title">Recipe Gallery</div>
-    <div class="lock-subtitle">输入密码开启配方宝箱</div>
-    <div class="chest-wrap" id="chestWrap">
-      <div class="chest-glow" id="chestGlow"></div>
-      <div class="chest-lid" id="chestLid"></div>
-      <div class="chest-body"></div>
-      <div class="chest-lock" id="chestLock"></div>
-      <div class="lock-crack" id="lockCrack"></div>
-      <div class="lock-error-flash" id="lockFlash"></div>
-    </div>
-    <div class="pin-display" id="pinDisplay">
-      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
-    </div>
-    <div class="num-pad" id="numPad">
-      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="num-btn" data-num="${n}">${n}</button>`).join('')}
-      <button class="num-btn fn" id="numClear">清除</button>
-      <button class="num-btn" data-num="0">0</button>
-      <button class="num-btn fn" id="numConfirm">✓</button>
-    </div>
-    <div class="lock-msg" id="lockMsg"></div>
-  `;
+    <div class="lock-bg-decor" id="lockBgDecor"></div>
+    <div class="lock-body" id="lockBody">
+      <div class="lock-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </div>
+      <div class="lock-title">Recipe Gallery</div>
+      <div class="lock-subtitle">输入密码，开启甜蜜配方</div>
+      <div class="pin-display" id="pinDisplay">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="num-pad" id="numPad">
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="num-btn" data-num="${n}">${n}</button>`).join('')}
+        <button class="num-btn fn" id="numClear">清除</button>
+        <button class="num-btn" data-num="0">0</button>
+        <button class="num-btn fn confirm" id="numConfirm">♥</button>
+      </div>
+      <div class="lock-msg-bubble" id="lockMsg"></div>
+    </div>`;
   document.body.appendChild(overlay);
 
-  // floating particles
-  const pc=document.getElementById('lockParticles');
-  for(let i=0;i<28;i++){
-    const s=document.createElement('span');
+  // === Generate dreamy background decorations ===
+  const bgDecor=document.getElementById('lockBgDecor');
+  // Transparent bubbles rising
+  for(let i=0;i<12;i++){
+    const b=document.createElement('div');
+    b.className='lock-bubble';
+    const sz=20+Math.random()*50;
+    b.style.width=sz+'px'; b.style.height=sz+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.animationDuration=(10+Math.random()*15)+'s';
+    b.style.animationDelay=Math.random()*10+'s';
+    bgDecor.appendChild(b);
+  }
+  // Falling flower petals
+  const petals=['🌸','🌺','🌷','💮'];
+  for(let i=0;i<8;i++){
+    const p=document.createElement('div');
+    p.className='lock-petal';
+    p.textContent=petals[Math.floor(Math.random()*petals.length)];
+    p.style.left=Math.random()*100+'%';
+    p.style.animationDuration=(8+Math.random()*8)+'s';
+    p.style.animationDelay=Math.random()*8+'s';
+    p.style.fontSize=(14+Math.random()*8)+'px';
+    bgDecor.appendChild(p);
+  }
+  // Twinkling sparkles
+  for(let i=0;i<15;i++){
+    const s=document.createElement('div');
+    s.className='lock-sparkle';
     s.style.left=Math.random()*100+'%';
-    s.style.animationDuration=(8+Math.random()*12)+'s';
-    s.style.animationDelay=Math.random()*10+'s';
-    s.style.opacity=0.15+Math.random()*0.35;
-    const sz=2+Math.random()*3;
+    s.style.top=Math.random()*100+'%';
+    s.style.animationDuration=(2+Math.random()*3)+'s';
+    s.style.animationDelay=Math.random()*3+'s';
+    const sz=3+Math.random()*4;
     s.style.width=sz+'px'; s.style.height=sz+'px';
-    pc.appendChild(s);
+    bgDecor.appendChild(s);
   }
 
+  // === PIN input logic ===
   let pinInput='';
-  const pinDots=document.querySelectorAll('#pinDisplay .pin-dot');
+  const pinDots=overlay.querySelectorAll('#pinDisplay .pin-dot');
+  const pinDisplay=document.getElementById('pinDisplay');
   const lockMsg=document.getElementById('lockMsg');
+  const lockBody=document.getElementById('lockBody');
 
   function updateDisplay(){
     pinDots.forEach((d,i)=>d.classList.toggle('filled',i<pinInput.length));
@@ -3945,100 +4028,93 @@ function renderGalleryLock(){
   }
 
   function unlockSuccess(){
-    const lid=document.getElementById('chestLid');
-    const glow=document.getElementById('chestGlow');
-    const cl=document.getElementById('chestLock');
-
-    cl.style.transform='translate(-50%,-50%) scale(1.3)';
-    cl.style.boxShadow='0 0 30px rgba(245,217,122,.9)';
-
-    setTimeout(()=>{
-      lid.classList.add('open');
-      glow.classList.add('show');
-      createGoldBurst();
-      localStorage.setItem(GALLERY_LOCK_KEY,'true');
-    },250);
-
-    // Start fading out the overlay (CSS has 0.8s delay + 0.6s fade)
-    setTimeout(()=>{ overlay.classList.add('unlocking'); },1000);
-
-    // Reveal gallery content behind as overlay fades out
-    setTimeout(()=>{
-      const sc=content.querySelector('.screen');
-      if(sc) sc.classList.add('gallery-reveal');
-    },1800);
-
-    // Remove overlay from DOM after fade completes
-    setTimeout(()=>{
-      overlay.remove();
-    },2400);
-  }
-
-  function createGoldBurst(){
-    const chest=document.getElementById('chestWrap');
-    const r=chest.getBoundingClientRect();
+    const r=lockBody.getBoundingClientRect();
     const cx=r.left+r.width/2, cy=r.top+r.height/2;
 
-    for(let i=0;i<45;i++){
+    // Heart glow expansion
+    const glow=document.createElement('div');
+    glow.className='heart-glow';
+    glow.style.left=cx+'px'; glow.style.top=cy+'px';
+    document.body.appendChild(glow);
+    setTimeout(()=>glow.remove(),1000);
+
+    // Screen brighten flash
+    const brighten=document.createElement('div');
+    brighten.className='success-brighten';
+    document.body.appendChild(brighten);
+    setTimeout(()=>brighten.remove(),800);
+
+    // Burst hearts, petals & sparkles
+    const hearts=['💕','💖','💗','💝','🌸','🌺','✨','⭐','🩷'];
+    for(let i=0;i<35;i++){
       const p=document.createElement('div');
-      p.className='gold-particle';
-      p.style.left=cx+'px'; p.style.top=cy+'px';
+      p.style.cssText='position:fixed;font-size:'+(14+Math.random()*16)+'px;pointer-events:none;z-index:10001;left:'+cx+'px;top:'+cy+'px;transition:all '+(.8+Math.random()*.6)+'s cubic-bezier(.25,.46,.45,.94)';
+      p.textContent=hearts[Math.floor(Math.random()*hearts.length)];
       document.body.appendChild(p);
       const ang=Math.random()*Math.PI*2;
       const dist=80+Math.random()*220;
       const dx=Math.cos(ang)*dist;
-      const dy=Math.sin(ang)*dist-40;
-      const sz=3+Math.random()*7;
-      const dur=700+Math.random()*700;
-      p.style.width=sz+'px'; p.style.height=sz+'px';
-      p.style.transition='all '+dur+'ms cubic-bezier(.25,.46,.45,.94)';
+      const dy=Math.sin(ang)*dist-60;
       requestAnimationFrame(()=>{
-        p.style.transform='translate('+dx+'px,'+dy+'px) scale(0)';
+        p.style.transform='translate('+dx+'px,'+dy+'px) scale(.3) rotate('+(Math.random()*360)+'deg)';
         p.style.opacity='0';
       });
-      setTimeout(()=>p.remove(),dur+100);
+      setTimeout(()=>p.remove(),1500);
     }
 
-    // light rays
-    const rays=document.createElement('div');
-    rays.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9998;pointer-events:none;background:radial-gradient(circle at '+cx+'px '+cy+'px,rgba(255,215,100,.3),transparent 50%);animation:rayExpand .8s ease forwards';
-    document.body.appendChild(rays);
-    setTimeout(()=>rays.remove(),800);
+    // Save unlock state
+    localStorage.setItem(GALLERY_LOCK_KEY,'true');
+
+    // Melt away the lock overlay
+    setTimeout(()=>{ overlay.classList.add('unlocking'); },600);
+
+    // Show warm welcome message
+    setTimeout(()=>{
+      const welcome=document.createElement('div');
+      welcome.className='welcome-banner';
+      welcome.textContent='欢迎回来，甜蜜配方已为您准备好 ♡';
+      document.body.appendChild(welcome);
+      setTimeout(()=>welcome.remove(),1500);
+    },800);
+
+    // Reveal gallery content
+    setTimeout(()=>{
+      const sc=content.querySelector('.screen');
+      if(sc) sc.classList.add('gallery-reveal');
+    },1200);
+
+    // Remove overlay after melt completes
+    setTimeout(()=>{ overlay.remove(); },1600);
   }
 
   function unlockFail(){
-    const chest=document.getElementById('chestWrap');
-    const crack=document.getElementById('lockCrack');
-    const flash=document.getElementById('lockFlash');
-
-    chest.classList.add('shake');
-    crack.classList.add('show');
-    flash.classList.add('show');
-    lockMsg.textContent='密码错误，请重新输入';
+    lockBody.classList.add('shake-sweet');
+    pinDisplay.classList.add('error');
+    lockMsg.textContent='哎呀，密码好像不对哦～';
+    lockMsg.classList.add('show');
 
     setTimeout(()=>{
-      chest.classList.remove('shake');
-      crack.classList.remove('show');
-      flash.classList.remove('show');
-    },600);
+      lockBody.classList.remove('shake-sweet');
+      pinDisplay.classList.remove('error');
+      lockMsg.classList.remove('show');
+    },1500);
 
     pinInput='';
     updateDisplay();
-
-    setTimeout(()=>{ lockMsg.textContent=''; },2500);
+    setTimeout(()=>{ lockMsg.textContent=''; },1500);
   }
 
-  document.querySelectorAll('#numPad .num-btn[data-num]').forEach(btn=>{
+  overlay.querySelectorAll('#numPad .num-btn[data-num]').forEach(btn=>{
     btn.onclick=()=>{
       if(pinInput.length<4){
         pinInput+=btn.dataset.num;
         updateDisplay();
-        if(pinInput.length===4) setTimeout(tryUnlock,200);
+        if(pinInput.length===4) setTimeout(tryUnlock,250);
       }
     };
   });
   document.getElementById('numClear').onclick=()=>{
-    pinInput=''; updateDisplay(); lockMsg.textContent='';
+    pinInput=''; updateDisplay(); lockMsg.classList.remove('show'); lockMsg.textContent='';
   };
   document.getElementById('numConfirm').onclick=()=>{
     if(pinInput.length===4) tryUnlock();
@@ -4064,7 +4140,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v49';
+const APP_VERSION='v51';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
