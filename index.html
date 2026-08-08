@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -421,6 +421,42 @@
   .login-link{text-align:center;margin-top:16px;font-size:12px;color:rgba(212,175,95,.4);cursor:pointer;text-decoration:underline}
   .login-link:active{color:rgba(212,175,95,.7)}
 
+  /* ===== Auth Tabs ===== */
+  .auth-tabs{display:flex;margin-bottom:20px;border-bottom:1px solid rgba(212,175,95,.15)}
+  .auth-tab{flex:1;padding:10px 0;text-align:center;font-size:13px;color:rgba(212,175,95,.4);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-weight:600;background:none;border-left:none;border-right:none;border-top:none}
+  .auth-tab.on{color:#e8d5a8;border-bottom-color:#d4af60}
+  .auth-form{display:none}
+  .auth-form.on{display:block}
+  .code-row{display:flex;gap:8px}
+  .code-row input{flex:1;min-width:0}
+  .code-btn{padding:12px 14px;border-radius:12px;border:1.5px solid rgba(212,175,95,.15);background:rgba(212,175,95,.08);color:#d4af60;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .2s;min-width:90px}
+  .code-btn:active{opacity:.7}
+  .code-btn:disabled{opacity:.4;cursor:default}
+
+  /* ===== Device Management ===== */
+  .device-card{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--bg2);margin-bottom:8px}
+  .device-card.locked{opacity:.55}
+  .device-card.current{border:1.5px solid var(--brand)}
+  .device-icon{width:38px;height:38px;border-radius:10px;background:rgba(196,140,92,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .device-icon svg{width:20px;height:20px;color:var(--brand)}
+  .device-info{flex:1;min-width:0}
+  .device-name{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+  .device-meta{font-size:11px;color:var(--sub);margin-top:2px}
+  .device-badge{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600}
+  .device-badge.ok{background:rgba(107,142,78,.12);color:#6B8E4E}
+  .device-badge.locked{background:rgba(196,92,72,.12);color:#C45C48}
+  .device-badge.current{background:rgba(196,140,92,.15);color:var(--brand)}
+  .device-lock-btn{padding:6px 12px;border-radius:8px;border:none;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
+  .device-lock-btn.lock{background:rgba(196,92,72,.1);color:#C45C48}
+  .device-lock-btn.unlock{background:rgba(107,142,78,.1);color:#6B8E4E}
+
+  /* ===== Device Locked Overlay ===== */
+  .device-locked-overlay{position:fixed;inset:0;z-index:20000;background:radial-gradient(ellipse at center,#1a1a2e 0%,#0d0d1a 55%,#050508 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:lockFadeIn .4s ease}
+  .device-locked-icon{width:80px;height:80px;border-radius:50%;background:rgba(196,92,72,.15);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+  .device-locked-icon svg{width:40px;height:40px;color:#C45C48}
+  .device-locked-title{font-size:20px;font-weight:800;color:#e8d5a8;margin-bottom:8px}
+  .device-locked-msg{font-size:13px;color:rgba(232,213,168,.4);text-align:center;max-width:280px;line-height:1.6}
+
   /* ===== Recipe Lock Badge ===== */
   .rcard-lock{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(196,92,72,.12);color:#c45c48;flex-shrink:0;margin-left:6px}
   .rcard-lock svg{width:13px;height:13px}
@@ -671,6 +707,7 @@ const ICONS = {
   'folder-plus':'<path d="M3 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M12 10v5M9.5 12.5h5" stroke-width="2"/>',
   lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
   unlock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 017.5-2"/>',
+  phone:'<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
 };
 function svg(name,sw){return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" ${sw?'stroke-width="'+sw+'"':''}>${ICONS[name]||''}</svg>`}
 
@@ -3005,11 +3042,20 @@ function renderProfile(){
         </div>
       </div>
 
+      ${isLoggedIn()?`
+      <div class="dm-card" style="margin-top:16px">
+        <div class="h"><span>📱 设备管理</span></div>
+        <div id="deviceList" style="padding:12px 14px">
+          <div style="text-align:center;padding:12px;color:var(--sub);font-size:13px">加载中...</div>
+        </div>
+      </div>
+      `:''}
+
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 0 8px">
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v42</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v43</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
@@ -3191,6 +3237,54 @@ function renderProfile(){
       }
     };
   }
+
+  // Device Management — load and render device list
+  if(isLoggedIn()){
+    const currentDeviceId=getDeviceId();
+    getDevicesList().then(devices=>{
+      const listEl=document.getElementById('deviceList');
+      if(!listEl) return;
+      if(!devices.length){
+        listEl.innerHTML='<div style="text-align:center;padding:12px;color:var(--sub);font-size:13px">暂无登录设备</div>';
+        return;
+      }
+      listEl.innerHTML=devices.map(dev=>{
+        const isCurrent=dev.deviceId===currentDeviceId;
+        const isLocked=dev.locked;
+        return `<div class="device-card ${isLocked?'locked':''} ${isCurrent?'current':''}">
+          <div class="device-icon">${svg('phone').replace('width="24" height="24"','width="20" height="20"')}</div>
+          <div class="device-info">
+            <div class="device-name">
+              ${esc(dev.deviceName||'未知设备')}
+              ${isCurrent?'<span class="device-badge current">当前</span>':''}
+              ${isLocked?'<span class="device-badge locked">已锁定</span>':'<span class="device-badge ok">正常</span>'}
+            </div>
+            <div class="device-meta">${esc(dev.platform||'Unknown')} · ${dev.lastLogin?fmtSyncTime(new Date(dev.lastLogin).getTime()):'未知'}</div>
+          </div>
+          ${isCurrent?'':`<button class="device-lock-btn ${isLocked?'unlock':'lock'}" data-id="${esc(dev.deviceId)}">${isLocked?'解锁':'锁定'}</button>`}
+        </div>`;
+      }).join('');
+      // Bind lock/unlock buttons
+      listEl.querySelectorAll('.device-lock-btn').forEach(btn=>{
+        btn.onclick=async()=>{
+          const deviceId=btn.dataset.id;
+          const willLock=btn.classList.contains('lock');
+          btn.disabled=true; btn.textContent='处理中...';
+          const ok=await lockUnlockDevice(deviceId,willLock);
+          if(ok){
+            toast(willLock?'设备已锁定':'设备已解锁','success');
+            renderProfile();
+          }else{
+            toast('操作失败，请重试','error');
+            btn.disabled=false; btn.textContent=willLock?'锁定':'解锁';
+          }
+        };
+      });
+    }).catch(()=>{
+      const listEl=document.getElementById('deviceList');
+      if(listEl) listEl.innerHTML='<div style="text-align:center;padding:12px;color:var(--sub);font-size:13px">无法加载设备列表</div>';
+    });
+  }
 }
 function exportData(){
   const data={ version:1, exportedAt:new Date().toISOString(), recipes:state.recipes, pantry:state.pantry };
@@ -3265,6 +3359,117 @@ function bindGlobalFocusScroll(){
   },true);
 }
 
+/* ---------- Phone Auth & Device Management ---------- */
+// 配置: 部署阿里云FC函数后，将URL填入此处
+const FC_API_URL=''; // 例: 'https://xxx.cn-shanghai.fcapp.run'
+const AUTH_KEY='auth_state';
+const DEVICE_ID_KEY='device_id';
+
+function getDeviceId(){
+  let id=localStorage.getItem(DEVICE_ID_KEY);
+  if(!id){
+    id='dev-'+Date.now().toString(36)+'-'+Math.random().toString(36).substr(2,8);
+    localStorage.setItem(DEVICE_ID_KEY,id);
+  }
+  return id;
+}
+function getDeviceInfo(){
+  const ua=navigator.userAgent;
+  let platform='Unknown',name='未知设备';
+  if(/iPhone/.test(ua)){platform='iOS';name='iPhone';}
+  else if(/iPad/.test(ua)){platform='iOS';name='iPad';}
+  else if(/Android/.test(ua)){platform='Android';name='Android设备';}
+  else if(/Windows/.test(ua)){platform='Windows';name='Windows电脑';}
+  else if(/Macintosh/.test(ua)){platform='macOS';name='Mac电脑';}
+  return{name,platform,userAgent:ua};
+}
+function getAuthState(){
+  try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'{}');}catch(e){return{};}
+}
+function setAuthState(s){localStorage.setItem(AUTH_KEY,JSON.stringify(s));}
+function clearAuthState(){localStorage.removeItem(AUTH_KEY);}
+
+async function callBackend(action,data){
+  if(!FC_API_URL) throw new Error('后端服务未配置');
+  const res=await fetch(FC_API_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action,...data})
+  });
+  return res.json();
+}
+
+async function checkDeviceLock(){
+  const auth=getAuthState();
+  if(!auth.phone||!auth.token) return false;
+  try{
+    const url=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json?access_token='+encodeURIComponent(auth.token);
+    const res=await fetch(url);
+    if(!res.ok) return false;
+    const data=await res.json();
+    const content=decodeURIComponent(escape(atob(data.content)));
+    const users=JSON.parse(content);
+    const user=users.find(u=>u.phone===auth.phone);
+    if(!user) return false;
+    const dev=(user.devices||[]).find(d=>d.deviceId===getDeviceId());
+    return !!(dev&&dev.locked);
+  }catch(e){return false;}
+}
+
+async function getDevicesList(){
+  const auth=getAuthState();
+  if(!auth.phone||!auth.token) return[];
+  try{
+    const url=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json?access_token='+encodeURIComponent(auth.token);
+    const res=await fetch(url);
+    if(!res.ok) return[];
+    const data=await res.json();
+    const content=decodeURIComponent(escape(atob(data.content)));
+    const users=JSON.parse(content);
+    const user=users.find(u=>u.phone===auth.phone);
+    return user?(user.devices||[]):[];
+  }catch(e){return[];}
+}
+
+async function lockUnlockDevice(deviceId,locked){
+  const auth=getAuthState();
+  if(!auth.phone||!auth.token) return false;
+  try{
+    const url=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json?access_token='+encodeURIComponent(auth.token);
+    const res=await fetch(url);
+    if(!res.ok) return false;
+    const data=await res.json();
+    const content=decodeURIComponent(escape(atob(data.content)));
+    const users=JSON.parse(content);
+    const user=users.find(u=>u.phone===auth.phone);
+    if(!user) return false;
+    const dev=(user.devices||[]).find(d=>d.deviceId===deviceId);
+    if(!dev) return false;
+    dev.locked=locked;
+    const newContent=btoa(unescape(encodeURIComponent(JSON.stringify(users,null,2))));
+    const updateUrl=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json';
+    const updateRes=await fetch(updateUrl,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({access_token:auth.token,content:newContent,sha:data.sha,message:'Update device lock'})
+    });
+    return updateRes.ok;
+  }catch(e){return false;}
+}
+
+function showDeviceLockedScreen(){
+  const existing=document.getElementById('deviceLockedOverlay');
+  if(existing) existing.remove();
+  const overlay=document.createElement('div');
+  overlay.className='device-locked-overlay';
+  overlay.id='deviceLockedOverlay';
+  overlay.innerHTML=`
+    <div class="device-locked-icon">${svg('lock').replace('width="24" height="24"','width="40" height="40"')}</div>
+    <div class="device-locked-title">设备已锁定</div>
+    <div class="device-locked-msg">此设备已被管理员锁定，请联系管理员解锁后使用。</div>`;
+  document.body.appendChild(overlay);
+}
+
 /* ---------- Boot ---------- */
 // Gallery Password Lock constants (must be defined before render() call)
 const GALLERY_PASSWORD='0823';
@@ -3276,74 +3481,199 @@ function isGalleryUnlocked(){
   return localStorage.getItem(GALLERY_LOCK_KEY)==='true';
 }
 
-/* ---------- Login Screen (Gitee token = account) ---------- */
+/* ---------- Phone Auth Screen ---------- */
 function isLoggedIn(){
-  return localStorage.getItem(LOGIN_KEY)==='true' || syncConfigured();
+  const auth=getAuthState();
+  return !!(auth.phone && auth.token);
 }
-function showLoginScreen(){
+function showAuthScreen(){
   const overlay=document.createElement('div');
   overlay.className='login-overlay';
-  overlay.id='loginOverlay';
+  overlay.id='authOverlay';
   overlay.innerHTML=`
     <div class="login-box">
       <div class="login-logo">${svg('lock').replace('width="24" height="24"','width="30" height="30"')}</div>
       <div class="login-title">甜品配方工作台</div>
-      <div class="login-sub">登录以同步你的配方</div>
-      <div class="login-field">
-        <label>Gitee 私人令牌</label>
-        <input type="password" id="loginToken" placeholder="在 Gitee → 设置 → 私人令牌 创建" autocomplete="off">
+      <div class="login-sub">注册/登录以使用</div>
+      ${!FC_API_URL?'<div style="font-size:11px;color:rgba(196,92,72,.7);text-align:center;margin-bottom:12px;padding:6px 10px;background:rgba(196,92,72,.08);border-radius:8px">⚠ 后端服务未配置，请联系管理员</div>':''}
+      <div class="auth-tabs">
+        <button class="auth-tab on" data-tab="login">登录</button>
+        <button class="auth-tab" data-tab="register">注册</button>
       </div>
-      <div class="login-field">
-        <label>Gitee 仓库名（可选）</label>
-        <input type="text" id="loginRepo" placeholder="留空则自动创建" autocomplete="off">
+      <div class="auth-form on" id="loginForm">
+        <div class="login-field">
+          <label>手机号</label>
+          <input type="tel" id="loginPhone" placeholder="请输入手机号" maxlength="11" autocomplete="tel">
+        </div>
+        <div class="login-field">
+          <label>密码</label>
+          <input type="password" id="loginPassword" placeholder="请输入密码" autocomplete="current-password">
+        </div>
+        <button class="login-btn" id="pwdLoginBtn">登 录</button>
+        <div class="login-link" id="switchToCodeLogin">验证码登录</div>
       </div>
-      <button class="login-btn" id="loginBtn">登 录</button>
-      <div class="login-msg" id="loginMsg"></div>
-      <div class="login-link" id="loginLocal">不登录，本地体验</div>
+      <div class="auth-form" id="registerForm">
+        <div class="login-field">
+          <label>手机号</label>
+          <input type="tel" id="regPhone" placeholder="请输入手机号" maxlength="11" autocomplete="tel">
+        </div>
+        <div class="login-field">
+          <label>验证码</label>
+          <div class="code-row">
+            <input type="text" id="regCode" placeholder="6位验证码" maxlength="6" inputmode="numeric">
+            <button class="code-btn" id="regSendBtn">发送验证码</button>
+          </div>
+        </div>
+        <div class="login-field">
+          <label>设置密码</label>
+          <input type="password" id="regPassword" placeholder="至少6位密码" autocomplete="new-password">
+        </div>
+        <button class="login-btn" id="registerBtn">注 册</button>
+      </div>
+      <div class="auth-form" id="codeLoginTab">
+        <div class="login-field">
+          <label>手机号</label>
+          <input type="tel" id="codeLoginPhone" placeholder="请输入手机号" maxlength="11" autocomplete="tel">
+        </div>
+        <div class="login-field">
+          <label>验证码</label>
+          <div class="code-row">
+            <input type="text" id="codeLoginCode" placeholder="6位验证码" maxlength="6" inputmode="numeric">
+            <button class="code-btn" id="codeSendBtn">发送验证码</button>
+          </div>
+        </div>
+        <button class="login-btn" id="codeLoginBtn">登 录</button>
+        <div class="login-link" id="backToPwdLogin">密码登录</div>
+      </div>
+      <div class="login-msg" id="authMsg"></div>
     </div>`;
   document.body.appendChild(overlay);
-  const btn=document.getElementById('loginBtn');
-  const msg=document.getElementById('loginMsg');
-  btn.onclick=async()=>{
-    const token=document.getElementById('loginToken').value.trim();
-    const repo=document.getElementById('loginRepo').value.trim();
-    if(!token){ msg.textContent='请输入Gitee私人令牌'; return; }
-    btn.disabled=true; btn.textContent='验证中...'; msg.textContent='';
+  const msg=document.getElementById('authMsg');
+
+  function switchForm(formId){
+    overlay.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('on'));
+    overlay.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('on'));
+    const form=document.getElementById(formId);
+    if(form) form.classList.add('on');
+    if(formId==='loginForm') overlay.querySelector('.auth-tab[data-tab="login"]').classList.add('on');
+    else if(formId==='registerForm') overlay.querySelector('.auth-tab[data-tab="register"]').classList.add('on');
+    msg.textContent='';
+  }
+
+  overlay.querySelectorAll('.auth-tab').forEach(tab=>{
+    tab.onclick=()=>switchForm(tab.dataset.tab==='login'?'loginForm':'registerForm');
+  });
+  document.getElementById('switchToCodeLogin').onclick=()=>switchForm('codeLoginTab');
+  document.getElementById('backToPwdLogin').onclick=()=>switchForm('loginForm');
+
+  function startCountdown(btn){
+    let cd=60; btn.disabled=true; btn.textContent=cd+'s';
+    const timer=setInterval(()=>{
+      cd--; btn.textContent=cd+'s';
+      if(cd<=0){clearInterval(timer);btn.disabled=false;btn.textContent='发送验证码';}
+    },1000);
+  }
+
+  async function doSendCode(phone,btn){
+    if(!/^1[3-9]\d{9}$/.test(phone)){msg.textContent='请输入正确的手机号';return;}
+    btn.disabled=true;
     try{
-      const userInfo=await giteeValidateToken(token);
-      if(!userInfo || !userInfo.login) throw new Error('令牌无效');
-      state.sync.giteeToken=token;
-      let repoName=repo;
-      if(!repoName){
-        repoName='recipe-data';
-        try{ await giteeCreateRepo(token,repoName); }catch(e){ /* may already exist */ }
+      const res=await callBackend('sendCode',{phone});
+      if(res.success){msg.textContent='验证码已发送';startCountdown(btn);}
+      else{msg.textContent=res.error||'发送失败';btn.disabled=false;btn.textContent='发送验证码';}
+    }catch(e){msg.textContent='网络错误或后端未配置';btn.disabled=false;btn.textContent='发送验证码';}
+  }
+
+  document.getElementById('regSendBtn').onclick=()=>{
+    doSendCode(document.getElementById('regPhone').value.trim(),document.getElementById('regSendBtn'));
+  };
+  document.getElementById('codeSendBtn').onclick=()=>{
+    doSendCode(document.getElementById('codeLoginPhone').value.trim(),document.getElementById('codeSendBtn'));
+  };
+
+  async function doLogin(action,phone,extra,btn,btnText){
+    btn.disabled=true;btn.textContent='登录中...';msg.textContent='';
+    try{
+      const res=await callBackend(action,{phone,...extra,deviceId:getDeviceId(),deviceInfo:getDeviceInfo()});
+      if(res.success){
+        setAuthState({phone:res.phone,token:res.token,giteeOwner:res.giteeOwner,giteeRepo:res.giteeRepo});
+        state.sync.giteeToken=res.token;
+        state.sync.giteeRepo=res.giteeRepo;
+        state.sync.giteeOwner=res.giteeOwner;
+        writeLocal();
+        overlay.remove();
+        syncPull(true).then(()=>{render();}).catch(()=>{});
+        render();
+      }else{
+        msg.textContent=res.error||'登录失败';
+        if(res.deviceLocked) showDeviceLockedScreen();
+        btn.disabled=false;btn.textContent=btnText;
       }
-      state.sync.giteeRepo=repoName;
-      localStorage.setItem(LOGIN_KEY,'true');
-      writeLocal();
-      overlay.remove();
-      // try to pull cloud data
-      syncPull(true).then(()=>{ render(); }).catch(()=>{});
-      render();
     }catch(e){
-      msg.textContent='登录失败：'+(e.message||'令牌无效');
-      btn.disabled=false; btn.textContent='登 录';
+      msg.textContent='网络错误或后端未配置';
+      btn.disabled=false;btn.textContent=btnText;
+    }
+  }
+
+  document.getElementById('pwdLoginBtn').onclick=()=>{
+    const phone=document.getElementById('loginPhone').value.trim();
+    const pwd=document.getElementById('loginPassword').value;
+    if(!phone||!pwd){msg.textContent='请输入手机号和密码';return;}
+    doLogin('login',phone,{password:pwd},document.getElementById('pwdLoginBtn'),'登 录');
+  };
+  document.getElementById('codeLoginBtn').onclick=()=>{
+    const phone=document.getElementById('codeLoginPhone').value.trim();
+    const code=document.getElementById('codeLoginCode').value.trim();
+    if(!phone||!code){msg.textContent='请输入手机号和验证码';return;}
+    doLogin('loginByCode',phone,{code},document.getElementById('codeLoginBtn'),'登 录');
+  };
+
+  document.getElementById('registerBtn').onclick=async()=>{
+    const phone=document.getElementById('regPhone').value.trim();
+    const code=document.getElementById('regCode').value.trim();
+    const pwd=document.getElementById('regPassword').value;
+    if(!phone||!code||!pwd){msg.textContent='请填写完整信息';return;}
+    if(pwd.length<6){msg.textContent='密码至少6位';return;}
+    const btn=document.getElementById('registerBtn');
+    btn.disabled=true;btn.textContent='注册中...';msg.textContent='';
+    try{
+      const res=await callBackend('register',{phone,code,password:pwd});
+      if(res.success){
+        // Auto-login after registration
+        const loginRes=await callBackend('login',{phone,password:pwd,deviceId:getDeviceId(),deviceInfo:getDeviceInfo()});
+        if(loginRes.success){
+          setAuthState({phone:loginRes.phone,token:loginRes.token,giteeOwner:loginRes.giteeOwner,giteeRepo:loginRes.giteeRepo});
+          state.sync.giteeToken=loginRes.token;
+          state.sync.giteeRepo=loginRes.giteeRepo;
+          state.sync.giteeOwner=loginRes.giteeOwner;
+          writeLocal();
+          overlay.remove();
+          syncPull(true).then(()=>{render();}).catch(()=>{});
+          render();
+        }else{
+          msg.textContent='注册成功，请登录';
+          switchForm('loginForm');
+          document.getElementById('loginPhone').value=phone;
+          btn.disabled=false;btn.textContent='注 册';
+        }
+      }else{
+        msg.textContent=res.error||'注册失败';
+        btn.disabled=false;btn.textContent='注 册';
+      }
+    }catch(e){
+      msg.textContent='网络错误或后端未配置';
+      btn.disabled=false;btn.textContent='注 册';
     }
   };
-  document.getElementById('loginLocal').onclick=()=>{
-    localStorage.setItem(LOGIN_KEY,'local');
-    overlay.remove();
-    render();
-  };
-  document.getElementById('loginToken').addEventListener('keydown',(e)=>{
-    if(e.key==='Enter') btn.click();
-  });
+
+  document.getElementById('loginPassword').addEventListener('keydown',(e)=>{if(e.key==='Enter')document.getElementById('pwdLoginBtn').click();});
+  document.getElementById('regPassword').addEventListener('keydown',(e)=>{if(e.key==='Enter')document.getElementById('registerBtn').click();});
 }
 function logout(){
+  clearAuthState();
   disconnectSync();
-  localStorage.removeItem(LOGIN_KEY);
   localStorage.removeItem(GALLERY_LOCK_KEY);
-  showLoginScreen();
+  showAuthScreen();
 }
 bindGlobalFocusScroll();
 load();
@@ -3351,9 +3681,16 @@ load();
 const bootRepaired = repairAllData();
 // check URL for sync config (device pairing via link)
 const urlSyncApplied = checkUrlForSyncConfig();
-// Check login status — show login screen if not logged in
+// Check login status — show auth screen if not logged in
 if(!isLoggedIn()){
-  showLoginScreen();
+  showAuthScreen();
+}else{
+  // Logged in — check if current device is locked
+  checkDeviceLock().then(locked=>{
+    if(locked){
+      showDeviceLockedScreen();
+    }
+  });
 }
 render();
 if(bootRepaired){
