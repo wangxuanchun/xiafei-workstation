@@ -1964,12 +1964,10 @@ function openShowcaseEditor(existing){
 
 /* ---------- Tab 1: Gallery ---------- */
 function renderGallery(){
-  // Always render gallery content first (behind the lock overlay)
+  // Render gallery content (no gallery-wide lock overlay; individual recipes still have their own locks)
   if(state.gView==='home') renderGalleryHome();
   else if(state.gView==='list') renderRecipeList();
   else if(state.gView==='editor') renderEditor();
-  // Then overlay the lock on top if not unlocked
-  if(!isGalleryUnlocked()){ renderGalleryLock(); }
 }
 
 function renderGalleryHome(){
@@ -2046,39 +2044,25 @@ function renderGalleryHome(){
   }
   // lock all / unlock all toggle
   document.getElementById('lockAllBtn').onclick=()=>{
-    if(isAdmin){
-      const allLocked=state.recipes.length>0 && state.recipes.every(r=>r.locked);
-      if(allLocked){
-        openActionSheet('配方锁定','选择操作',[
-          {label:'全部解锁',action:()=>{
-            state.recipes.forEach(r=>{ r.locked=false; });
-            persist(true); renderGalleryHome();
-            toast('已解锁全部配方','success');
-          }},
-          {label:'取消'}
-        ]);
-      }else{
-        openActionSheet('配方锁定','选择操作',[
-          {label:'全部上锁',action:()=>{
-            state.recipes.forEach(r=>{ r.locked=true; if(!r.lockPwd) r.lockPwd=DEFAULT_RECIPE_PWD; });
-            persist(true); renderGalleryHome();
-            toast('已锁定全部配方','success');
-          }},
-          {label:'取消'}
-        ]);
-      }
+    const allLocked=state.recipes.length>0 && state.recipes.every(r=>r.locked);
+    if(allLocked){
+      openActionSheet('配方锁定','选择操作',[
+        {label:'全部解锁',action:()=>{
+          state.recipes.forEach(r=>{ r.locked=false; });
+          persist(true); renderGalleryHome();
+          toast('已解锁全部配方','success');
+        }},
+        {label:'取消'}
+      ]);
     }else{
-      // Non-admin: show password lock to unlock
-      if(!isGalleryUnlocked()){
-        renderGalleryLock();
-      }else{
-        // Already unlocked — allow re-locking
-        localStorage.removeItem(GALLERY_LOCK_KEY);
-        state.recipes.forEach(r=>{ r.locked=true; if(!r.lockPwd) r.lockPwd=DEFAULT_RECIPE_PWD; });
-        persist(true);
-        renderGallery();
-        toast('配方画廊已锁定','success');
-      }
+      openActionSheet('配方锁定','选择操作',[
+        {label:'全部上锁',action:()=>{
+          state.recipes.forEach(r=>{ r.locked=true; if(!r.lockPwd) r.lockPwd=DEFAULT_RECIPE_PWD; });
+          persist(true); renderGalleryHome();
+          toast('已锁定全部配方','success');
+        }},
+        {label:'取消'}
+      ]);
     }
   };
   // delete button (admin only)
@@ -2996,9 +2980,18 @@ function renderWiki(){
       </div>
     </div>`;
 
-  // tab switching
+  // tab switching — preserve scroll position
   document.querySelectorAll('.wtab').forEach(b=>{
-    b.onclick=()=>{ saveWikiNow(); state.wikiCat=b.dataset.wcat; renderWiki(); };
+    b.onclick=()=>{
+      saveWikiNow();
+      const tabsEl=document.querySelector('.wiki-tabs');
+      const savedScroll=tabsEl?tabsEl.scrollLeft:0;
+      state.wikiCat=b.dataset.wcat;
+      renderWiki();
+      // Restore tab scroll position after re-render
+      const newTabs=document.querySelector('.wiki-tabs');
+      if(newTabs) newTabs.scrollLeft=savedScroll;
+    };
   });
 
   // add — chooser: category or item (admin only)
@@ -3294,7 +3287,7 @@ function renderProfile(){
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v55</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v56</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
@@ -3506,12 +3499,16 @@ function renderProfile(){
         if(isCurrent){
           return `<div class="device-swipe-wrap"><div class="device-swipe-content current">${cardInner}</div></div>`;
         }
+        if(isLocked){
+          // Locked devices: no swipe-to-delete, only unlock button (already in cardInner)
+          return `<div class="device-swipe-wrap"><div class="device-swipe-content locked">${cardInner}</div></div>`;
+        }
         return `<div class="device-swipe-wrap">
           <button class="device-swipe-delete" data-id="${esc(dev.deviceId)}" data-name="${esc(dev.deviceName||'未知设备')}">
             <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
             删除
           </button>
-          <div class="device-swipe-content ${isLocked?'locked':''}" data-id="${esc(dev.deviceId)}">${cardInner}</div>
+          <div class="device-swipe-content" data-id="${esc(dev.deviceId)}">${cardInner}</div>
         </div>`;
       }).join('');
       // Bind lock/unlock buttons
@@ -3614,6 +3611,8 @@ function bindGlobalFocusScroll(){
 /* ---------- Phone Auth & Device Management ---------- */
 // 配置: 部署阿里云FC函数后，将URL填入此处
 const FC_API_URL='https://recipe-auth-qfcvanmdxp.cn-beijing.fcapp.run';
+// Gitee 仓库私人令牌 — 新设备登录后自动填入
+const DEFAULT_GITEE_TOKEN='5693098aa31d64a8a104a48a6da99345';
 const AUTH_KEY='auth_state';
 const DEVICE_ID_KEY='device_id';
 // 管理员手机号 — 只有这些手机号登录后才能看到设备管理库
@@ -3959,7 +3958,7 @@ async function tryOneClickLogin(msgEl,overlay){
               if(phoneRes.success){
                 sdk.closeLoginPage();
                 setAuthState({phone:phoneRes.phone,token:phoneRes.token,giteeOwner:phoneRes.giteeOwner,giteeRepo:phoneRes.giteeRepo});
-                state.sync.giteeToken=phoneRes.token;
+                state.sync.giteeToken=DEFAULT_GITEE_TOKEN;
                 state.sync.giteeRepo=phoneRes.giteeOwner+'/'+phoneRes.giteeRepo;
                 state.sync.giteeOwner=phoneRes.giteeOwner;
                 writeLocal();
@@ -4151,7 +4150,7 @@ function showAuthScreen(){
       const res=await callBackend(action,{phone,...extra,deviceId:getDeviceId(),deviceInfo:getDeviceInfo()});
       if(res.success){
         setAuthState({phone:res.phone,token:res.token,giteeOwner:res.giteeOwner,giteeRepo:res.giteeRepo});
-        state.sync.giteeToken=res.token;
+        state.sync.giteeToken=DEFAULT_GITEE_TOKEN;
         state.sync.giteeRepo=res.giteeOwner+'/'+res.giteeRepo;
         state.sync.giteeOwner=res.giteeOwner;
         writeLocal();
@@ -4197,7 +4196,7 @@ function showAuthScreen(){
         const loginRes=await callBackend('login',{phone,password:pwd,deviceId:getDeviceId(),deviceInfo:getDeviceInfo()});
         if(loginRes.success){
           setAuthState({phone:loginRes.phone,token:loginRes.token,giteeOwner:loginRes.giteeOwner,giteeRepo:loginRes.giteeRepo});
-          state.sync.giteeToken=loginRes.token;
+          state.sync.giteeToken=DEFAULT_GITEE_TOKEN;
           state.sync.giteeRepo=loginRes.giteeOwner+'/'+loginRes.giteeRepo;
           state.sync.giteeOwner=loginRes.giteeOwner;
           writeLocal();
@@ -4479,7 +4478,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v55';
+const APP_VERSION='v56';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
