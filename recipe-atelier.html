@@ -4822,6 +4822,25 @@ function showRecipePermissionPanel(deviceId,deviceName){
   };
 }
 
+// ---------- URL param: force_sw_clear=1 (auto clear SW + cache on every visit) ----------
+if(new URLSearchParams(window.location.search).get('force_sw_clear')==='1'){
+  (async()=>{
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      for(const r of regs) await r.unregister();
+    }
+    if('caches' in window){
+      const keys=await caches.keys();
+      for(const k of keys) await caches.delete(k);
+    }
+    sessionStorage.removeItem('sw_reloaded');
+    // Reload without the param to avoid loop
+    const url=new URL(window.location.href);
+    url.searchParams.delete('force_sw_clear');
+    window.location.replace(url.toString());
+  })();
+}
+
 // ---------- PWA Service Worker Registration ----------
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').then(reg=>{
@@ -4841,7 +4860,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v57';
+const APP_VERSION='v58';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
