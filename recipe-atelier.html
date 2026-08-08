@@ -468,6 +468,16 @@
   .device-lock-btn.lock{background:rgba(196,92,72,.1);color:#C45C48}
   .device-lock-btn.unlock{background:rgba(107,142,78,.1);color:#6B8E4E}
 
+  /* ===== Device Swipe-to-Delete ===== */
+  .device-swipe-wrap{position:relative;overflow:hidden;margin-bottom:8px;border-radius:14px}
+  .device-swipe-content{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--bg2,#F7F3EC);transition:transform .28s cubic-bezier(.2,.8,.2,1);position:relative;z-index:1;touch-action:pan-y}
+  .device-swipe-content.locked{opacity:.55}
+  .device-swipe-content.current{border:1.5px solid var(--brand)}
+  .device-swipe-content.swiped{transform:translateX(-76px)}
+  .device-swipe-content.dragging{transition:none}
+  .device-swipe-delete{position:absolute;right:0;top:0;bottom:0;width:76px;background:linear-gradient(135deg,#C45C48,#a04030);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;z-index:0;gap:4px;flex-direction:column}
+  .device-swipe-delete svg{width:18px;height:18px;stroke:#fff;stroke-width:2;fill:none}
+
   /* ===== Device Locked Overlay ===== */
   .device-locked-overlay{position:fixed;inset:0;z-index:20000;background:linear-gradient(135deg,#FFF5EE 0%,#FFE4E1 30%,#FFB6C1 70%,#FFA07A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:lockFadeIn .4s ease}
   .device-locked-icon{width:80px;height:80px;border-radius:50%;background:rgba(196,92,72,.12);display:flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 4px 16px rgba(196,92,72,.2)}
@@ -3082,7 +3092,7 @@ function renderProfile(){
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v51</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v52</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
@@ -3279,7 +3289,7 @@ function renderProfile(){
         const isCurrent=dev.deviceId===currentDeviceId;
         const isLocked=dev.locked;
         const isAdmin=ADMIN_PHONES.includes(dev.phone);
-        return `<div class="device-card ${isLocked?'locked':''} ${isCurrent?'current':''}">
+        const cardInner=`
           <div class="device-icon">${svg('phone').replace('width="24" height="24"','width="20" height="20"')}</div>
           <div class="device-info">
             <div class="device-name">
@@ -3290,7 +3300,16 @@ function renderProfile(){
             </div>
             <div class="device-meta">${esc(dev.phone||'')} · ${esc(dev.platform||'Unknown')} · ${dev.lastLogin?fmtSyncTime(new Date(dev.lastLogin).getTime()):'未知'}</div>
           </div>
-          ${isCurrent?'':`<button class="device-lock-btn ${isLocked?'unlock':'lock'}" data-id="${esc(dev.deviceId)}">${isLocked?'解锁':'锁定'}</button>`}
+          ${isCurrent?'':`<button class="device-lock-btn ${isLocked?'unlock':'lock'}" data-id="${esc(dev.deviceId)}">${isLocked?'解锁':'锁定'}</button>`}`;
+        if(isCurrent){
+          return `<div class="device-swipe-wrap"><div class="device-swipe-content current">${cardInner}</div></div>`;
+        }
+        return `<div class="device-swipe-wrap">
+          <button class="device-swipe-delete" data-id="${esc(dev.deviceId)}" data-name="${esc(dev.deviceName||'未知设备')}">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
+            删除
+          </button>
+          <div class="device-swipe-content ${isLocked?'locked':''}" data-id="${esc(dev.deviceId)}">${cardInner}</div>
         </div>`;
       }).join('');
       // Bind lock/unlock buttons
@@ -3309,6 +3328,8 @@ function renderProfile(){
           }
         };
       });
+      // Bind swipe-to-delete
+      bindDeviceSwipeDelete(listEl);
     }).catch(()=>{
       const listEl=document.getElementById('deviceList');
       if(listEl) listEl.innerHTML='<div style="text-align:center;padding:12px;color:var(--sub);font-size:13px">无法加载设备列表</div>';
@@ -3498,6 +3519,122 @@ async function lockUnlockDevice(deviceId,locked){
     });
     return updateRes.ok;
   }catch(e){return false;}
+}
+
+async function deleteDevice(deviceId){
+  const auth=getAuthState();
+  if(!auth.phone||!auth.token) return false;
+  try{
+    const url=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json?access_token='+encodeURIComponent(auth.token);
+    const res=await fetch(url);
+    if(!res.ok) return false;
+    const data=await res.json();
+    const content=decodeURIComponent(escape(atob(data.content)));
+    const users=JSON.parse(content);
+    let found=false;
+    users.forEach(u=>{
+      const before=(u.devices||[]).length;
+      u.devices=(u.devices||[]).filter(d=>d.deviceId!==deviceId);
+      if(u.devices.length<before) found=true;
+    });
+    if(!found) return false;
+    const newContent=btoa(unescape(encodeURIComponent(JSON.stringify(users,null,2))));
+    const updateUrl=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json';
+    const updateRes=await fetch(updateUrl,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({access_token:auth.token,content:newContent,sha:data.sha,message:'Delete device record'})
+    });
+    return updateRes.ok;
+  }catch(e){return false;}
+}
+
+function bindDeviceSwipeDelete(listEl){
+  const DELETE_WIDTH=76;
+  let activeSwipe=null;
+  // Close all swipes
+  function closeAllSwipes(except){
+    listEl.querySelectorAll('.device-swipe-content.swiped').forEach(el=>{
+      if(el!==except){ el.classList.remove('swiped'); }
+    });
+  }
+  // Touch handlers
+  listEl.querySelectorAll('.device-swipe-content').forEach(content=>{
+    let startX=0,startY=0,currentX=0,dragging=false,lockedDir=false,isHorizontal=false;
+    content.addEventListener('touchstart',e=>{
+      if(content.classList.contains('current')) return;
+      startX=e.touches[0].clientX;
+      startY=e.touches[0].clientY;
+      currentX=content.classList.contains('swiped')?-DELETE_WIDTH:0;
+      dragging=true; lockedDir=false; isHorizontal=false;
+      content.classList.add('dragging');
+      // Close other swipes
+      closeAllSwipes(content);
+      activeSwipe=content;
+    },{passive:true});
+    content.addEventListener('touchmove',e=>{
+      if(!dragging||content.classList.contains('current')) return;
+      const dx=e.touches[0].clientX-startX;
+      const dy=e.touches[0].clientY-startY;
+      if(!lockedDir){
+        if(Math.abs(dx)>8||Math.abs(dy)>8){
+          isHorizontal=Math.abs(dx)>Math.abs(dy);
+          lockedDir=true;
+        }
+      }
+      if(isHorizontal){
+        let newX=currentX+dx;
+        if(newX>0) newX=0;
+        if(newX<-DELETE_WIDTH) newX=-DELETE_WIDTH;
+        content.style.transform='translateX('+newX+'px)';
+      }
+    },{passive:true});
+    content.addEventListener('touchend',e=>{
+      if(!dragging||content.classList.contains('current')) return;
+      dragging=false;
+      content.classList.remove('dragging');
+      const dx=e.changedTouches[0].clientX-startX;
+      if(!isHorizontal){
+        content.style.transform='';
+        return;
+      }
+      const threshold=DELETE_WIDTH/2;
+      const shouldOpen=(currentX+dx)<-threshold||dx<-threshold;
+      if(shouldOpen){
+        content.classList.add('swiped');
+        content.style.transform='';
+        activeSwipe=content;
+      }else{
+        content.classList.remove('swiped');
+        content.style.transform='';
+      }
+    },{passive:true});
+  });
+  // Click delete button
+  listEl.querySelectorAll('.device-swipe-delete').forEach(btn=>{
+    btn.onclick=()=>{
+      const deviceId=btn.dataset.id;
+      const deviceName=btn.dataset.name;
+      openModal('删除设备记录？','将永久删除「'+deviceName+'」的登录记录，该设备下次需要重新登录。',async()=>{
+        btn.disabled=true;
+        const ok=await deleteDevice(deviceId);
+        if(ok){
+          toast('设备记录已删除','success');
+          renderProfile();
+        }else{
+          toast('删除失败，请重试','error');
+          btn.disabled=false;
+        }
+      });
+    };
+  });
+  // Click outside to close swipes
+  document.addEventListener('click',e=>{
+    if(activeSwipe&&!e.target.closest('.device-swipe-wrap')){
+      activeSwipe.classList.remove('swiped');
+      activeSwipe=null;
+    }
+  },{passive:true});
 }
 
 function showDeviceLockedScreen(){
@@ -4140,7 +4277,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v51';
+const APP_VERSION='v52';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
