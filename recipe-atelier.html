@@ -526,6 +526,100 @@
     box-shadow:0 4px 16px rgba(255,182,193,.1)!important;
   }
   .dm-card .h,.sync-dot.on{background:rgba(255,228,225,.5)}
+
+  /* ===== Brand Philosophy Section ===== */
+  .brand-section{
+    background:linear-gradient(180deg,rgba(255,250,245,.85),rgba(255,245,238,.8));
+    border-radius:20px;
+    overflow:hidden;
+    margin-bottom:16px;
+    border:1px solid rgba(247,231,206,.4);
+    box-shadow:0 4px 20px rgba(255,182,193,.06);
+  }
+  .brand-inner{padding:32px 22px;position:relative}
+  .brand-slogan{
+    font-family:'Georgia','Noto Serif SC',serif;
+    font-size:22px;
+    font-weight:700;
+    letter-spacing:.12em;
+    color:#5c3d3d;
+    text-align:center;
+    margin-bottom:24px;
+    line-height:1.6;
+  }
+  .brand-mission{
+    text-align:center;
+    font-size:13px;
+    line-height:2.1;
+    color:#6b5544;
+    max-width:300px;
+    margin:0 auto;
+  }
+  .brand-mission p{margin:0 0 14px}
+  .brand-divider{
+    width:40px;
+    height:1px;
+    background:linear-gradient(90deg,transparent,#d4b595,transparent);
+    margin:20px auto;
+    border:none;
+  }
+  .brand-values{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin:24px 0;
+  }
+  .brand-value-card{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    padding:16px 14px;
+    border-radius:16px;
+    background:rgba(255,255,255,.5);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border:1px solid rgba(212,181,149,.25);
+    opacity:0;
+    transform:translateY(20px);
+    transition:opacity .8s ease,transform .8s ease;
+  }
+  .brand-value-card.visible{opacity:1;transform:translateY(0)}
+  .brand-value-num{
+    font-family:'Georgia',serif;
+    font-size:20px;
+    font-weight:700;
+    color:#c4a87a;
+    flex-shrink:0;
+    line-height:1;
+    padding-top:2px;
+    min-width:28px;
+  }
+  .brand-value-body{flex:1}
+  .brand-value-title{
+    font-size:14px;
+    font-weight:800;
+    color:#5c3d3d;
+    margin-bottom:6px;
+    letter-spacing:.05em;
+  }
+  .brand-value-text{
+    font-size:12px;
+    line-height:1.8;
+    color:#8b7355;
+  }
+  .brand-motto{
+    text-align:center;
+    font-size:12px;
+    letter-spacing:.15em;
+    color:#a08070;
+    line-height:2;
+    margin-top:24px;
+    font-family:'Georgia','Noto Serif SC',serif;
+  }
+  @media(min-width:480px){
+    .brand-values{flex-direction:row;flex-wrap:wrap}
+    .brand-value-card{flex:1 1 45%}
+  }
   /* Sweet buttons */
   .new-btn,.sync-btn.primary,.login-btn,.mb-ok,.ma-opt.brand,.cm-aigen:not(:disabled){
     background:linear-gradient(135deg,#FFB6C1,#E8A0BF)!important;
@@ -3209,24 +3303,66 @@ function renderProfile(){
   const giteeConnected = backend==='gitee';
   const ghConnected = backend==='gh';
   const gistUrl = ghConnected ? 'https://gist.github.com/'+state.sync.gistId : '';
-  content.innerHTML=`
-    <div class="screen">
-      <div class="hd"><h1>我的资料</h1></div>
-      <div class="prof">
-        <div class="avatar" id="profAvatar" style="${state.profile.avatar?'background-image:url('+state.profile.avatar+');background-size:cover;background-position:center':''}">${state.profile.avatar?'':'X'}</div>
-        <div class="un" id="profName" contenteditable="plaintext-only" spellcheck="false">${esc(state.profile.name)}</div>
-        <div class="us" id="profTagline" contenteditable="true" spellcheck="false">${esc(state.profile.tagline||'与木&Kimiko')}</div>
-        <div class="stat-row">
-          <div class="stat"><div class="v">${totalShowcases}</div><div class="l">Showcase</div></div>
-          <div class="stat"><div class="v">${totalRecipes}</div><div class="l">配方</div></div>
-        </div>
-      </div>
+  const adminUser = isLoggedIn()&&isAdminPhone();
 
+  // Brand philosophy HTML block
+  const brandPhilosophyHTML = `
+      <div class="brand-section">
+        <div class="brand-inner">
+          <div class="brand-slogan">构建味觉的秩序</div>
+          <hr class="brand-divider">
+          <div class="brand-mission">
+            <p>我叫kimiko，一个不肯"随便做做"的甜品师。</p>
+            <p>在我的世界里，糖不是甜的廉价来源，<br>而是让一块黄油、一捧面粉、一枚鸡蛋，<br>各自抵达它们此生最美形态的引路者。</p>
+            <p>流水线生产的是糖分，而手工注入的是情感。<br>世界已经够匆忙了，至少在这里，你可以慢下来。</p>
+            <p>我的甜品，不为取悦所有人，<br>只为遇见那些懂得"甜不止是甜"的你。</p>
+            <p>用一口温柔，推翻一整天的乏味。<br>这是我对生活的小小起义。</p>
+          </div>
+          <hr class="brand-divider">
+          <div class="brand-values">
+            <div class="brand-value-card" data-delay="0">
+              <div class="brand-value-num">I</div>
+              <div class="brand-value-body">
+                <div class="brand-value-title">克制</div>
+                <div class="brand-value-text">真正的甜，从不声张。我们减少糖量，不是吝啬，是为了让草莓更草莓，让奶油更像云。高级的甜，懂得退让，留白才有余味。</div>
+              </div>
+            </div>
+            <div class="brand-value-card" data-delay="1">
+              <div class="brand-value-num">II</div>
+              <div class="brand-value-body">
+                <div class="brand-value-title">秩序</div>
+                <div class="brand-value-text">打发有黄金时间，发酵有最佳温度。我们相信，自由生于框架之中。每一道工序都是一行代码，而最终的作品，是一首不被察觉的精密诗篇。</div>
+              </div>
+            </div>
+            <div class="brand-value-card" data-delay="2">
+              <div class="brand-value-num">III</div>
+              <div class="brand-value-body">
+                <div class="brand-value-title">诚实</div>
+                <div class="brand-value-text">一块蛋糕不会说谎。你用的是鲜果还是果酱，是发酵黄油还是人造油脂，入口那一刻，它全盘托出。我们选择诚实——对食材诚实，对手艺诚实，对每一位客户诚实。味道不会说谎，而好食材是唯一的捷径。</div>
+              </div>
+            </div>
+            <div class="brand-value-card" data-delay="3">
+              <div class="brand-value-num">IV</div>
+              <div class="brand-value-body">
+                <div class="brand-value-title">偏执</div>
+                <div class="brand-value-text">为了一枚可露丽的焦壳，我们可以等二十四小时。为了一种理想的酸度，我们测试了十一种柠檬。在别人看来这是偏执，在我们看来，这是对"好吃"二字的起码尊重。</div>
+              </div>
+            </div>
+          </div>
+          <hr class="brand-divider">
+          <div class="brand-motto">安静地甜，就是一种力量。<br>我们不制造多巴胺，我们制造记忆。</div>
+        </div>
+      </div>`;
+
+  // Memo card HTML
+  const memoHTML = `
       <div class="memo-card">
         <div class="h"><span>📝 备忘录</span><button class="memo-add-btn" id="memoAdd">+</button></div>
         <div class="memo-list" id="memoList"></div>
-      </div>
+      </div>`;
 
+  // Cloud sync card HTML
+  const syncHTML = `
       <div class="dm-card">
         <div class="h">
           <span>云同步</span>
@@ -3298,37 +3434,49 @@ function renderProfile(){
             <button class="sync-btn ghost block" id="connectBtn">连接 GitHub Gist</button>
           `}
         </div>
-      </div>
+      </div>`;
 
-      ${isLoggedIn()&&isAdminPhone()?`
+  // Device management HTML (admin only)
+  const deviceHTML = adminUser ? `
       <div class="dm-card" style="margin-top:16px">
         <div class="h"><span>📱 设备管理</span></div>
         <div id="deviceList" style="padding:12px 14px">
           <div style="text-align:center;padding:12px;color:var(--sub);font-size:13px">加载中...</div>
         </div>
-      </div>
-      `:''}
+      </div>` : '';
 
-      <div class="dm-card" style="margin-top:16px">
-        <div class="h"><span>💗 品牌理念</span></div>
-        <div style="padding:18px 16px">
-          <div style="font-size:14px;line-height:1.8;color:var(--ink);text-align:center">
-            <span style="font-size:24px;display:block;margin-bottom:8px">🌸</span>
-            <span style="font-weight:700;font-size:15px;color:var(--brand-deep)">用甜蜜传递温暖</span>
-            <br><br>
-            <span style="color:var(--sub);font-size:13px">（品牌理念文案待补充）</span>
-          </div>
-        </div>
-      </div>
-
+  // Footer HTML
+  const footerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 0 8px">
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v56</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v59</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
+      </div>`;
+
+  // Build layout: admin keeps original order, non-admin puts brand philosophy before memo
+  let sectionsAfterProfile;
+  if(adminUser){
+    sectionsAfterProfile = memoHTML + syncHTML + deviceHTML + brandPhilosophyHTML + footerHTML;
+  }else{
+    sectionsAfterProfile = brandPhilosophyHTML + memoHTML + syncHTML + footerHTML;
+  }
+
+  content.innerHTML=`
+    <div class="screen">
+      <div class="hd"><h1>我的资料</h1></div>
+      <div class="prof">
+        <div class="avatar" id="profAvatar" style="${state.profile.avatar?'background-image:url('+state.profile.avatar+')':'background-image:url(./default-avatar.jpg)'};background-size:cover;background-position:center"></div>
+        <div class="un" id="profName" contenteditable="plaintext-only" spellcheck="false">${esc(state.profile.name)}</div>
+        <div class="us" id="profTagline" contenteditable="true" spellcheck="false">${esc(state.profile.tagline||'与木&Kimiko')}</div>
+        <div class="stat-row">
+          <div class="stat"><div class="v">${totalShowcases}</div><div class="l">Showcase</div></div>
+          <div class="stat"><div class="v">${totalRecipes}</div><div class="l">配方</div></div>
+        </div>
       </div>
+      ${sectionsAfterProfile}
     </div>`;
 
   document.getElementById('backupTrashBtn').onmouseenter=function(){this.style.opacity='1'};
@@ -3428,6 +3576,21 @@ function renderProfile(){
   }
   // Memo
   initMemo();
+
+  // Brand philosophy: scroll-triggered fade-in for value cards
+  const brandCards=document.querySelectorAll('.brand-value-card');
+  if(brandCards.length>0){
+    const observer=new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          const delay=parseInt(entry.target.dataset.delay||'0')*150;
+          setTimeout(()=>entry.target.classList.add('visible'),delay);
+          observer.unobserve(entry.target);
+        }
+      });
+    },{threshold:0.15,rootMargin:'0px 0px -40px 0px'});
+    brandCards.forEach(c=>observer.observe(c));
+  }
 
   if(giteeConnected){
     document.getElementById('copyLinkBtn').onclick=()=>{
@@ -4860,7 +5023,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v58';
+const APP_VERSION='v59';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
