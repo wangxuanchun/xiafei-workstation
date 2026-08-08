@@ -1756,6 +1756,7 @@ function renderNav(){
 let scDelMode=false;
 function renderShowcase(){
   const items = state.showcases || [];
+  const isAdmin=isLoggedIn()&&isAdminPhone();
   content.innerHTML = `
     <div class="screen">
       <div class="hd">
@@ -1764,10 +1765,12 @@ function renderShowcase(){
             <h1>甜品橱窗</h1>
             <p>展示你的烘焙成品 🧁</p>
           </div>
+          ${isAdmin?`
           <div class="hd-actions">
             <button class="hd-btn brand" id="scAdd">${svg('plus',2)}</button>
             <button class="hd-btn danger ${scDelMode?'active':''}" id="scDelBtn" ${items.length===0?'disabled':''}>${svg('trash')}</button>
           </div>
+          `:''}
         </div>
       </div>
       <div class="sc-grid ${scDelMode?'del-mode':''}" id="scGrid">
@@ -1781,17 +1784,18 @@ function renderShowcase(){
               <div class="sc-price">${item.price?esc(String(item.price).replace(/^[¥￥]\s*/,'')):'—'}</div>
               <div class="sc-desc">${esc(item.desc||'')}</div>
             </div>
-            <button class="sc-del" data-del="${item.id}">✕</button>
+            ${isAdmin?`<button class="sc-del" data-del="${item.id}">✕</button>`:''}
           </div>
         `).join('')}
       </div>
-      ${items.length===0 ? `<div class="empty">还没有展示成品。<br>点击右上角 + 来添加。</div>` : ''}
+      ${items.length===0 ? `<div class="empty">${isAdmin?'还没有展示成品。<br>点击右上角 + 来添加。':'还没有展示成品。'}</div>` : ''}
     </div>`;
 
-  // Add new
+  // Add new (admin only)
+  if(isAdmin){
   document.getElementById('scAdd').onclick=()=>{ scDelMode=false; openShowcaseEditor(null); };
 
-  // Toggle delete mode
+  // Toggle delete mode (admin only)
   const delBtn=document.getElementById('scDelBtn');
   if(delBtn){
     delBtn.onclick=()=>{
@@ -1799,8 +1803,10 @@ function renderShowcase(){
       renderShowcase();
     };
   }
+  } // end if(isAdmin)
 
-  // Click card to edit (or delete in del mode)
+  // Click card to edit (or delete in del mode) — admin only
+  if(isAdmin){
   document.querySelectorAll('.sc-card').forEach(card=>{
     card.onclick=(e)=>{
       if(e.target.classList.contains('sc-del')) return;
@@ -1821,7 +1827,7 @@ function renderShowcase(){
     };
   });
 
-  // Delete via ✕ button
+  // Delete via ✕ button (admin only)
   document.querySelectorAll('.sc-del').forEach(btn=>{
     btn.onclick=(e)=>{
       e.stopPropagation();
@@ -1835,6 +1841,7 @@ function renderShowcase(){
       });
     };
   });
+  }
 }
 
 function openShowcaseEditor(existing){
@@ -3287,7 +3294,7 @@ function renderProfile(){
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v54</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v55</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
@@ -4472,7 +4479,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v54';
+const APP_VERSION='v55';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
