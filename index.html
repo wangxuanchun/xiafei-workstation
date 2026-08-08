@@ -3055,7 +3055,7 @@ function renderProfile(){
         <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v43</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v44</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>
@@ -3486,6 +3486,123 @@ function isLoggedIn(){
   const auth=getAuthState();
   return !!(auth.phone && auth.token);
 }
+
+/* ---------- H5 一键登录 (号码认证 SDK) ---------- */
+let _pnvsSDK=null;
+function loadNumberAuthSDK(){
+  if(_pnvsSDK) return Promise.resolve(_pnvsSDK);
+  if(window.PhoneNumberServer){
+    _pnvsSDK=new window.PhoneNumberServer();
+    return Promise.resolve(_pnvsSDK);
+  }
+  const urls=[
+    'https://unpkg.com/aliyun_numberauthsdk_web@2.1.15/',
+    'https://cdn.jsdelivr.net/npm/aliyun_numberauthsdk_web@2.1.15/'
+  ];
+  let idx=0;
+  function tryLoad(){
+    if(idx>=urls.length) return Promise.reject(new Error('SDK加载失败'));
+    return new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      s.src=urls[idx++];
+      s.onload=()=>{
+        if(window.PhoneNumberServer){
+          _pnvsSDK=new window.PhoneNumberServer();
+          resolve(_pnvsSDK);
+        }else{
+          s.remove();
+          tryLoad().then(resolve).catch(reject);
+        }
+      };
+      s.onerror=()=>{ s.remove(); tryLoad().then(resolve).catch(reject); };
+      document.head.appendChild(s);
+    });
+  }
+  return tryLoad();
+}
+
+async function tryOneClickLogin(msgEl,overlay){
+  if(!FC_API_URL){ msgEl.textContent='后端服务未配置，请使用密码或验证码登录'; return; }
+  msgEl.textContent='正在初始化一键登录…';
+  try{
+    const sdk=await loadNumberAuthSDK();
+    const netType=sdk.getConnection?sdk.getConnection():'unknown';
+    if(netType==='wifi'){
+      msgEl.textContent='一键登录需使用移动数据，请关闭WiFi后重试，或使用验证码登录';
+      return;
+    }
+    const tokenRes=await callBackend('getAuthToken',{
+      url:window.location.href.split('#')[0],
+      origin:window.location.origin
+    });
+    if(!tokenRes.success){
+      msgEl.textContent=tokenRes.error||'获取认证Token失败';
+      return;
+    }
+    sdk.checkLoginAvailable({
+      accessToken:tokenRes.accessToken,
+      jwtToken:tokenRes.jwtToken,
+      success:function(res){
+        if(res.code!==600000){
+          msgEl.textContent='一键登录不可用，请使用验证码登录';
+          return;
+        }
+        sdk.getLoginToken({
+          authPageOption:{
+            navText:'本机号码登录',
+            btnText:'一键登录',
+            isDialog:true,
+            manualClose:true,
+            privacyBefore:'我已阅读并同意',
+            privacyOne:['《用户协议》',''],
+            privacyTwo:['《隐私政策》',''],
+            showCustomView:true,
+            customView:{
+              element:'<div class="pnvs_other" id="pnvsOtherLogin">切换其他登录方式</div>',
+              style:'.pnvs_other{background:#fff;color:#C48C5C;text-align:center;padding:10px;border-radius:8px;font-size:14px;cursor:pointer;margin-top:8px}',
+              js:'document.getElementById("pnvsOtherLogin").onclick=function(){if(window._pnvsSDK)window._pnvsSDK.closeLoginPage();}'
+            }
+          },
+          success:async function(res){
+            if(res.code!==600000){
+              msgEl.textContent=res.msg||'获取登录Token失败';
+              return;
+            }
+            try{
+              const phoneRes=await callBackend('getPhone',{
+                spToken:res.spToken,
+                deviceId:getDeviceId(),
+                deviceInfo:getDeviceInfo()
+              });
+              if(phoneRes.success){
+                sdk.closeLoginPage();
+                setAuthState({phone:phoneRes.phone,token:phoneRes.token,giteeOwner:phoneRes.giteeOwner,giteeRepo:phoneRes.giteeRepo});
+                state.sync.giteeToken=phoneRes.token;
+                state.sync.giteeRepo=phoneRes.giteeRepo;
+                state.sync.giteeOwner=phoneRes.giteeOwner;
+                writeLocal();
+                overlay.remove();
+                syncPull(true).then(()=>{render();}).catch(()=>{});
+                render();
+              }else{
+                msgEl.textContent=phoneRes.error||'一键登录失败';
+                if(phoneRes.deviceLocked) showDeviceLockedScreen();
+              }
+            }catch(e){ msgEl.textContent='网络错误'; }
+          },
+          error:function(res){ msgEl.textContent='授权取消或失败，请使用验证码登录'; },
+          watch:function(status,data){ if(status===2) msgEl.textContent=''; }
+        });
+      },
+      error:function(res){
+        msgEl.textContent='一键登录不可用（可能处于WiFi网络），请使用验证码登录';
+      }
+    });
+  }catch(e){
+    msgEl.textContent='SDK加载失败，请使用验证码登录';
+  }
+}
+
 function showAuthScreen(){
   const overlay=document.createElement('div');
   overlay.className='login-overlay';
@@ -3496,6 +3613,14 @@ function showAuthScreen(){
       <div class="login-title">甜品配方工作台</div>
       <div class="login-sub">注册/登录以使用</div>
       ${!FC_API_URL?'<div style="font-size:11px;color:rgba(196,92,72,.7);text-align:center;margin-bottom:12px;padding:6px 10px;background:rgba(196,92,72,.08);border-radius:8px">⚠ 后端服务未配置，请联系管理员</div>':''}
+      <div style="margin-bottom:16px">
+        <button class="login-btn" id="oneClickBtn" style="background:linear-gradient(135deg,#C48C5C,#C45C48);font-size:15px;letter-spacing:1px">📱 一键登录</button>
+        <div style="display:flex;align-items:center;margin:14px 0;gap:10px">
+          <div style="flex:1;height:1px;background:rgba(0,0,0,.1)"></div>
+          <span style="font-size:11px;color:var(--sub);white-space:nowrap">或使用其他方式</span>
+          <div style="flex:1;height:1px;background:rgba(0,0,0,.1)"></div>
+        </div>
+      </div>
       <div class="auth-tabs">
         <button class="auth-tab on" data-tab="login">登录</button>
         <button class="auth-tab" data-tab="register">注册</button>
@@ -3549,6 +3674,12 @@ function showAuthScreen(){
     </div>`;
   document.body.appendChild(overlay);
   const msg=document.getElementById('authMsg');
+
+  // H5 一键登录按钮
+  const oneClickBtn=document.getElementById('oneClickBtn');
+  if(oneClickBtn){
+    oneClickBtn.onclick=()=>tryOneClickLogin(msg,overlay);
+  }
 
   function switchForm(formId){
     overlay.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('on'));
