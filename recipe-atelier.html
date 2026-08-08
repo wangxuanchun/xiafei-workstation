@@ -1973,6 +1973,9 @@ function renderGallery(){
 function renderGalleryHome(){
   catSelected.clear();
   const isAdmin=isLoggedIn()&&isAdminPhone();
+  // Determine lock button visibility and text
+  const showLockBtn = isAdmin ? true : !isAllRecipesUnlocked();
+  const lockBtnText = isAdmin ? '全部' : (deviceRecipePermissions.length > 0 ? '部分' : '全部');
   content.innerHTML = `
     <div class="screen">
       <div class="hd">
@@ -1982,7 +1985,7 @@ function renderGalleryHome(){
             <p>经典配方，选一个，做成你的</p>
           </div>
           <div class="hd-actions">
-            <button class="hd-btn brand" id="lockAllBtn" title="全部上锁" style="font-size:11px;width:auto;padding:0 10px;gap:3px">${svg('lock',1.5)}<span>全部</span></button>
+            ${showLockBtn?`<button class="hd-btn brand" id="lockAllBtn" title="解锁全部" style="font-size:11px;width:auto;padding:0 10px;gap:3px">${svg('lock',1.5)}<span>${lockBtnText}</span></button>`:''}
             ${isAdmin?`
             <button class="hd-btn brand" id="catAdd">${svg('plus',2)}</button>
             <button class="hd-btn danger" id="catDel" disabled>${svg('trash')}</button>
@@ -2043,28 +2046,37 @@ function renderGalleryHome(){
     if(catAddBtn) catAddBtn.onclick=()=>openCatEditor(null);
   }
   // lock all / unlock all toggle
-  document.getElementById('lockAllBtn').onclick=()=>{
-    const allLocked=state.recipes.length>0 && state.recipes.every(r=>r.locked);
-    if(allLocked){
-      openActionSheet('配方锁定','选择操作',[
-        {label:'全部解锁',action:()=>{
-          state.recipes.forEach(r=>{ r.locked=false; });
-          persist(true); renderGalleryHome();
-          toast('已解锁全部配方','success');
-        }},
-        {label:'取消'}
-      ]);
-    }else{
-      openActionSheet('配方锁定','选择操作',[
-        {label:'全部上锁',action:()=>{
-          state.recipes.forEach(r=>{ r.locked=true; if(!r.lockPwd) r.lockPwd=DEFAULT_RECIPE_PWD; });
-          persist(true); renderGalleryHome();
-          toast('已锁定全部配方','success');
-        }},
-        {label:'取消'}
-      ]);
-    }
-  };
+  const lockAllBtnEl=document.getElementById('lockAllBtn');
+  if(lockAllBtnEl){
+    lockAllBtnEl.onclick=()=>{
+      if(isAdmin){
+        // Admin: show lock/unlock action sheet
+        const allLocked=state.recipes.length>0 && state.recipes.every(r=>r.locked);
+        if(allLocked){
+          openActionSheet('配方锁定','选择操作',[
+            {label:'全部解锁',action:()=>{
+              state.recipes.forEach(r=>{ r.locked=false; });
+              persist(true); renderGalleryHome();
+              toast('已解锁全部配方','success');
+            }},
+            {label:'取消'}
+          ]);
+        }else{
+          openActionSheet('配方锁定','选择操作',[
+            {label:'全部上锁',action:()=>{
+              state.recipes.forEach(r=>{ r.locked=true; if(!r.lockPwd) r.lockPwd=DEFAULT_RECIPE_PWD; });
+              persist(true); renderGalleryHome();
+              toast('已锁定全部配方','success');
+            }},
+            {label:'取消'}
+          ]);
+        }
+      }else{
+        // Non-admin: show sweet gallery lock to unlock all recipes
+        renderGalleryLock();
+      }
+    };
+  }
   // delete button (admin only)
   if(isAdmin){
     const catDelBtn=document.getElementById('catDel');
@@ -2610,28 +2622,32 @@ function renderRecipeList(){
   const cat = state.categories.find(c=>c.id===state.catId);
   const list = state.recipes.filter(r=>r.cat===state.catId).sort((a,b)=>b.updated-a.updated);
   recipeSelected.clear();
+  const isAdmin=isLoggedIn()&&isAdminPhone();
   content.innerHTML = `
     <div class="screen">
       <div class="hd">
         <div class="hd-row">
           <div class="crumb" style="margin-bottom:0"><button class="back" id="backHome">${svg('arrowL')}</button><span>${cat?cat.name:''}</span></div>
+          ${isAdmin?`
           <div class="hd-actions">
             <button class="hd-btn brand" id="newRecipe">${svg('plus',2)}</button>
             <button class="hd-btn danger" id="delRecipe" disabled>${svg('trash')}</button>
           </div>
+          `:''}
         </div>
         <div style="font-size:13px;color:var(--sub);margin-top:10px">${list.length} 个配方</div>
       </div>
-      ${list.length===0 ? `<div class="empty">这里还没有配方。<br>点击右上角 + 来创建一个。</div>` :
+      ${list.length===0 ? `<div class="empty">${isAdmin?'这里还没有配方。<br>点击右上角 + 来创建一个。':'这里还没有配方。'}</div>` :
         list.map(r=>`
           <div class="rcard" data-recipe="${r.id}">
-            <button class="rcard-check" data-rid="${r.id}">${svg('check')}</button>
+            ${isAdmin?`<button class="rcard-check" data-rid="${r.id}">${svg('check')}</button>`:''}
             <div class="rcard-info"><div class="rt">${esc(r.name)}</div><div class="rd">${fmtDate(r.updated)}</div></div>
-            ${r.locked?'<span class="rcard-lock">'+svg('lock')+'</span>':''}
+            ${!canAccessRecipe(r)?'<span class="rcard-lock">'+svg('lock')+'</span>':''}
             <span class="arrow">${svg('chevR')}</span>
           </div>`).join('')}
     </div>`;
   document.getElementById('backHome').onclick=()=>{ state.gView='home'; render(); window.scrollTo(0,0); };
+  if(isAdmin){
   document.getElementById('newRecipe').onclick=()=>{
     const r={ id:uid(), cat:state.catId, name:'未命名配方', updated:Date.now(), ingredients:[{name:'',gram:''}], steps:'', notes:'', locked:true, lockPwd:DEFAULT_RECIPE_PWD };
     state.recipes.unshift(r); state.recipeId=r.id; state.gView='editor'; persist(true); render(); window.scrollTo(0,0);
@@ -2644,19 +2660,6 @@ function renderRecipeList(){
       if(cb.classList.contains('on')){ cb.classList.remove('on'); recipeSelected.delete(rid); }
       else{ cb.classList.add('on'); recipeSelected.add(rid); }
       updateRecipeDelBtn();
-    };
-  });
-  // card click -> open editor (with lock check)
-  document.querySelectorAll('.rcard').forEach(b=>{
-    b.onclick=(e)=>{
-      if(e.target.closest('.rcard-check')) return;
-      const rid=b.dataset.recipe;
-      const recipe=state.recipes.find(r=>r.id===rid);
-      if(recipe && recipe.locked){
-        promptRecipeUnlock(recipe);
-      }else{
-        state.recipeId=rid; state.gView='editor'; render(); window.scrollTo(0,0);
-      }
     };
   });
   // delete selected
@@ -2673,42 +2676,77 @@ function renderRecipeList(){
     const btn=document.getElementById('delRecipe');
     if(btn) btn.disabled = recipeSelected.size===0;
   }
+  } // end if(isAdmin)
+  // card click -> open editor (with lock check)
+  document.querySelectorAll('.rcard').forEach(b=>{
+    b.onclick=(e)=>{
+      if(e.target.closest('.rcard-check')) return;
+      const rid=b.dataset.recipe;
+      const recipe=state.recipes.find(r=>r.id===rid);
+      if(recipe && !canAccessRecipe(recipe)){
+        promptRecipeUnlock(recipe);
+      }else{
+        state.recipeId=rid; state.gView='editor'; render(); window.scrollTo(0,0);
+      }
+    };
+  });
 }
 
 /* ---------- Recipe Unlock Prompt ---------- */
 function promptRecipeUnlock(recipe){
   const m=document.getElementById('modal');
-  m.innerHTML=`
-    <div class="msheet">
-      <div class="mb">
-        <div class="mt">${svg('lock')} 解锁配方</div>
-        <div class="md">输入密码查看"${esc(recipe.name)}"</div>
-      </div>
-      <div style="padding:0 20px 16px">
-        <input type="password" id="recipeUnlockInput" placeholder="输入密码" style="width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);font-size:15px;outline:none;text-align:center;letter-spacing:2px" autocomplete="off">
-      </div>
-      <div class="ma">
-        <button class="mb-cancel" id="mbCancel">取消</button>
-        <button class="mb-ok" id="mbOk">解锁</button>
-      </div>
-    </div>`;
-  m.classList.add('show');
-  const input=document.getElementById('recipeUnlockInput');
-  input.focus();
-  input.addEventListener('keydown',(e)=>{ if(e.key==='Enter') document.getElementById('mbOk').click(); });
-  document.getElementById('mbCancel').onclick=closeModal;
-  document.getElementById('mbOk').onclick=()=>{
-    const pwd=input.value.trim();
-    if(pwd===RECIPE_MASTER_PWD || pwd===(recipe.lockPwd||DEFAULT_RECIPE_PWD)){
-      closeModal();
-      state.recipeId=recipe.id; state.gView='editor'; render(); window.scrollTo(0,0);
-    }else{
-      input.style.borderColor='#c45c48';
-      input.value='';
-      input.placeholder='密码错误';
-      setTimeout(()=>{ input.placeholder='输入密码'; input.style.borderColor='var(--line)'; },1500);
-    }
-  };
+  const isAdmin=isLoggedIn()&&isAdminPhone();
+  if(isAdmin){
+    // Admin: show password input
+    m.innerHTML=`
+      <div class="msheet">
+        <div class="mb">
+          <div class="mt">${svg('lock')} 解锁配方</div>
+          <div class="md">输入密码查看"${esc(recipe.name)}"</div>
+        </div>
+        <div style="padding:0 20px 16px">
+          <input type="password" id="recipeUnlockInput" placeholder="输入密码" style="width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);font-size:15px;outline:none;text-align:center;letter-spacing:2px" autocomplete="off">
+        </div>
+        <div class="ma">
+          <button class="mb-cancel" id="mbCancel">取消</button>
+          <button class="mb-ok" id="mbOk">解锁</button>
+        </div>
+      </div>`;
+    m.classList.add('show');
+    const input=document.getElementById('recipeUnlockInput');
+    input.focus();
+    input.addEventListener('keydown',(e)=>{ if(e.key==='Enter') document.getElementById('mbOk').click(); });
+    document.getElementById('mbCancel').onclick=closeModal;
+    document.getElementById('mbOk').onclick=()=>{
+      const pwd=input.value.trim();
+      if(pwd===RECIPE_MASTER_PWD || pwd===(recipe.lockPwd||DEFAULT_RECIPE_PWD)){
+        closeModal();
+        state.recipeId=recipe.id; state.gView='editor'; render(); window.scrollTo(0,0);
+      }else{
+        input.style.borderColor='#c45c48';
+        input.value='';
+        input.placeholder='密码错误';
+        setTimeout(()=>{ input.placeholder='输入密码'; input.style.borderColor='var(--line)'; },1500);
+      }
+    };
+  }else{
+    // Non-admin: show "请联系管理员升级权限"
+    m.innerHTML=`
+      <div class="msheet">
+        <div class="mb" style="text-align:center;padding:28px 20px 20px">
+          <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#FFB6C1,#E8A0BF);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 4px 14px rgba(255,182,193,.35)">
+            ${svg('lock').replace('width="24" height="24"','width="28" height="28"').replace('stroke="currentColor"','stroke="white"')}
+          </div>
+          <div class="mt" style="font-size:17px;font-weight:800;color:var(--ink)">权限不足</div>
+          <div class="md" style="margin-top:10px;font-size:14px;color:var(--sub);line-height:1.6">该配方需要管理员授权才能查看<br>请联系管理员升级权限</div>
+        </div>
+        <div class="ma">
+          <button class="mb-ok" id="mbOk" style="width:100%">知道了</button>
+        </div>
+      </div>`;
+    m.classList.add('show');
+    document.getElementById('mbOk').onclick=closeModal;
+  }
 }
 
 /* ---------- Editor with autosave ---------- */
@@ -3497,11 +3535,11 @@ function renderProfile(){
           </div>
           ${isCurrent?'':`<button class="device-lock-btn ${isLocked?'unlock':'lock'}" data-id="${esc(dev.deviceId)}">${isLocked?'解锁':'锁定'}</button>`}`;
         if(isCurrent){
-          return `<div class="device-swipe-wrap"><div class="device-swipe-content current">${cardInner}</div></div>`;
+          return `<div class="device-swipe-wrap"><div class="device-swipe-content current" data-id="${esc(dev.deviceId)}">${cardInner}</div></div>`;
         }
         if(isLocked){
           // Locked devices: no swipe-to-delete, only unlock button (already in cardInner)
-          return `<div class="device-swipe-wrap"><div class="device-swipe-content locked">${cardInner}</div></div>`;
+          return `<div class="device-swipe-wrap"><div class="device-swipe-content locked" data-id="${esc(dev.deviceId)}">${cardInner}</div></div>`;
         }
         return `<div class="device-swipe-wrap">
           <button class="device-swipe-delete" data-id="${esc(dev.deviceId)}" data-name="${esc(dev.deviceName||'未知设备')}">
@@ -3529,6 +3567,18 @@ function renderProfile(){
       });
       // Bind swipe-to-delete
       bindDeviceSwipeDelete(listEl);
+      // Bind click on device card (admin) to manage recipe permissions
+      listEl.querySelectorAll('.device-swipe-content').forEach(card=>{
+        card.addEventListener('click',(e)=>{
+          if(e.target.closest('.device-lock-btn')||e.target.closest('.device-swipe-delete')) return;
+          if(card.classList.contains('swiped')) return;
+          const dev=devices.find(d=>d.deviceId===card.dataset.id);
+          if(!dev) return;
+          showAdminPasswordPrompt(()=>{
+            showRecipePermissionPanel(dev.deviceId,dev.deviceName||'未知设备');
+          });
+        });
+      });
     }).catch(()=>{
       const listEl=document.getElementById('deviceList');
       if(listEl) listEl.innerHTML='<div style="text-align:center;padding:12px;color:var(--sub);font-size:13px">无法加载设备列表</div>';
@@ -3750,6 +3800,52 @@ async function deleteDevice(deviceId){
   }catch(e){return false;}
 }
 
+// Fetch recipe permissions for the current device
+async function fetchDeviceRecipePermissions(){
+  const auth=getAuthState();
+  if(!auth.phone||!auth.token) return [];
+  try{
+    const url=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json?access_token='+encodeURIComponent(auth.token);
+    const res=await fetch(url);
+    if(!res.ok) return [];
+    const data=await res.json();
+    const content=decodeURIComponent(escape(atob(data.content)));
+    const users=JSON.parse(content);
+    const user=users.find(u=>u.phone===auth.phone);
+    if(!user) return [];
+    const dev=(user.devices||[]).find(d=>d.deviceId===getDeviceId());
+    return (dev&&dev.recipePermissions)||[];
+  }catch(e){return [];}
+}
+
+// Set recipe permissions for a specific device
+async function setDeviceRecipePermissions(deviceId,recipeIds){
+  const auth=getAuthState();
+  if(!auth.phone||!auth.token) return false;
+  try{
+    const url=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json?access_token='+encodeURIComponent(auth.token);
+    const res=await fetch(url);
+    if(!res.ok) return false;
+    const data=await res.json();
+    const content=decodeURIComponent(escape(atob(data.content)));
+    const users=JSON.parse(content);
+    let found=false;
+    users.forEach(u=>{
+      const dev=(u.devices||[]).find(d=>d.deviceId===deviceId);
+      if(dev){ dev.recipePermissions=recipeIds; found=true; }
+    });
+    if(!found) return false;
+    const newContent=btoa(unescape(encodeURIComponent(JSON.stringify(users,null,2))));
+    const updateUrl=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json';
+    const updateRes=await fetch(updateUrl,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({access_token:auth.token,content:newContent,sha:data.sha,message:'Update device recipe permissions'})
+    });
+    return updateRes.ok;
+  }catch(e){return false;}
+}
+
 function bindDeviceSwipeDelete(listEl){
   const DELETE_WIDTH=76;
   let activeSwipe=null;
@@ -3858,8 +3954,21 @@ const GALLERY_LOCK_KEY='gallery_unlocked';
 const RECIPE_MASTER_PWD='0823';
 const DEFAULT_RECIPE_PWD='1234';
 const LOGIN_KEY='app_logged_in';
+const ALL_RECIPES_UNLOCKED_KEY='all_recipes_unlocked';
+let deviceRecipePermissions=[]; // recipe IDs this device has permission for
 function isGalleryUnlocked(){
   return localStorage.getItem(GALLERY_LOCK_KEY)==='true';
+}
+function isAllRecipesUnlocked(){
+  return localStorage.getItem(ALL_RECIPES_UNLOCKED_KEY)==='true';
+}
+// Check if a recipe is accessible for current device
+function canAccessRecipe(recipe){
+  if(isLoggedIn()&&isAdminPhone()) return true;
+  if(isAllRecipesUnlocked()) return true;
+  if(!recipe.locked) return true;
+  if(deviceRecipePermissions.includes(recipe.id)) return true;
+  return false;
 }
 
 /* ---------- Phone Auth Screen ---------- */
@@ -4226,6 +4335,8 @@ function logout(){
   clearAuthState();
   disconnectSync();
   localStorage.removeItem(GALLERY_LOCK_KEY);
+  localStorage.removeItem(ALL_RECIPES_UNLOCKED_KEY);
+  deviceRecipePermissions=[];
   showAuthScreen();
 }
 bindGlobalFocusScroll();
@@ -4249,6 +4360,14 @@ if(!isLoggedIn()){
       showDeviceLockedScreen();
     }
   });
+  // Load device-specific recipe permissions (non-admin only)
+  if(!isAdminPhone()){
+    fetchDeviceRecipePermissions().then(perms=>{
+      deviceRecipePermissions=perms;
+      // Re-render gallery if currently showing
+      if(state.activeTab==='gallery') render();
+    });
+  }
 }
 render();
 if(bootRepaired){
@@ -4402,6 +4521,7 @@ function renderGalleryLock(){
 
     // Save unlock state
     localStorage.setItem(GALLERY_LOCK_KEY,'true');
+    localStorage.setItem(ALL_RECIPES_UNLOCKED_KEY,'true');
 
     // Melt away the lock overlay
     setTimeout(()=>{ overlay.classList.add('unlocking'); },600);
@@ -4421,8 +4541,8 @@ function renderGalleryLock(){
       if(sc) sc.classList.add('gallery-reveal');
     },1200);
 
-    // Remove overlay after melt completes
-    setTimeout(()=>{ overlay.remove(); },1600);
+    // Remove overlay after melt completes and re-render to hide lock button
+    setTimeout(()=>{ overlay.remove(); renderGalleryHome(); },1600);
   }
 
   function unlockFail(){
@@ -4459,6 +4579,249 @@ function renderGalleryLock(){
   };
 }
 
+/* ---------- Admin Password Input (same sweet style as gallery lock) ---------- */
+function showAdminPasswordPrompt(onSuccess){
+  const existing=document.getElementById('adminPwdOverlay');
+  if(existing) existing.remove();
+  const overlay=document.createElement('div');
+  overlay.className='lock-overlay';
+  overlay.id='adminPwdOverlay';
+  overlay.innerHTML=`
+    <div class="lock-bg-decor" id="adminBgDecor"></div>
+    <div class="lock-body" id="adminLockBody">
+      <div class="lock-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+        </svg>
+      </div>
+      <div class="lock-title">管理员验证</div>
+      <div class="lock-subtitle">输入管理员密码继续操作</div>
+      <div class="pin-display" id="adminPinDisplay">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="num-pad" id="adminNumPad">
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="num-btn" data-num="${n}">${n}</button>`).join('')}
+        <button class="num-btn fn" id="adminNumClear">清除</button>
+        <button class="num-btn" data-num="0">0</button>
+        <button class="num-btn fn confirm" id="adminNumConfirm">♥</button>
+      </div>
+      <div class="lock-msg-bubble" id="adminLockMsg"></div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  // Background decorations
+  const bgDecor=document.getElementById('adminBgDecor');
+  for(let i=0;i<12;i++){
+    const b=document.createElement('div');
+    b.className='lock-bubble';
+    const sz=20+Math.random()*50;
+    b.style.width=sz+'px'; b.style.height=sz+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.animationDuration=(10+Math.random()*15)+'s';
+    b.style.animationDelay=Math.random()*10+'s';
+    bgDecor.appendChild(b);
+  }
+  const petals=['🌸','🌺','🌷','💮'];
+  for(let i=0;i<8;i++){
+    const p=document.createElement('div');
+    p.className='lock-petal';
+    p.textContent=petals[Math.floor(Math.random()*petals.length)];
+    p.style.left=Math.random()*100+'%';
+    p.style.animationDuration=(8+Math.random()*8)+'s';
+    p.style.animationDelay=Math.random()*8+'s';
+    p.style.fontSize=(14+Math.random()*8)+'px';
+    bgDecor.appendChild(p);
+  }
+  for(let i=0;i<15;i++){
+    const s=document.createElement('div');
+    s.className='lock-sparkle';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.animationDuration=(2+Math.random()*3)+'s';
+    s.style.animationDelay=Math.random()*3+'s';
+    const sz=3+Math.random()*4;
+    s.style.width=sz+'px'; s.style.height=sz+'px';
+    bgDecor.appendChild(s);
+  }
+
+  let pinInput='';
+  const pinDots=overlay.querySelectorAll('#adminPinDisplay .pin-dot');
+  const pinDisplay=document.getElementById('adminPinDisplay');
+  const lockMsg=document.getElementById('adminLockMsg');
+  const lockBody=document.getElementById('adminLockBody');
+
+  function updateDisplay(){
+    pinDots.forEach((d,i)=>d.classList.toggle('filled',i<pinInput.length));
+  }
+  function tryVerify(){
+    if(pinInput===GALLERY_PASSWORD){
+      // Success
+      const r=lockBody.getBoundingClientRect();
+      const cx=r.left+r.width/2, cy=r.top+r.height/2;
+      const glow=document.createElement('div');
+      glow.className='heart-glow';
+      glow.style.left=cx+'px'; glow.style.top=cy+'px';
+      document.body.appendChild(glow);
+      setTimeout(()=>glow.remove(),1000);
+      const hearts=['💕','💖','💗','💝','🌸','✨'];
+      for(let i=0;i<25;i++){
+        const p=document.createElement('div');
+        p.style.cssText='position:fixed;font-size:'+(14+Math.random()*16)+'px;pointer-events:none;z-index:10001;left:'+cx+'px;top:'+cy+'px;transition:all '+(.8+Math.random()*.6)+'s cubic-bezier(.25,.46,.45,.94)';
+        p.textContent=hearts[Math.floor(Math.random()*hearts.length)];
+        document.body.appendChild(p);
+        const ang=Math.random()*Math.PI*2;
+        const dist=80+Math.random()*200;
+        requestAnimationFrame(()=>{
+          p.style.transform='translate('+Math.cos(ang)*dist+'px,'+(Math.sin(ang)*dist-60)+'px) scale(.3) rotate('+(Math.random()*360)+'deg)';
+          p.style.opacity='0';
+        });
+        setTimeout(()=>p.remove(),1500);
+      }
+      setTimeout(()=>{ overlay.classList.add('unlocking'); },500);
+      setTimeout(()=>{ overlay.remove(); onSuccess&&onSuccess(); },1200);
+    }else{
+      lockBody.classList.add('shake-sweet');
+      pinDisplay.classList.add('error');
+      lockMsg.textContent='密码不正确哦～';
+      lockMsg.classList.add('show');
+      setTimeout(()=>{
+        lockBody.classList.remove('shake-sweet');
+        pinDisplay.classList.remove('error');
+        lockMsg.classList.remove('show');
+      },1500);
+      pinInput=''; updateDisplay();
+      setTimeout(()=>{ lockMsg.textContent=''; },1500);
+    }
+  }
+  overlay.querySelectorAll('#adminNumPad .num-btn[data-num]').forEach(btn=>{
+    btn.onclick=()=>{
+      if(pinInput.length<4){
+        pinInput+=btn.dataset.num;
+        updateDisplay();
+        if(pinInput.length===4) setTimeout(tryVerify,250);
+      }
+    };
+  });
+  document.getElementById('adminNumClear').onclick=()=>{
+    pinInput=''; updateDisplay(); lockMsg.classList.remove('show'); lockMsg.textContent='';
+  };
+  document.getElementById('adminNumConfirm').onclick=()=>{
+    if(pinInput.length===4) tryVerify();
+  };
+}
+
+/* ---------- Recipe Permission Panel (admin sets per-device) ---------- */
+function showRecipePermissionPanel(deviceId,deviceName){
+  const allRecipes=state.recipes;
+  // Fetch current permissions for this device
+  const auth=getAuthState();
+  const url=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json?access_token='+encodeURIComponent(auth.token);
+
+  // Show loading overlay
+  const overlay=document.createElement('div');
+  overlay.className='lock-overlay';
+  overlay.id='permPanelOverlay';
+  overlay.innerHTML=`
+    <div class="lock-bg-decor"></div>
+    <div class="lock-body" style="max-width:380px;width:90%;padding:24px 20px">
+      <div class="lock-title" style="font-size:18px;margin-bottom:4px">配方权限管理</div>
+      <div class="lock-subtitle" style="margin-bottom:16px">${esc(deviceName||'未知设备')}</div>
+      <div id="permList" style="max-height:300px;overflow-y:auto;margin-bottom:12px">
+        <div style="text-align:center;color:white;opacity:.7;padding:20px">加载中...</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="num-btn" id="permSelectAll" style="flex:1;font-size:12px;height:36px;border-radius:12px">全选</button>
+        <button class="num-btn" id="permSelectNone" style="flex:1;font-size:12px;height:36px;border-radius:12px">全不选</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="num-btn fn" id="permCancel" style="flex:1;height:40px;border-radius:14px">取消</button>
+        <button class="num-btn fn confirm" id="permConfirm" style="flex:1;height:40px;border-radius:14px">确认</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  let selectedIds=new Set();
+
+  // Fetch current permissions
+  fetch(url).then(res=>res.json()).then(data=>{
+    const content=decodeURIComponent(escape(atob(data.content)));
+    const users=JSON.parse(content);
+    let currentPerms=[];
+    users.forEach(u=>{
+      const dev=(u.devices||[]).find(d=>d.deviceId===deviceId);
+      if(dev) currentPerms=dev.recipePermissions||[];
+    });
+    selectedIds=new Set(currentPerms);
+
+    const listEl=document.getElementById('permList');
+    if(allRecipes.length===0){
+      listEl.innerHTML='<div style="text-align:center;color:white;opacity:.7;padding:20px">暂无配方</div>';
+      return;
+    }
+    listEl.innerHTML=allRecipes.map(r=>`
+      <div class="perm-item" data-rid="${r.id}" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.1);margin-bottom:6px;cursor:pointer;transition:background .2s">
+        <div class="perm-check" style="width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="opacity:0;transform:scale(.5);transition:all .18s"><path d="M5 12l5 5 9-12"/></svg>
+        </div>
+        <span style="color:white;font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.name)}</span>
+      </div>
+    `).join('');
+
+    function updateCheck(el){
+      const rid=el.dataset.rid;
+      const chk=el.querySelector('.perm-check');
+      if(selectedIds.has(rid)){
+        chk.style.background='var(--brand)';
+        chk.style.borderColor='var(--brand)';
+        chk.querySelector('svg').style.opacity='1';
+        chk.querySelector('svg').style.transform='scale(1)';
+        el.style.background='rgba(255,182,193,.2)';
+      }else{
+        chk.style.background='';
+        chk.style.borderColor='rgba(255,255,255,.4)';
+        chk.querySelector('svg').style.opacity='0';
+        chk.querySelector('svg').style.transform='scale(.5)';
+        el.style.background='rgba(255,255,255,.1)';
+      }
+    }
+
+    listEl.querySelectorAll('.perm-item').forEach(el=>{
+      updateCheck(el);
+      el.onclick=()=>{
+        const rid=el.dataset.rid;
+        if(selectedIds.has(rid)) selectedIds.delete(rid);
+        else selectedIds.add(rid);
+        updateCheck(el);
+      };
+    });
+
+    document.getElementById('permSelectAll').onclick=()=>{
+      allRecipes.forEach(r=>selectedIds.add(r.id));
+      listEl.querySelectorAll('.perm-item').forEach(el=>updateCheck(el));
+    };
+    document.getElementById('permSelectNone').onclick=()=>{
+      selectedIds.clear();
+      listEl.querySelectorAll('.perm-item').forEach(el=>updateCheck(el));
+    };
+  }).catch(()=>{
+    document.getElementById('permList').innerHTML='<div style="text-align:center;color:white;opacity:.7;padding:20px">加载失败</div>';
+  });
+
+  document.getElementById('permCancel').onclick=()=>{ overlay.remove(); };
+  document.getElementById('permConfirm').onclick=async()=>{
+    const btn=document.getElementById('permConfirm');
+    btn.textContent='保存中...'; btn.disabled=true;
+    const ok=await setDeviceRecipePermissions(deviceId,Array.from(selectedIds));
+    if(ok){
+      toast('配方权限已更新','success');
+      overlay.remove();
+    }else{
+      toast('保存失败，请重试','error');
+      btn.textContent='确认'; btn.disabled=false;
+    }
+  };
+}
+
 // ---------- PWA Service Worker Registration ----------
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').then(reg=>{
@@ -4478,7 +4841,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v56';
+const APP_VERSION='v57';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
