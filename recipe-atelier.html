@@ -470,12 +470,12 @@
 
   /* ===== Device Swipe-to-Delete ===== */
   .device-swipe-wrap{position:relative;overflow:hidden;margin-bottom:8px;border-radius:14px}
-  .device-swipe-content{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--bg2,#F7F3EC);transition:transform .28s cubic-bezier(.2,.8,.2,1);position:relative;z-index:1;touch-action:pan-y}
+  .device-swipe-content{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#F7F3EC;transition:transform .28s cubic-bezier(.2,.8,.2,1);position:relative;z-index:1;touch-action:pan-y;width:100%;box-sizing:border-box}
   .device-swipe-content.locked{opacity:.55}
   .device-swipe-content.current{border:1.5px solid var(--brand)}
   .device-swipe-content.swiped{transform:translateX(-76px)}
   .device-swipe-content.dragging{transition:none}
-  .device-swipe-delete{position:absolute;right:0;top:0;bottom:0;width:76px;background:linear-gradient(135deg,#C45C48,#a04030);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;z-index:0;gap:4px;flex-direction:column}
+  .device-swipe-delete{position:absolute;right:0;top:0;bottom:0;width:76px;background:linear-gradient(135deg,#C45C48,#a04030);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;z-index:0;gap:4px;flex-direction:column;border-radius:0 14px 14px 0}
   .device-swipe-delete svg{width:18px;height:18px;stroke:#fff;stroke-width:2;fill:none}
 
   /* ===== Device Locked Overlay ===== */
