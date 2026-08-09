@@ -15,43 +15,57 @@
 <title>甜品配方工作台</title>
 <style>
   :root{
-    --bg:#F7F3EC; --brand:#6B8E4E; --brand-deep:#556B2F; --brand-soft:#B5C99A;
-    --card:#FFFFFF; --ink:#3D2E1F; --sub:#8B7355; --line:#E8DCC8; --fill:#F0E8D8;
-    --green:#6B8E4E; --red:#C45C48;
-    --shadow:0 3px 10px rgba(139,111,78,.06); --shadow-lg:0 10px 30px rgba(139,111,78,.10);
-    --radius:16px; --radius-sm:12px;
-    --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
+    --bg:#FFF5EE; --brand:#E8A0BF; --brand-deep:#D2691E; --brand-soft:#FFDAB9;
+    --card:rgba(255,255,255,.7); --ink:#5C3D3D; --sub:#A0826D; --line:#FFE4E1; --fill:#FFF0F5;
+    --green:#B5EAD7; --red:#C45C48; --accent:#E6D0F0; --gold:#F7E7CE;
+    --shadow:0 3px 12px rgba(255,182,193,.12); --shadow-lg:0 8px 28px rgba(255,182,193,.18);
+    --radius:20px; --radius-sm:16px;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Helvetica Neue',sans-serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
   body{
-    font-family:var(--font); background:var(--bg); color:var(--ink);
+    font-family:var(--font); color:var(--ink);
     font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
-    padding-bottom:72px; /* space for fixed nav */
+    padding-bottom:80px;
+    background:linear-gradient(160deg,#FFF5EE 0%,#FFE4E1 20%,#FFDAB9 45%,#F0E6F6 75%,#E6D0F0 100%);
+    background-attachment:fixed;
   }
   input,textarea,select,button{font-family:inherit;color:inherit}
   button{cursor:pointer;border:none;background:none}
-  ::placeholder{color:#C9B6A8}
+  ::placeholder{color:#D4A5A5}
   svg{flex-shrink:0}
 
+  /* global background decorations — bubbles & petals */
+  .bg-decor{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .bg-bubble{position:absolute;bottom:-60px;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.5),rgba(255,182,193,.12));border:1px solid rgba(255,255,255,.3);animation:bgBubbleRise linear infinite}
+  @keyframes bgBubbleRise{0%{transform:translateY(0) scale(.8);opacity:0}10%{opacity:.4}90%{opacity:.2}100%{transform:translateY(-110vh) scale(1.1);opacity:0}}
+  .bg-petal{position:absolute;top:-20px;animation:bgPetalFall linear infinite;opacity:.5;user-select:none}
+  @keyframes bgPetalFall{0%{transform:translateY(0) rotate(0deg) translateX(0);opacity:0}10%{opacity:.5}100%{transform:translateY(110vh) rotate(360deg) translateX(40px);opacity:0}}
+  .bg-sparkle{position:absolute;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,182,193,.15));animation:bgSparkleTwinkle ease-in-out infinite}
+  @keyframes bgSparkleTwinkle{0%,100%{opacity:0;transform:scale(0)}50%{opacity:.6;transform:scale(1.2)}}
+  /* static sugar sprinkles */
+  .sugar-sprinkle{position:fixed;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:0;opacity:.4}
+
   /* layout */
-  #app{max-width:560px;margin:0 auto;min-height:100vh}
-  .screen{padding:20px 18px 32px;animation:fade .28s ease}
-  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  #app{max-width:560px;margin:0 auto;min-height:100vh;position:relative;z-index:1}
+  .screen{padding:20px 18px 32px;animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
 
   /* header */
   .hd{padding:26px 4px 18px}
-  .hd h1{font-size:27px;font-weight:800;letter-spacing:-.4px;margin:0;color:var(--ink)}
+  .hd h1{font-size:27px;font-weight:800;letter-spacing:.5px;margin:0;color:var(--ink);text-shadow:0 2px 8px rgba(255,182,193,.3)}
   .hd p{margin:6px 0 0;font-size:13.5px;color:var(--sub)}
   .hd .crumb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);margin-bottom:10px}
-  .hd .crumb .back{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:12px;background:var(--card);box-shadow:var(--shadow);color:var(--ink)}
+  .hd .crumb .back{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.6);box-shadow:var(--shadow);color:var(--ink);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.5)}
   .hd .crumb .back svg{width:20px!important;height:20px!important;stroke:currentColor!important;stroke-width:2.2;fill:none!important;flex-shrink:0}
   .hd-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
   .hd-actions{display:flex;gap:8px;flex-shrink:0;margin-top:2px}
-  .hd-btn{width:38px;height:38px;border-radius:12px;background:var(--card);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;color:var(--ink);transition:transform .15s;flex-shrink:0}
-  .hd-btn:active{transform:scale(.92)}
+  .hd-btn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.6);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;color:var(--ink);transition:all .2s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.5)}
+  .hd-btn:hover{transform:scale(1.08)}
+  .hd-btn:active{transform:scale(.88) translateY(2px)}
   .hd-btn svg{width:19px!important;height:19px!important;stroke:currentColor!important;stroke-width:2;fill:none!important;flex-shrink:0}
-  .hd-btn.brand{background:var(--brand);color:#fff}
+  .hd-btn.brand{background:linear-gradient(135deg,#FFB6C1,#E8A0BF);color:#fff;border-color:rgba(255,255,255,.6)}
   .hd-btn.brand svg{stroke:#fff}
   .hd-btn.danger{color:var(--red);opacity:.4;cursor:not-allowed}
   .hd-btn.danger:not(:disabled){opacity:1;cursor:pointer}
@@ -59,14 +73,9 @@
 
   /* category grid — polaroid style */
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;position:relative}
-  .cat{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;text-align:left;transition:transform .28s cubic-bezier(.2,.9,.3,1), box-shadow .28s ease, opacity .28s ease;width:100%;cursor:pointer;border:1px solid rgba(0,0,0,.04);will-change:transform}
+  .cat{background:rgba(255,255,255,.65);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;text-align:left;transition:transform .28s cubic-bezier(.2,.9,.3,1), box-shadow .28s ease, opacity .28s ease;width:100%;cursor:pointer;border:1px solid rgba(255,255,255,.5);will-change:transform;backdrop-filter:blur(12px) saturate(1.2);-webkit-backdrop-filter:blur(12px) saturate(1.2)}
   .cat:active{transform:scale(.97)}
-  .cat.dragging{position:fixed;z-index:9999;opacity:.95;box-shadow:0 20px 50px rgba(61,44,30,.3);transition:transform .12s ease, box-shadow .12s ease;pointer-events:none;transform-origin:center center}
-  .cat.drag-ghost{opacity:.12;border:2px dashed rgba(196,140,92,.4);box-shadow:none}
-  .cat.drag-over{transform:scale(1.06);box-shadow:0 8px 24px rgba(196,140,92,.35)}
   .cat.flip-anim{transition:transform .32s cubic-bezier(.2,.9,.3,1)}
-  .cat-drag-hint{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(61,44,30,.85);color:#fff;padding:10px 20px;border-radius:14px;font-size:13px;font-weight:700;z-index:10000;pointer-events:none;opacity:0;transition:opacity .2s}
-  .cat-drag-hint.show{opacity:1}
   .cat .art{height:110px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:var(--fill)}
   .cat .art img{width:100%;height:100%;object-fit:cover}
   .cat .art .cat-placeholder{font-size:32px;color:var(--brand-soft);font-weight:800}
@@ -77,9 +86,48 @@
   .cat .art .cat-edit{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;z-index:2;transition:transform .15s}
   .cat .art .cat-edit:active{transform:scale(.9)}
   .cat .art .cat-edit svg{width:13px;height:13px;stroke:var(--ink);stroke-width:2;fill:none}
-  .cat .meta{padding:10px 12px 14px;background:#fff}
+  .cat .meta{padding:10px 12px 14px;background:rgba(255,255,255,.5)}
   .cat .meta .nm{font-size:14px;font-weight:700;color:var(--ink);line-height:1.25}
+  .cat .meta .nm-en{font-size:10px;color:var(--sub);margin-top:1px;opacity:.7;letter-spacing:.3px}
   .cat .meta .ct{font-size:11px;color:var(--sub);margin-top:3px}
+  .cat-group{margin-bottom:20px}
+  .cat-group-header{display:flex;align-items:baseline;gap:8px;padding:0 2px 10px;margin-top:4px}
+  .cat-group-name{font-size:16px;font-weight:800;color:var(--ink);letter-spacing:.5px}
+  .cat-group-en{font-size:11px;color:var(--sub);opacity:.6;letter-spacing:.3px}
+
+  /* ---- Sort Panel ---- */
+  .sort-overlay{position:fixed;inset:0;z-index:9000;background:linear-gradient(160deg,#FFF5EE 0%,#FFE4E1 20%,#FFDAB9 45%,#F0E6F6 75%,#E6D0F0 100%);display:flex;flex-direction:column;animation:fadeIn .2s ease}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .sort-overlay .sort-hd{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .sort-overlay .sort-hd h2{font-size:18px;font-weight:800;color:var(--ink);margin:0}
+  .sort-overlay .sort-hd .sort-close{width:36px;height:36px;border-radius:50%;background:var(--fill);display:flex;align-items:center;justify-content:center;color:var(--ink)}
+  .sort-overlay .sort-hd .sort-close:active{transform:scale(.9)}
+  .sort-overlay .sort-hd .sort-close svg{width:18px;height:18px}
+  .sort-overlay .sort-hd .sort-done{padding:8px 18px;border-radius:20px;background:var(--brand);color:#fff;font-weight:700;font-size:14px}
+  .sort-overlay .sort-hd .sort-done:active{transform:scale(.95)}
+  .sort-overlay .sort-body{flex:1;overflow-y:auto;padding:12px 16px 40px;-webkit-overflow-scrolling:touch}
+  .sort-overlay .sort-hint{text-align:center;font-size:12px;color:var(--sub);padding:12px 0 8px}
+
+  /* Large category sort rows */
+  .sort-row{display:flex;align-items:center;gap:12px;padding:16px 14px;background:rgba(255,255,255,.7);border-radius:var(--radius-sm);margin-bottom:10px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.5);transition:transform .15s ease, box-shadow .15s ease;touch-action:none}
+  .sort-row.dragging{position:fixed;z-index:9999;opacity:.95;box-shadow:0 12px 32px rgba(61,44,30,.25);pointer-events:none;transform-origin:center center}
+  .sort-row.placeholder{opacity:.2;border:2px dashed var(--brand)}
+  .sort-row .sr-info{flex:1;min-width:0}
+  .sort-row .sr-name{font-size:16px;font-weight:800;color:var(--ink)}
+  .sort-row .sr-en{font-size:11px;color:var(--sub);opacity:.6;margin-top:2px}
+  .sort-row .sr-count{font-size:12px;color:var(--sub);margin-top:3px}
+  .sort-row .sr-grip{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--sub);flex-shrink:0;cursor:grab}
+  .sort-row .sr-grip:active{cursor:grabbing}
+  .sort-row .sr-grip svg{width:20px;height:20px}
+
+  /* Small category sort — shaking cards */
+  .cat.shaking{animation:catShake .4s ease-in-out infinite}
+  .cat.shaking:nth-child(2n){animation-delay:.2s}
+  @keyframes catShake{0%,100%{transform:rotate(-1.2deg)}25%{transform:rotate(1.2deg)}75%{transform:rotate(-.8deg)}}
+  .cat.sort-dragging{position:fixed;z-index:9999;opacity:.95;box-shadow:0 16px 40px rgba(61,44,30,.3);pointer-events:none;transform:scale(1.08);transition:transform .12s ease}
+  .cat.sort-placeholder{opacity:.15;border:2px dashed var(--brand)}
+  .sort-exit-bar{position:fixed;bottom:0;left:0;right:0;padding:16px 20px;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 -4px 20px rgba(0,0,0,.08);z-index:9001}
+  .sort-exit-bar button{width:100%;padding:14px;border-radius:14px;font-weight:700;font-size:15px}
   .g1{background:linear-gradient(135deg,#E8B894,#D48C5C)}
   .g2{background:linear-gradient(135deg,#D48C5C,#B5673C)}
   .g3{background:linear-gradient(135deg,#F0C9A0,#D89A6A)}
@@ -119,6 +167,24 @@
   .ed-area{width:100%;min-height:130px;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-size:14px;outline:none;resize:vertical;line-height:1.6}
   .del-recipe{width:100%;padding:14px;border-radius:14px;background:#FBE7E4;color:var(--red);font-weight:700;font-size:14.5px;margin-top:8px;border:1.5px solid #F3CFCB}
 
+  /* recipe editor image upload */
+  .ed-img-upload{width:100%;height:160px;border-radius:14px;border:2px dashed var(--line);background:var(--fill);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:all .15s;overflow:hidden;position:relative}
+  .ed-img-upload:active{transform:scale(.98)}
+  .ed-img-upload.has-img{border-style:solid;border-color:transparent}
+  .ed-img-upload img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .ed-img-upload .up-icon{width:32px;height:32px;stroke:var(--brand);stroke-width:1.8;fill:none;z-index:1}
+  .ed-img-upload .up-text{font-size:13px;font-weight:600;color:var(--sub);z-index:1}
+  .ed-img-upload.has-img .up-icon,.ed-img-upload.has-img .up-text{display:none}
+  .ed-img-upload .up-change{position:absolute;bottom:8px;right:8px;background:rgba(255,255,255,.92);padding:5px 10px;border-radius:10px;font-size:11px;font-weight:700;color:var(--ink);z-index:2;display:none}
+  .ed-img-upload.has-img .up-change{display:block}
+  .ed-img-search{width:100%;padding:11px;border-radius:12px;border:1.6px dashed var(--brand-soft);color:var(--brand-deep);font-weight:700;font-size:13.5px;background:var(--fill);margin-top:8px;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
+  .ed-img-search:active{transform:scale(.98)}
+  .ed-img-search:disabled{opacity:.55;cursor:wait}
+
+  /* recipe list thumbnail */
+  .rcard-thumb{width:52px;height:52px;border-radius:12px;object-fit:cover;flex-shrink:0;background:var(--fill)}
+  .rcard-thumb-placeholder{width:52px;height:52px;border-radius:12px;background:var(--fill);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+
   /* pantry */
   .pantry-top{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
   .pantry-top .pt-l .t{font-weight:800;font-size:16px}
@@ -154,6 +220,7 @@
   .wiki-card-edit .wk-fields{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
   .wiki-card-edit .wk-name{width:100%;border:none;font-size:14px;font-weight:700;color:var(--ink);background:transparent;outline:none;padding:2px 0}
   .wiki-card-edit .wk-desc{width:100%;border:none;font-size:12px;color:var(--sub);background:transparent;outline:none;padding:2px 0}
+  .wiki-card-edit .wk-name[readonly],.wiki-card-edit .wk-desc[readonly]{cursor:default;opacity:.85}
   .wiki-toolbar{display:flex;gap:10px;margin-top:16px}
   .wk-add{flex:1;padding:12px;border-radius:13px;border:1.6px dashed var(--brand-soft);color:var(--brand-deep);font-weight:700;font-size:13.5px;background:transparent;display:flex;align-items:center;justify-content:center;gap:5px}
   .wk-del{flex:1;padding:12px;border-radius:13px;background:#FBE7E4;color:var(--red);font-weight:700;font-size:13.5px;border:1.5px solid #F3CFCB;opacity:.5}
@@ -169,7 +236,7 @@
   .stat{flex:1;background:var(--fill);border-radius:14px;padding:12px}
   .stat .v{font-size:20px;font-weight:800;color:var(--brand-deep)}
   .stat .l{font-size:11px;color:var(--sub);margin-top:2px}
-  .dm-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .dm-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px}
   .dm-card .h{padding:14px 16px;font-size:13px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--sub);border-bottom:1px solid var(--line)}
   .dm-item{display:flex;align-items:center;gap:12px;padding:15px 16px;border-bottom:1px solid var(--line);text-align:left;width:100%}
   .dm-item:last-child{border-bottom:none}
@@ -179,12 +246,16 @@
   .dm-item .tx .d{font-size:12px;color:var(--sub);margin-top:2px}
 
   /* bottom nav */
-  nav#nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line);z-index:500}
-  nav#nav .inner{max-width:560px;margin:0 auto;display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
-  .navbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;color:var(--sub);font-size:10.5px;font-weight:600}
-  .navbtn svg{width:23px!important;height:23px!important;stroke:currentColor!important;stroke-width:1.8;fill:none!important;flex-shrink:0;transition:transform .18s}
-  .navbtn.on{color:#C48C5C}
-  .navbtn.on svg{transform:translateY(-2px)}
+  nav#nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.6);backdrop-filter:blur(20px) saturate(1.3);-webkit-backdrop-filter:blur(20px) saturate(1.3);border-top:1px solid rgba(255,228,225,.6);z-index:500;box-shadow:0 -4px 20px rgba(255,182,193,.08)}
+  nav#nav .inner{max-width:560px;margin:0 auto;display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom));gap:4px}
+  .navbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0;color:var(--sub);font-size:10px;font-weight:700;border-radius:20px;transition:all .25s cubic-bezier(.34,1.56,.64,1);position:relative}
+  .navbtn svg{width:22px!important;height:22px!important;stroke:currentColor!important;stroke-width:1.8;fill:none!important;flex-shrink:0;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+  .navbtn:hover{transform:scale(1.05)}
+  .navbtn:active{transform:scale(.9)}
+  .navbtn.on{color:#fff;background:linear-gradient(135deg,#FFB6C1,#E8A0BF);box-shadow:0 4px 14px rgba(255,182,193,.35)}
+  .navbtn.on svg{transform:translateY(-2px) scale(1.1)}
+  .navbtn.on::after{content:'♥';position:absolute;top:-2px;right:50%;transform:translateX(20px);font-size:10px;color:#FF69B4;animation:navHeartBeat 1.5s ease-in-out infinite}
+  @keyframes navHeartBeat{0%,100%{transform:translateX(20px) scale(1);opacity:.7}50%{transform:translateX(20px) scale(1.3);opacity:1}}
 
   /* toast */
   #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-24px);opacity:0;transition:opacity .3s,transform .3s;padding:11px 22px;border-radius:14px;font-size:13.5px;font-weight:700;z-index:1000;pointer-events:none;box-shadow:var(--shadow-lg);white-space:nowrap}
@@ -272,8 +343,8 @@
   .cat-modal .cm-aigen.loading{border-style:solid;border-color:var(--brand);color:var(--brand);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   /* ===== Search Modal (AI image search → pick → edit) ===== */
-  .sm-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
-  .sm-sheet{background:var(--bg);width:100%;max-width:480px;border-radius:20px 20px 0 0;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .25s ease}
+  .sm-overlay{position:fixed;inset:0;z-index:300;background:linear-gradient(160deg,#FFF5EE 0%,#FFE4E1 20%,#FFDAB9 45%,#F0E6F6 75%,#E6D0F0 100%);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
+  .sm-sheet{background:linear-gradient(160deg,#FFF5EE 0%,#FFE4E1 20%,#FFDAB9 45%,#F0E6F6 75%,#E6D0F0 100%);width:100%;max-width:480px;border-radius:20px 20px 0 0;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .25s ease}
   @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
   .sm-header{padding:16px 18px 10px;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
   .sm-header .sm-title{font-size:17px;font-weight:800;color:var(--ink)}
@@ -341,97 +412,115 @@
   .memo-item .memo-del:active{background:rgba(196,92,72,.1);color:var(--accent,#C45C48)}
   .memo-empty{text-align:center;color:var(--sub);font-size:13px;padding:16px 0}
 
-  /* ===== Gallery Password Lock ===== */
-  .lock-overlay{position:fixed;inset:0;z-index:10000;background:radial-gradient(ellipse at center,#1a1a2e 0%,#0d0d1a 55%,#050508 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;animation:lockFadeIn .4s ease}
+  /* ===== Gallery Password Lock — 甜美氛围感 ===== */
+  .lock-overlay{position:fixed;inset:0;z-index:10000;background:linear-gradient(160deg,#FFF0F5 0%,#FFE4E1 20%,#FFD1DC 40%,#E8D5F2 70%,#D4B8E8 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;animation:lockFadeIn .5s ease}
   @keyframes lockFadeIn{from{opacity:0}to{opacity:1}}
-  .lock-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-  .lock-particles span{position:absolute;border-radius:50%;background:rgba(212,175,95,.5);animation:floatParticle linear infinite}
-  @keyframes floatParticle{0%{transform:translateY(105vh) scale(0);opacity:0}10%{opacity:.6}90%{opacity:.4}100%{transform:translateY(-5vh) scale(1);opacity:0}}
-  .lock-title{font-size:11px;letter-spacing:4px;color:rgba(212,175,95,.35);margin-bottom:6px;text-transform:uppercase;font-weight:600}
-  .lock-subtitle{font-size:14px;color:rgba(232,213,168,.55);margin-bottom:22px;font-weight:300;letter-spacing:1px}
 
-  /* Treasure Chest */
-  .chest-wrap{position:relative;width:220px;height:175px;margin-bottom:24px;perspective:800px}
-  .chest-lid{position:absolute;top:0;left:0;width:100%;height:70px;background:linear-gradient(180deg,#3a2418 0%,#2d1a0e 50%,#1f1208 100%);border-radius:14px 14px 4px 4px;border:2px solid #b8860b;border-bottom:none;transform-origin:bottom center;transition:transform 1s cubic-bezier(.34,1.4,.64,1);z-index:3;box-shadow:inset 0 2px 10px rgba(255,200,100,.12),0 -2px 12px rgba(0,0,0,.6)}
-  .chest-lid::before{content:'';position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);width:70%;height:2px;background:linear-gradient(90deg,transparent,#d4af60 20%,#f5d97a 50%,#d4af60 80%,transparent);border-radius:2px}
-  .chest-lid::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:36px;height:8px;background:linear-gradient(180deg,#d4af60,#b8860b);border-radius:0 0 4px 4px}
-  .chest-lid.open{transform:rotateX(-115deg)}
-  .chest-body{position:absolute;bottom:0;left:0;width:100%;height:110px;background:linear-gradient(180deg,#2d1a0e 0%,#1f1208 60%,#150a04 100%);border-radius:4px 4px 14px 14px;border:2px solid #b8860b;border-top:none;z-index:2;box-shadow:inset 0 -6px 16px rgba(0,0,0,.5),0 10px 28px rgba(0,0,0,.7)}
-  .chest-body::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:70%;height:2px;background:linear-gradient(90deg,transparent,#d4af60 20%,#f5d97a 50%,#d4af60 80%,transparent)}
+  /* Background decorations — bubbles, petals, sparkles */
+  .lock-bg-decor{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .lock-bubble{position:absolute;bottom:-60px;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.6),rgba(255,182,193,.15));border:1px solid rgba(255,255,255,.3);animation:bubbleRise linear infinite}
+  @keyframes bubbleRise{0%{transform:translateY(0) scale(.8);opacity:0}10%{opacity:.5}90%{opacity:.3}100%{transform:translateY(-110vh) scale(1.1);opacity:0}}
+  .lock-petal{position:absolute;top:-20px;animation:petalFall linear infinite;opacity:.6;user-select:none}
+  @keyframes petalFall{0%{transform:translateY(0) rotate(0deg) translateX(0);opacity:0}10%{opacity:.6}100%{transform:translateY(110vh) rotate(360deg) translateX(40px);opacity:0}}
+  .lock-sparkle{position:absolute;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,182,193,.2));animation:sparkleTwinkle ease-in-out infinite}
+  @keyframes sparkleTwinkle{0%,100%{opacity:0;transform:scale(0)}50%{opacity:.8;transform:scale(1.2)}}
 
-  /* Lock dial */
-  .chest-lock{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fae5a8,#d4af60 50%,#b8860b 90%);border:2.5px solid #8b6914;z-index:4;box-shadow:0 0 14px rgba(245,217,122,.35),inset 0 2px 6px rgba(255,255,255,.35),inset 0 -2px 4px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;animation:lockBreath 3s ease-in-out infinite;transition:transform .3s,box-shadow .3s}
-  .chest-lock::before{content:'';width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#7a5c1e,#4a3810);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 1px 2px rgba(255,255,255,.15)}
-  .chest-lock::after{content:'';position:absolute;inset:-2px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,rgba(255,255,255,.25) 30deg,transparent 60deg,rgba(255,255,255,.12) 120deg,transparent 150deg,rgba(255,255,255,.18) 240deg,transparent 270deg);animation:diamondShine 4s linear infinite;pointer-events:none}
-  @keyframes diamondShine{to{transform:rotate(360deg)}}
-  @keyframes lockBreath{0%,100%{box-shadow:0 0 14px rgba(245,217,122,.35),inset 0 2px 6px rgba(255,255,255,.35),inset 0 -2px 4px rgba(0,0,0,.2)}50%{box-shadow:0 0 22px rgba(245,217,122,.55),inset 0 2px 8px rgba(255,255,255,.45),inset 0 -2px 4px rgba(0,0,0,.2)}}
+  /* Lock body — macaron shape */
+  .lock-body{position:relative;z-index:1;width:300px;max-width:88vw;padding:28px 24px 24px;background:linear-gradient(160deg,rgba(255,255,255,.55),rgba(255,228,225,.35));border:1.5px solid rgba(255,255,255,.7);border-radius:32px;backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);box-shadow:0 8px 32px rgba(255,182,193,.3),0 2px 8px rgba(210,105,30,.06),inset 0 1px 0 rgba(255,255,255,.6);display:flex;flex-direction:column;align-items:center;animation:lockBodyFloat .6s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes lockBodyFloat{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:none}}
+  .lock-icon{width:56px;height:56px;margin-bottom:12px;border-radius:50%;background:linear-gradient(135deg,#FFB6C1,#FFDAB9 50%,#D2691E);border:2.5px solid rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(255,182,193,.4),0 0 0 4px rgba(255,182,193,.1);animation:lockIconBounce 3s ease-in-out infinite}
+  @keyframes lockIconBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .lock-title{font-size:13px;letter-spacing:3px;color:rgba(210,105,30,.5);margin-bottom:4px;font-weight:700;text-transform:uppercase}
+  .lock-subtitle{font-size:13px;color:rgba(210,105,30,.45);margin-bottom:20px;font-weight:500;letter-spacing:.5px}
 
-  /* Light burst */
-  .chest-glow{position:absolute;top:8%;left:0;width:100%;height:55%;border-radius:12px;background:radial-gradient(circle at center,rgba(255,230,140,.95),rgba(255,185,50,.4) 30%,transparent 70%);opacity:0;z-index:1;transition:opacity .6s .3s;filter:blur(4px)}
-  .chest-glow.show{opacity:1}
+  /* PIN display — cream white with strawberry pink dots */
+  .pin-display{display:flex;gap:14px;margin-bottom:20px;justify-content:center}
+  .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,182,193,.35);background:rgba(255,255,255,.4);transition:all .25s cubic-bezier(.34,1.56,.64,1)}
+  .pin-dot.filled{background:radial-gradient(circle,#FFB6C1,#FF69B4);border-color:#FFB6C1;box-shadow:0 0 12px rgba(255,105,180,.5);transform:scale(1.2)}
+  .pin-display.error .pin-dot{border-color:rgba(255,68,68,.4);background:rgba(255,68,68,.1)}
+  .pin-display.error .pin-dot.filled{background:radial-gradient(circle,#FF6B6B,#FF4444);border-color:#FF4444;box-shadow:0 0 12px rgba(255,68,68,.4)}
 
-  /* Gold particles */
-  .gold-particle{position:fixed;border-radius:50%;background:radial-gradient(circle,#fff8e0,#ffd700);pointer-events:none;z-index:10001}
+  /* Number pad — soft candy / macaron buttons */
+  .num-pad{display:grid;grid-template-columns:repeat(3,68px);gap:12px;justify-content:center}
+  .num-btn{width:68px;height:68px;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.6),rgba(255,228,225,.3));border:1.5px solid rgba(255,255,255,.6);color:#D2691E;font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .15s cubic-bezier(.34,1.56,.64,1);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 4px 12px rgba(255,182,193,.15),inset 0 1px 0 rgba(255,255,255,.5);cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  .num-btn:hover{transform:scale(1.08);box-shadow:0 6px 18px rgba(255,182,193,.25),inset 0 1px 0 rgba(255,255,255,.5)}
+  .num-btn:active{transform:scale(.88) translateY(2px);box-shadow:0 2px 8px rgba(255,182,193,.12),inset 0 1px 3px rgba(210,105,30,.08);background:linear-gradient(145deg,rgba(255,182,193,.3),rgba(255,228,225,.15))}
+  .num-btn.fn{font-size:13px;color:rgba(210,105,30,.5);font-weight:600}
+  .num-btn.fn.confirm{font-size:24px;color:#FF69B4;background:linear-gradient(145deg,rgba(255,182,193,.4),rgba(255,105,180,.15))}
 
-  /* PIN display */
-  .pin-display{display:flex;gap:16px;margin-bottom:20px;justify-content:center}
-  .pin-dot{width:13px;height:13px;border-radius:50%;border:2px solid rgba(212,175,95,.3);background:transparent;transition:all .2s}
-  .pin-dot.filled{background:radial-gradient(circle,#f5d97a,#d4af60);border-color:#f5d97a;box-shadow:0 0 10px rgba(245,217,122,.6);transform:scale(1.15)}
+  /* Error bubble — gentle cute prompt */
+  .lock-msg-bubble{margin-top:14px;padding:8px 18px;background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(255,228,225,.4));border:1.5px solid rgba(255,105,180,.25);border-radius:20px;font-size:12px;color:#C45C48;font-weight:600;box-shadow:0 4px 12px rgba(255,105,180,.12);opacity:0;transition:opacity .2s;min-height:0}
+  .lock-msg-bubble.show{opacity:1;animation:bubblePop .3s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes bubblePop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
 
-  /* Number pad */
-  .num-pad{display:grid;grid-template-columns:repeat(3,66px);gap:12px;justify-content:center}
-  .num-btn{width:66px;height:66px;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.01));border:1.5px solid rgba(212,175,95,.2);color:#e8d5a8;font-size:23px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:all .12s;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-  .num-btn:active{background:linear-gradient(145deg,rgba(212,175,95,.18),rgba(212,175,95,.04));border-color:rgba(212,175,95,.5);transform:scale(.9);box-shadow:0 0 16px rgba(245,217,122,.25)}
-  .num-btn.fn{font-size:13px;color:rgba(212,175,95,.65);letter-spacing:.5px}
+  /* Gentle shake — cute wobble */
+  @keyframes lockShakeSweet{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px) rotate(-1deg)}40%{transform:translateX(4px) rotate(1deg)}60%{transform:translateX(-3px) rotate(-.5deg)}80%{transform:translateX(3px) rotate(.5deg)}}
+  .shake-sweet{animation:lockShakeSweet .4s ease}
 
-  /* Error effects */
-  @keyframes lockShake{0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-7px)}20%,40%,60%,80%{transform:translateX(7px)}}
-  .shake{animation:lockShake .5s}
-  .lock-error-flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(196,92,72,.2),transparent 65%);opacity:0;z-index:10;pointer-events:none;border-radius:14px}
-  .lock-error-flash.show{animation:errorFlash .5s}
-  @keyframes errorFlash{0%,100%{opacity:0}40%{opacity:1}}
-  .lock-crack{position:absolute;top:0;left:50%;width:2px;height:100%;background:linear-gradient(180deg,transparent,rgba(255,100,80,.9),rgba(255,200,100,.7),transparent);opacity:0;z-index:5;pointer-events:none;filter:blur(.5px);transform:translateX(-50%) scaleY(0)}
-  .lock-crack.show{animation:crackFlash .6s}
-  @keyframes crackFlash{0%{opacity:0;transform:translateX(-50%) scaleY(0)}30%{opacity:1;transform:translateX(-50%) scaleY(1)}100%{opacity:0;transform:translateX(-50%) scaleY(1)}}
-  .lock-msg{font-size:13px;color:rgba(196,92,72,.95);margin-top:16px;height:18px;text-align:center;letter-spacing:.5px;transition:opacity .2s}
+  /* Success — melt away like cream */
+  .lock-overlay.unlocking{animation:lockMeltAway .8s ease forwards}
+  @keyframes lockMeltAway{0%{opacity:1;transform:scale(1);filter:blur(0)}100%{opacity:0;transform:scale(1.05);filter:blur(12px);visibility:hidden}}
 
-  /* Success fade */
-  .lock-overlay.unlocking{animation:lockFadeOut .6s .8s forwards}
-  @keyframes lockFadeOut{to{opacity:0;visibility:hidden}}
-  .gallery-reveal{animation:galleryReveal .5s ease}
+  /* Success — heart glow expansion */
+  .heart-glow{position:fixed;z-index:10003;pointer-events:none;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(255,105,180,.6),rgba(255,182,193,.2) 50%,transparent 70%);animation:heartGlowExpand 1s ease-out forwards}
+  @keyframes heartGlowExpand{0%{transform:translate(-50%,-50%) scale(0);opacity:1}50%{transform:translate(-50%,-50%) scale(3);opacity:.8}100%{transform:translate(-50%,-50%) scale(5);opacity:0}}
+
+  /* Success — screen brighten */
+  .success-brighten{position:fixed;inset:0;z-index:10002;pointer-events:none;background:radial-gradient(circle at center,rgba(255,255,255,.5),rgba(255,182,193,.15) 30%,transparent 70%);animation:brightenFlash .8s ease forwards}
+  @keyframes brightenFlash{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+
+  /* Success — welcome banner */
+  .welcome-banner{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;text-align:center;font-size:22px;font-weight:800;color:#D2691E;text-shadow:0 2px 12px rgba(255,182,193,.5);animation:welcomeShow 1.5s ease forwards;pointer-events:none}
+  @keyframes welcomeShow{0%{opacity:0;transform:translate(-50%,-50%) scale(.8)}30%{opacity:1;transform:translate(-50%,-50%) scale(1)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.1)}}
+
+  /* Gallery reveal & misc */
+  .gallery-reveal{animation:galleryReveal .6s cubic-bezier(.34,1.56,.64,1)}
   @keyframes galleryReveal{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
   @keyframes rayExpand{from{opacity:0;transform:scale(.3)}50%{opacity:1}to{opacity:0;transform:scale(2)}}
 
-  /* ===== Login Screen ===== */
-  .login-overlay{position:fixed;inset:0;z-index:20000;background:radial-gradient(ellipse at center,#1a1a2e 0%,#0d0d1a 55%,#050508 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;animation:lockFadeIn .4s ease}
-  .login-box{width:320px;max-width:90vw;padding:32px 28px;background:rgba(255,255,255,.04);border:1px solid rgba(212,175,95,.15);border-radius:20px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-  .login-logo{width:64px;height:64px;margin:0 auto 20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fae5a8,#d4af60 50%,#b8860b 90%);border:2.5px solid #8b6914;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(245,217,122,.4);animation:lockBreath 3s ease-in-out infinite}
-  .login-logo svg{width:30px;height:30px;color:#4a3810}
-  .login-title{text-align:center;font-size:20px;font-weight:800;color:#e8d5a8;margin-bottom:4px;letter-spacing:1px}
-  .login-sub{text-align:center;font-size:12px;color:rgba(232,213,168,.4);margin-bottom:24px;letter-spacing:.5px}
+  /* ===== Login Screen — 甜美氛围感 ===== */
+  .login-overlay{position:fixed;inset:0;z-index:20000;background:linear-gradient(135deg,#FFF5EE 0%,#FFE4E1 25%,#FFDAB9 50%,#FFB6C1 80%,#FFA07A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;animation:lockFadeIn .4s ease}
+  .login-overlay::before{content:'';position:absolute;inset:-50%;background-image:radial-gradient(circle,rgba(255,255,255,.4) 1px,transparent 1.5px),radial-gradient(circle,rgba(255,182,193,.25) 2px,transparent 3px);background-size:50px 50px,80px 80px;background-position:0 0,25px 25px;animation:sugarDrift 20s linear infinite;pointer-events:none}
+  @keyframes sugarDrift{from{transform:translate(0,0)}to{transform:translate(50px,50px)}}
+  .login-decor{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .sugar-dot{position:absolute;border-radius:50%;background:radial-gradient(circle,#fff,#FFB6C1);box-shadow:0 0 6px rgba(255,182,193,.5);animation:sugarFloat 4s ease-in-out infinite}
+  @keyframes sugarFloat{0%,100%{transform:translateY(0) scale(1);opacity:.6}50%{transform:translateY(-15px) scale(1.2);opacity:1}}
+  .sugar-star{position:absolute;font-size:14px;color:rgba(255,182,193,.5);animation:sugarFloat 5s ease-in-out infinite;text-shadow:0 0 8px rgba(255,182,193,.4)}
+  .dessert-silhouette{position:absolute;width:200px;height:200px;opacity:.05;animation:slowSpin 45s linear infinite;pointer-events:none}
+  @keyframes slowSpin{to{transform:rotate(360deg)}}
+  .login-box{position:relative;z-index:1;width:330px;max-width:90vw;padding:36px 28px 32px;background:rgba(255,255,255,.5);border:1.5px solid rgba(255,255,255,.7);border-radius:28px;backdrop-filter:blur(20px) saturate(1.3);-webkit-backdrop-filter:blur(20px) saturate(1.3);box-shadow:0 8px 32px rgba(255,182,193,.35),0 2px 8px rgba(210,105,30,.08),inset 0 1px 0 rgba(255,255,255,.6);animation:cardFloat .6s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes cardFloat{from{opacity:0;transform:translateY(24px) scale(.95)}to{opacity:1;transform:none}}
+  .login-logo{width:72px;height:72px;margin:0 auto 18px;border-radius:50%;background:linear-gradient(135deg,#FFB6C1 0%,#FFDAB9 40%,#D2691E 100%);border:3px solid rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(255,182,193,.5),0 0 0 5px rgba(255,182,193,.12);animation:logoBounce 3s ease-in-out infinite}
+  @keyframes logoBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  .login-logo svg{width:34px;height:34px;color:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.1))}
+  .login-title{text-align:center;font-size:26px;font-weight:800;color:#D2691E;margin-bottom:6px;letter-spacing:3px;text-shadow:0 2px 8px rgba(255,182,193,.4)}
+  .login-sub{text-align:center;font-size:12px;color:rgba(210,105,30,.55);margin-bottom:24px;letter-spacing:.5px;line-height:1.6;font-weight:500}
   .login-field{margin-bottom:14px}
-  .login-field label{display:block;font-size:11px;color:rgba(212,175,95,.5);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;font-weight:600}
-  .login-field input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(212,175,95,.15);background:rgba(255,255,255,.03);color:#e8d5a8;font-size:14px;outline:none;transition:border-color .2s}
-  .login-field input:focus{border-color:rgba(212,175,95,.4)}
-  .login-field input::placeholder{color:rgba(232,213,168,.2)}
-  .login-btn{width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,#d4af60,#b8860b);color:#1a1a2e;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s;margin-top:6px}
-  .login-btn:active{opacity:.85}
-  .login-btn:disabled{opacity:.5;cursor:default}
-  .login-msg{text-align:center;font-size:12px;color:rgba(196,92,72,.9);margin-top:12px;min-height:16px}
-  .login-link{text-align:center;margin-top:16px;font-size:12px;color:rgba(212,175,95,.4);cursor:pointer;text-decoration:underline}
-  .login-link:active{color:rgba(212,175,95,.7)}
+  .login-field label{display:block;font-size:11px;color:rgba(210,105,30,.6);margin-bottom:6px;letter-spacing:.8px;font-weight:700}
+  .login-field input{width:100%;padding:13px 18px;border-radius:24px;border:1.5px solid rgba(255,182,193,.4);background:rgba(255,255,255,.55);color:#8B4513;font-size:14px;outline:none;transition:all .25s ease;box-sizing:border-box}
+  .login-field input:focus{border-color:#FFB6C1;background:rgba(255,255,255,.75);transform:scale(1.02);box-shadow:0 0 0 4px rgba(255,182,193,.18)}
+  .login-field input::placeholder{color:rgba(210,105,30,.3)}
+  .login-btn{width:100%;padding:14px;border-radius:24px;border:none;background:linear-gradient(135deg,#FFB6C1,#D2691E);color:#fff;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);margin-top:6px;box-shadow:0 4px 14px rgba(210,105,30,.25);letter-spacing:1px}
+  .login-btn:active{transform:scale(.94) translateY(2px);box-shadow:0 1px 6px rgba(210,105,30,.2)}
+  .login-btn:disabled{opacity:.5;cursor:default;transform:none}
+  .login-msg{text-align:center;font-size:12px;color:#C45C48;margin-top:12px;min-height:16px;font-weight:600}
+  .login-link{text-align:center;margin-top:16px;font-size:12px;color:rgba(210,105,30,.5);cursor:pointer;text-decoration:underline;transition:color .2s}
+  .login-link:active{color:#D2691E}
 
-  /* ===== Auth Tabs ===== */
-  .auth-tabs{display:flex;margin-bottom:20px;border-bottom:1px solid rgba(212,175,95,.15)}
-  .auth-tab{flex:1;padding:10px 0;text-align:center;font-size:13px;color:rgba(212,175,95,.4);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-weight:600;background:none;border-left:none;border-right:none;border-top:none}
-  .auth-tab.on{color:#e8d5a8;border-bottom-color:#d4af60}
+  /* ===== Auth Tabs — 胶囊切换 ===== */
+  .auth-tabs{display:flex;margin-bottom:20px;background:rgba(255,255,255,.45);border-radius:22px;padding:3px;gap:3px}
+  .auth-tab{flex:1;padding:9px 0;text-align:center;font-size:13px;color:rgba(210,105,30,.5);cursor:pointer;border-radius:20px;transition:all .25s ease;font-weight:700;background:none;border:none}
+  .auth-tab.on{color:#fff;background:linear-gradient(135deg,#FFB6C1,#D2691E);box-shadow:0 2px 8px rgba(210,105,30,.2)}
   .auth-form{display:none}
-  .auth-form.on{display:block}
+  .auth-form.on{display:block;animation:formSlideIn .35s ease}
+  @keyframes formSlideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
   .code-row{display:flex;gap:8px}
   .code-row input{flex:1;min-width:0}
-  .code-btn{padding:12px 14px;border-radius:12px;border:1.5px solid rgba(212,175,95,.15);background:rgba(212,175,95,.08);color:#d4af60;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .2s;min-width:90px}
-  .code-btn:active{opacity:.7}
-  .code-btn:disabled{opacity:.4;cursor:default}
+  .code-btn{padding:13px 14px;border-radius:24px;border:1.5px solid rgba(255,182,193,.4);background:rgba(255,255,255,.55);color:#D2691E;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .25s ease;min-width:92px;font-weight:700}
+  .code-btn.pulsing{animation:btnBreath 1.8s ease-in-out infinite}
+  @keyframes btnBreath{0%,100%{box-shadow:0 0 0 0 rgba(255,182,193,.5);transform:scale(1)}50%{box-shadow:0 0 0 8px rgba(255,182,193,0);transform:scale(1.03)}}
+  .code-btn:active{transform:scale(.94)}
+  .code-btn:disabled{opacity:.4;cursor:default;animation:none}
 
   /* ===== Device Management ===== */
   .device-card{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--bg2);margin-bottom:8px}
@@ -450,12 +539,22 @@
   .device-lock-btn.lock{background:rgba(196,92,72,.1);color:#C45C48}
   .device-lock-btn.unlock{background:rgba(107,142,78,.1);color:#6B8E4E}
 
+  /* ===== Device Swipe-to-Delete ===== */
+  .device-swipe-wrap{position:relative;overflow:hidden;margin-bottom:8px;border-radius:14px}
+  .device-swipe-content{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#F7F3EC;transition:transform .28s cubic-bezier(.2,.8,.2,1);position:relative;z-index:1;touch-action:pan-y;width:100%;box-sizing:border-box}
+  .device-swipe-content.locked{opacity:.55}
+  .device-swipe-content.current{border:1.5px solid var(--brand)}
+  .device-swipe-content.swiped{transform:translateX(-76px)}
+  .device-swipe-content.dragging{transition:none}
+  .device-swipe-delete{position:absolute;right:0;top:0;bottom:0;width:76px;background:linear-gradient(135deg,#C45C48,#a04030);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;z-index:0;gap:4px;flex-direction:column;border-radius:0 14px 14px 0}
+  .device-swipe-delete svg{width:18px;height:18px;stroke:#fff;stroke-width:2;fill:none}
+
   /* ===== Device Locked Overlay ===== */
-  .device-locked-overlay{position:fixed;inset:0;z-index:20000;background:radial-gradient(ellipse at center,#1a1a2e 0%,#0d0d1a 55%,#050508 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:lockFadeIn .4s ease}
-  .device-locked-icon{width:80px;height:80px;border-radius:50%;background:rgba(196,92,72,.15);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+  .device-locked-overlay{position:fixed;inset:0;z-index:20000;background:linear-gradient(135deg,#FFF5EE 0%,#FFE4E1 30%,#FFB6C1 70%,#FFA07A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:lockFadeIn .4s ease}
+  .device-locked-icon{width:80px;height:80px;border-radius:50%;background:rgba(196,92,72,.12);display:flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 4px 16px rgba(196,92,72,.2)}
   .device-locked-icon svg{width:40px;height:40px;color:#C45C48}
-  .device-locked-title{font-size:20px;font-weight:800;color:#e8d5a8;margin-bottom:8px}
-  .device-locked-msg{font-size:13px;color:rgba(232,213,168,.4);text-align:center;max-width:280px;line-height:1.6}
+  .device-locked-title{font-size:20px;font-weight:800;color:#D2691E;margin-bottom:8px;letter-spacing:1px}
+  .device-locked-msg{font-size:13px;color:rgba(210,105,30,.55);text-align:center;max-width:280px;line-height:1.6}
 
   /* ===== Recipe Lock Badge ===== */
   .rcard-lock{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(196,92,72,.12);color:#c45c48;flex-shrink:0;margin-left:6px}
@@ -468,24 +567,249 @@
   .lock-toggle:not(.on) .lt-icon{color:var(--sub)}
   .lock-input{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:14px;outline:none;margin-top:8px}
   .lock-input:focus{border-color:var(--brand-soft)}
+
+  /* ===== Global Sweet Theme Override ===== */
+  /* Frosted glass cards */
+  .rcard,.ed-block,.sc-card,.wiki-card-edit,.prof,.dm-card,.pantry-top,.ing-list,.search,.msheet,.cat-modal,.memo-card,.sync-body,.device-swipe-content{
+    background:rgba(255,255,255,.62)!important;
+    backdrop-filter:blur(14px) saturate(1.3)!important;
+    -webkit-backdrop-filter:blur(14px) saturate(1.3)!important;
+    border:1px solid rgba(255,255,255,.5)!important;
+    box-shadow:0 4px 16px rgba(255,182,193,.1)!important;
+  }
+  .dm-card .h,.sync-dot.on{background:rgba(255,228,225,.5)}
+
+  /* ===== Brand Philosophy Section ===== */
+  .brand-section{
+    background:linear-gradient(180deg,rgba(255,250,245,.85),rgba(255,245,238,.8));
+    border-radius:20px;
+    overflow:hidden;
+    margin-bottom:16px;
+    border:1px solid rgba(247,231,206,.4);
+    box-shadow:0 4px 20px rgba(255,182,193,.06);
+  }
+  .brand-inner{padding:32px 22px;position:relative}
+  .brand-slogan{
+    font-family:'Georgia','Noto Serif SC',serif;
+    font-size:22px;
+    font-weight:700;
+    letter-spacing:.12em;
+    color:#5c3d3d;
+    text-align:center;
+    margin-bottom:24px;
+    line-height:1.6;
+  }
+  .brand-mission{
+    text-align:center;
+    font-size:13px;
+    line-height:2.1;
+    color:#6b5544;
+    max-width:300px;
+    margin:0 auto;
+  }
+  .brand-mission p{margin:0 0 14px}
+  .brand-divider{
+    width:40px;
+    height:1px;
+    background:linear-gradient(90deg,transparent,#d4b595,transparent);
+    margin:20px auto;
+    border:none;
+  }
+  .brand-values{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin:24px 0;
+  }
+  .brand-value-card{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    padding:16px 14px;
+    border-radius:16px;
+    background:rgba(255,255,255,.5);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border:1px solid rgba(212,181,149,.25);
+    opacity:0;
+    transform:translateY(20px);
+    transition:opacity .8s ease,transform .8s ease;
+  }
+  .brand-value-card.visible{opacity:1;transform:translateY(0)}
+  .brand-value-num{
+    font-family:'Georgia',serif;
+    font-size:20px;
+    font-weight:700;
+    color:#c4a87a;
+    flex-shrink:0;
+    line-height:1;
+    padding-top:2px;
+    min-width:28px;
+  }
+  .brand-value-body{flex:1}
+  .brand-value-title{
+    font-size:14px;
+    font-weight:800;
+    color:#5c3d3d;
+    margin-bottom:6px;
+    letter-spacing:.05em;
+  }
+  .brand-value-text{
+    font-size:12px;
+    line-height:1.8;
+    color:#8b7355;
+  }
+  .brand-motto{
+    text-align:center;
+    font-size:12px;
+    letter-spacing:.15em;
+    color:#a08070;
+    line-height:2;
+    margin-top:24px;
+    font-family:'Georgia','Noto Serif SC',serif;
+  }
+  @media(min-width:480px){
+    .brand-values{flex-direction:row;flex-wrap:wrap}
+    .brand-value-card{flex:1 1 45%}
+  }
+  /* Sweet buttons */
+  .new-btn,.sync-btn.primary,.login-btn,.mb-ok,.ma-opt.brand,.cm-aigen:not(:disabled){
+    background:linear-gradient(135deg,#FFB6C1,#E8A0BF)!important;
+    color:#fff!important;
+    border:none!important;
+    box-shadow:0 4px 14px rgba(255,182,193,.3)!important;
+    transition:all .2s cubic-bezier(.34,1.56,.64,1)!important;
+  }
+  .new-btn:hover,.sync-btn.primary:hover,.login-btn:hover{transform:scale(1.03)}
+  .new-btn:active,.sync-btn.primary:active,.login-btn:active,.mb-ok:active,.ma-opt.brand:active{transform:scale(.92) translateY(2px)}
+  .sync-btn.ghost,.mb-cancel,.ma-opt:not(.brand):not(.danger),.cm-input{
+    background:rgba(255,228,225,.4)!important;
+    color:var(--ink)!important;
+    border:1px solid rgba(255,255,255,.5)!important;
+  }
+  /* Input fields */
+  .ed-name,.ed-sel,.in-name,.in-gram,.ed-area,.cm-input,.lock-input,.sync-field input,.login-field input{
+    background:rgba(255,255,255,.5)!important;
+    border-color:rgba(255,182,193,.3)!important;
+    border-radius:var(--radius-sm)!important;
+  }
+  .ed-name:focus,.ed-sel:focus,.in-name:focus,.in-gram:focus,.ed-area:focus,.cm-input:focus,.lock-input:focus,.sync-field input:focus,.login-field input:focus{
+    border-color:#FFB6C1!important;
+    box-shadow:0 0 0 3px rgba(255,182,193,.15)!important;
+  }
+  /* Modal */
+  #modal{background:linear-gradient(160deg,#FFF5EE 0%,#FFE4E1 20%,#FFDAB9 45%,#F0E6F6 75%,#E6D0F0 100%)!important;backdrop-filter:none;-webkit-backdrop-filter:none}
+  .msheet,.cat-modal{border-radius:24px!important}
+  .msheet .mt,.cat-modal .cm-title{color:var(--ink)!important}
+  /* Toast */
+  #toast.success{background:linear-gradient(135deg,#B5EAD7,#7FD1B9)!important;color:#3D5A4E!important}
+  #toast.error{background:linear-gradient(135deg,#FFB6C1,#FF69B4)!important;color:#fff!important}
+  #toast.info{background:linear-gradient(135deg,#FFDAB9,#FFB6C1)!important;color:#5C3D3D!important}
+  /* Wiki tabs */
+  .wtab{background:rgba(255,255,255,.5)!important;border:1px solid rgba(255,255,255,.4)!important}
+  .wtab.on{background:linear-gradient(135deg,#FFB6C1,#E8A0BF)!important;color:#fff!important;border-color:transparent!important}
+  /* Header title accent */
+  .hd h1{background:linear-gradient(135deg,#E8A0BF,#D2691E,#E8A0BF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  /* Gradient overlays on category art */
+  .g1{background:linear-gradient(135deg,#FFDAB9,#FFB6C1)!important}
+  .g2{background:linear-gradient(135deg,#FFB6C1,#E8A0BF)!important}
+  .g3{background:linear-gradient(135deg,#F7E7CE,#FFDAB9)!important}
+  .g4{background:linear-gradient(135deg,#E6D0F0,#FFB6C1)!important}
+  .g5{background:linear-gradient(135deg,#B5EAD7,#F7E7CE)!important}
+  .g6{background:linear-gradient(135deg,#FFDAB9,#E6D0F0)!important}
+  .g7{background:linear-gradient(135deg,#FFB6C1,#F7E7CE)!important}
+  .g8{background:linear-gradient(135deg,#E8A0BF,#B5EAD7)!important}
+  /* Add button */
+  .add-ing,.add-ing-small,.wk-add{border-color:rgba(255,182,193,.5)!important;color:#D2691E!important;background:rgba(255,255,255,.3)!important}
+  /* Toggle switch */
+  .toggle.on{background:linear-gradient(135deg,#FFB6C1,#E8A0BF)!important}
+  /* Profile avatar — no !important on background so inline background-image can override */
+  .avatar{box-shadow:0 0 0 4px rgba(255,182,193,.2),0 4px 16px rgba(255,182,193,.3)}
+  /* Rcard arrow */
+  .rcard .arrow{color:#E8A0BF!important}
+  /* Del recipe button */
+  .del-recipe{background:rgba(255,182,193,.2)!important;color:#C45C48!important;border-color:rgba(255,182,193,.3)!important}
+  /* Lace divider */
+  .lace-divider{display:flex;align-items:center;gap:8px;margin:16px 0;color:rgba(255,182,193,.5);font-size:12px}
+  .lace-divider::before,.lace-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,182,193,.3),transparent)}
+  .lace-divider span{font-size:14px}
+  /* Empty state */
+  .empty{color:var(--sub)!important}
+  .empty::before{content:'🍰 ';font-size:32px;display:block;margin-bottom:8px}
 </style>
 </head>
 <body>
+<div class="bg-decor" id="bgDecor"></div>
 <div id="app">
   <main id="content"></main>
   <nav id="nav"><div class="inner"></div></nav>
 </div>
 <div id="toast"></div>
 <div id="modal"></div>
-<div class="cat-drag-hint" id="dragHint">松开此处放置</div>
 <input type="file" id="fileImport" accept="application/json" class="hidden">
 <input type="file" id="catImgInput" accept="image/*" class="hidden">
+<input type="file" id="recipeImgInput" accept="image/*" class="hidden">
 
 <script>
 /* ============================================================
    Recipe Atelier — single-file baking workbench
    Storage: localStorage (instant autosave) + JSON export/import (cross-device)
    ============================================================ */
+
+/* ---------- Background Animations — bubbles, petals, sparkles ---------- */
+function initBgDecor(){
+  const decor=document.getElementById('bgDecor');
+  if(!decor) return;
+  decor.innerHTML='';
+  // Bubbles
+  for(let i=0;i<14;i++){
+    const b=document.createElement('div');
+    b.className='bg-bubble';
+    const sz=20+Math.random()*60;
+    b.style.width=sz+'px'; b.style.height=sz+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.animationDuration=(12+Math.random()*18)+'s';
+    b.style.animationDelay=Math.random()*15+'s';
+    decor.appendChild(b);
+  }
+  // Petals
+  const petals=['🌸','🌺','🌷','💮','🏵️'];
+  for(let i=0;i<10;i++){
+    const p=document.createElement('div');
+    p.className='bg-petal';
+    p.textContent=petals[Math.floor(Math.random()*petals.length)];
+    p.style.left=Math.random()*100+'%';
+    p.style.animationDuration=(10+Math.random()*12)+'s';
+    p.style.animationDelay=Math.random()*10+'s';
+    p.style.fontSize=(14+Math.random()*10)+'px';
+    decor.appendChild(p);
+  }
+  // Sparkles
+  for(let i=0;i<18;i++){
+    const s=document.createElement('div');
+    s.className='bg-sparkle';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.animationDuration=(2+Math.random()*4)+'s';
+    s.style.animationDelay=Math.random()*4+'s';
+    const sz=3+Math.random()*5;
+    s.style.width=sz+'px'; s.style.height=sz+'px';
+    decor.appendChild(s);
+  }
+  // Static sugar sprinkles
+  const sprinkleColors=['#FFB6C1','#FFDAB9','#B5EAD7','#E6D0F0','#F7E7CE'];
+  for(let i=0;i<20;i++){
+    const s=document.createElement('div');
+    s.className='sugar-sprinkle';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.background=sprinkleColors[Math.floor(Math.random()*sprinkleColors.length)];
+    s.style.width=(4+Math.random()*4)+'px';
+    s.style.height=s.style.width;
+    decor.appendChild(s);
+  }
+}
+initBgDecor();
 
 /* ---------- Data: default categories (can be customized by user) ---------- */
 const DEFAULT_CATEGORIES = [
@@ -708,13 +1032,18 @@ const ICONS = {
   lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
   unlock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 017.5-2"/>',
   phone:'<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+  sort:'<path d="M4 6h16M4 12h10M4 18h6" stroke-width="2.2"/>',
+  grip:'<circle cx="9" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.3" fill="currentColor" stroke="none"/>',
+  drag:'<path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01" stroke-width="3" stroke-linecap="round"/>',
+  close:'<path d="M6 6l12 12M18 6L6 18" stroke-width="2.2"/>',
+  image:'<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/>',
 };
 function svg(name,sw){return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" ${sw?'stroke-width="'+sw+'"':''}>${ICONS[name]||''}</svg>`}
 
 /* ---------- English reference recipes (one per category) ---------- */
 const REFERENCE_RECIPES = [
   {
-    id:'r-ref-yeast', cat:'yeast', name:'Hokkaido Milk Bread (Shokupan)',
+    id:'r-ref-yeast', cat:'yeast', name:'Hokkaido Milk Bread (Shokupan)', image:'recipe-images/r-ref-yeast.jpg',
     ingredients:[
       {name:'Bread flour', gram:'300'},
       {name:'Whole milk', gram:'180'},
@@ -728,7 +1057,7 @@ const REFERENCE_RECIPES = [
     notes:'For extra softness, add a tangzhong roux: whisk 20g flour with 100g water over low heat until it reaches 65C, cool, then mix into the dough.'
   },
   {
-    id:'r-ref-artisan', cat:'artisan', name:'Classic Sourdough Boule',
+    id:'r-ref-artisan', cat:'artisan', name:'Classic Sourdough Boule', image:'recipe-images/r-ref-artisan.jpg',
     ingredients:[
       {name:'Bread flour', gram:'400'},
       {name:'Whole wheat flour', gram:'50'},
@@ -740,7 +1069,7 @@ const REFERENCE_RECIPES = [
     notes:'Feed your starter 12 hours before baking. Higher hydration (75 to 80 percent) creates a more open crumb but is harder to handle.'
   },
   {
-    id:'r-ref-cakes', cat:'cakes', name:'Classic Victoria Sponge',
+    id:'r-ref-cakes', cat:'cakes', name:'Classic Victoria Sponge', image:'recipe-images/r-ref-cakes.jpg',
     ingredients:[
       {name:'Unsalted butter (room temp)', gram:'200'},
       {name:'Caster sugar', gram:'200'},
@@ -756,7 +1085,7 @@ const REFERENCE_RECIPES = [
     notes:'All ingredients should be at room temperature for the best emulsion. Avoid overmixing once flour is added or the cake will be tough.'
   },
   {
-    id:'r-ref-cookies', cat:'cookies', name:'Brown Butter Chocolate Chip Cookies',
+    id:'r-ref-cookies', cat:'cookies', name:'Brown Butter Chocolate Chip Cookies', image:'recipe-images/r-ref-cookies.jpg',
     ingredients:[
       {name:'Unsalted butter', gram:'170'},
       {name:'Dark brown sugar', gram:'150'},
@@ -773,7 +1102,7 @@ const REFERENCE_RECIPES = [
     notes:'Chilling the dough is essential for deep flavor and to prevent excessive spreading. The cookies will continue to set as they cool.'
   },
   {
-    id:'r-ref-laminated', cat:'laminated', name:'Classic Croissants',
+    id:'r-ref-laminated', cat:'laminated', name:'Classic Croissants', image:'recipe-images/r-ref-laminated.jpg',
     ingredients:[
       {name:'Bread flour', gram:'500'},
       {name:'Water', gram:'250'},
@@ -788,7 +1117,7 @@ const REFERENCE_RECIPES = [
     notes:'Keep butter and dough at similar temperatures (12 to 14C) throughout lamination. If the butter gets too warm, return to the fridge for 20 minutes before continuing.'
   },
   {
-    id:'r-ref-tarts', cat:'tarts', name:'Classic Lemon Tart',
+    id:'r-ref-tarts', cat:'tarts', name:'Classic Lemon Tart', image:'recipe-images/r-ref-tarts.jpg',
     ingredients:[
       {name:'Plain flour (pastry)', gram:'200'},
       {name:'Icing sugar (pastry)', gram:'60'},
@@ -805,7 +1134,7 @@ const REFERENCE_RECIPES = [
     notes:'For a professional finish, brulee the top with a blowtorch and a thin layer of sugar. The curd will continue to set as it cools.'
   },
   {
-    id:'r-ref-quick', cat:'quick', name:'Buttermilk Scones',
+    id:'r-ref-quick', cat:'quick', name:'Buttermilk Scones', image:'recipe-images/r-ref-quick.jpg',
     ingredients:[
       {name:'Plain flour', gram:'350'},
       {name:'Baking powder', gram:'15'},
@@ -821,7 +1150,7 @@ const REFERENCE_RECIPES = [
     notes:'Cold butter and minimal handling are the secrets to tall, flaky scones. Press straight down when cutting; twisting seals the edges and prevents rising.'
   },
   {
-    id:'r-ref-choux', cat:'choux', name:'Cream Puffs (Choux a la Creme)',
+    id:'r-ref-choux', cat:'choux', name:'Cream Puffs (Choux a la Creme)', image:'recipe-images/r-ref-choux.jpg',
     ingredients:[
       {name:'Water', gram:'250'},
       {name:'Unsalted butter', gram:'100'},
@@ -840,6 +1169,126 @@ const REFERENCE_RECIPES = [
     notes:'Do not open the oven during baking or the puffs will collapse. The dough is ready when it holds a V-shape on your spatula.'
   }
 ];
+// New reference recipes for Chinese-named categories (catName → lookup at runtime)
+const NEW_REFERENCE_RECIPES = [
+  {
+    id:'r-ref-macaron', catName:'马卡龙', name:'法式马卡龙', image:'recipe-images/r-ref-macaron.jpg',
+    ingredients:[
+      {name:'杏仁粉', gram:'110'},
+      {name:'糖粉', gram:'200'},
+      {name:'蛋清（老化24h）', gram:'90'},
+      {name:'细砂糖', gram:'90'},
+      {name:'水', gram:'30'},
+      {name:'食用色素', gram:'适量'},
+    ],
+    steps:'1. 杏仁粉和糖粉混合过筛两次，去除粗颗粒。\n2. 蛋清打至湿性发泡，分次加入30g细砂糖打至硬性发泡。\n3. 糖和水加热至118°C，缓慢倒入蛋白中，继续打发至降温至40°C。\n4. 将意式蛋白霜分两次拌入杏仁粉混合物中，翻拌至面糊呈缎带状流下。\n5. 裱花袋挤直径3cm的圆形在硅胶垫上，震出气泡，晾皮至表面不粘手。\n6. 烤箱预热150°C，烘烤14-16分钟，出炉放凉后夹馅。',
+    notes:'面糊翻拌是关键：过少则表面开裂，过多则塌陷。晾皮要充分，表面形成一层薄膜才能烤出裙边。'
+  },
+  {
+    id:'r-ref-madeleine', catName:'玛德琳蛋糕', name:'经典玛德琳', image:'recipe-images/r-ref-madeleine.jpg',
+    ingredients:[
+      {name:'低筋面粉', gram:'80'},
+      {name:'鸡蛋', gram:'2'},
+      {name:'细砂糖', gram:'60'},
+      {name:'黄油（融化）', gram:'80'},
+      {name:'蜂蜜', gram:'15'},
+      {name:'泡打粉', gram:'3'},
+      {name:'香草精', gram:'3'},
+    ],
+    steps:'1. 鸡蛋加糖和蜂蜜打散至糖溶化，加入香草精。\n2. 筛入面粉和泡打粉，轻轻拌匀。\n3. 倒入融化的黄油，搅拌至光滑，冷藏1小时。\n4. 玛德琳模涂油撒粉，挤入面糊至8分满。\n5. 烤箱预热200°C，烤12-13分钟至边缘金黄、中央鼓起小包。',
+    notes:'面糊冷藏后烤出的鼓包更明显。模具一定要涂油撒粉否则脱模困难。'
+  },
+  {
+    id:'r-ref-canele', catName:'可露丽', name:'波尔多可露丽', image:'recipe-images/r-ref-canele.jpg',
+    ingredients:[
+      {name:'全脂牛奶', gram:'500'},
+      {name:'蛋黄', gram:'4'},
+      {name:'全蛋', gram:'1'},
+      {name:'细砂糖', gram:'150'},
+      {name:'低筋面粉', gram:'125'},
+      {name:'黄油', gram:'50'},
+      {name:'朗姆酒', gram:'30'},
+      {name:'香草荚', gram:'1/2根'},
+      {name:'蜂蜡', gram:'适量'},
+    ],
+    steps:'1. 牛奶加香草荚煮至微沸，关火浸泡15分钟。\n2. 蛋黄、全蛋加糖打散，缓慢倒入温牛奶拌匀。\n3. 筛入面粉拌匀，加入融化的黄油和朗姆酒。\n4. 面糊过筛后冷藏熟化24-48小时。\n5. 铜模内涂融化的蜂蜡，倒入面糊至9分满。\n6. 烤箱预热220°C，烤15分钟后降至180°C再烤50-60分钟。\n7. 出炉立即脱模，外皮应呈深焦糖色且酥脆。',
+    notes:'面糊必须熟化24小时以上。蜂蜡涂层是形成外壳的关键，不能用黄油替代。烤温要足够高才能形成焦糖外壳。'
+  },
+  {
+    id:'r-ref-mousse', catName:'慕斯', name:'巧克力慕斯', image:'recipe-images/r-ref-mousse.jpg',
+    ingredients:[
+      {name:'黑巧克力（70%）', gram:'120'},
+      {name:'蛋黄', gram:'3'},
+      {name:'细砂糖', gram:'30'},
+      {name:'淡奶油', gram:'200'},
+      {name:'蛋清', gram:'3'},
+      {name:'吉利丁片', gram:'3'},
+      {name:'水', gram:'20'},
+    ],
+    steps:'1. 吉利丁片冰水泡软备用。\n2. 蛋黄加糖隔水加热搅打至浓稠发白。\n3. 黑巧克力隔水融化至45°C，加入蛋黄糊拌匀。\n4. 加入泡软的吉利丁片搅拌至溶化。\n5. 淡奶油打至六分发，分两次翻拌入巧克力糊。\n6. 蛋清打至湿性发泡，轻轻翻拌入糊中。\n7. 倒入杯中冷藏4小时以上至凝固。',
+    notes:'翻拌要轻柔，保持气泡。巧克力温度不能太高否则会使吉利丁失效。'
+  },
+  {
+    id:'r-ref-redvelvet', catName:'红丝绒', name:'红丝绒蛋糕', image:'recipe-images/r-ref-redvelvet.jpg',
+    ingredients:[
+      {name:'低筋面粉', gram:'250'},
+      {name:'可可粉', gram:'15'},
+      {name:'小苏打', gram:'5'},
+      {name:'盐', gram:'3'},
+      {name:'无盐黄油', gram:'115'},
+      {name:'细砂糖', gram:'200'},
+      {name:'鸡蛋', gram:'2'},
+      {name:'植物油', gram:'120'},
+      {name:'白醋', gram:'5'},
+      {name:'红色食用色素', gram:'15'},
+      {name:'香草精', gram:'5'},
+      {name:'酪乳', gram:'240'},
+    ],
+    steps:'1. 面粉、可可粉、小苏打、盐混合过筛。\n2. 黄油加糖打发至蓬松，逐个加入鸡蛋。\n3. 加入植物油、醋、色素、香草精混合均匀。\n4. 交替加入干粉和酪乳，每次低速拌匀。\n5. 倒入两个6寸模具，175°C烤30-35分钟。\n6. 奶油奶酪霜：奶油奶酪200g加黄油100g打发，加糖粉100g拌匀。\n7. 蛋糕冷却后夹层抹面。',
+    notes:'红丝绒的红来自可可粉与酸的反应，色素是加强效果。酪乳不可用普通牛奶替代。'
+  },
+  {
+    id:'r-ref-blackforest', catName:'黑森林', name:'黑森林蛋糕', image:'recipe-images/r-ref-blackforest.jpg',
+    ingredients:[
+      {name:'低筋面粉', gram:'150'},
+      {name:'可可粉', gram:'30'},
+      {name:'鸡蛋', gram:'4'},
+      {name:'细砂糖', gram:'120'},
+      {name:'樱桃酒（Kirsch）', gram:'60'},
+      {name:'罐头黑樱桃', gram:'300'},
+      {name:'淡奶油', gram:'400'},
+      {name:'糖粉', gram:'40'},
+      {name:'黑巧克力碎', gram:'100'},
+    ],
+    steps:'1. 鸡蛋加糖隔水加热至40°C，高速打发至划痕不消失。\n2. 筛入面粉和可可粉，轻轻翻拌。\n3. 倒入8寸模具，180°C烤25-30分钟，冷却后横切三片。\n4. 樱桃沥汁，加30g糖和20g樱桃酒煮至浓稠，放凉。\n5. 淡奶油加糖粉打发至硬性。\n6. 组装：蛋糕片刷樱桃酒，抹奶油，铺樱桃，重复三层。\n7. 外层抹奶油，表面裱花，点缀樱桃，撒巧克力碎。',
+    notes:'正宗黑森林蛋糕必须使用Kirsch樱桃酒。蛋糕胚要刷足樱桃酒才能体现风味。'
+  },
+  {
+    id:'r-ref-financier', catName:'费南雪', name:'焦糖费南雪', image:'recipe-images/r-ref-financier.jpg',
+    ingredients:[
+      {name:'蛋白', gram:'120'},
+      {name:'细砂糖', gram:'100'},
+      {name:'杏仁粉', gram:'100'},
+      {name:'低筋面粉', gram:'40'},
+      {name:'黄油', gram:'100'},
+      {name:'蜂蜜', gram:'15'},
+    ],
+    steps:'1. 黄油小火加热至焦糖色（beurre noisette），放凉至室温。\n2. 杏仁粉、面粉、糖混合过筛。\n3. 蛋白轻轻打散（不打发），加入干粉拌匀。\n4. 加入蜂蜜和焦化黄油拌匀至光滑。\n5. 面糊冷藏1小时后挤入费南雪模具。\n6. 烤箱预热210°C，烤13-14分钟至边缘金黄。',
+    notes:'焦化黄油是费南雪的灵魂，一定要炒至深琥珀色。蛋白不需要打发，轻轻打散即可。'
+  },
+  {
+    id:'r-ref-pudding', catName:'布丁', name:'焦糖布丁（Crème Brûlée）', image:'recipe-images/r-ref-pudding.jpg',
+    ingredients:[
+      {name:'淡奶油', gram:'500'},
+      {name:'蛋黄', gram:'5'},
+      {name:'细砂糖', gram:'60'},
+      {name:'香草荚', gram:'1/2根'},
+      {name:'细砂糖（焦糖层）', gram:'30'},
+    ],
+    steps:'1. 淡奶油加香草荚籽和壳煮至微沸，关火浸泡15分钟。\n2. 蛋黄加糖轻轻打散（不要起泡），缓慢倒入温奶油拌匀。\n3. 过筛两次，去除气泡和杂质。\n4. 倒入烤碗，放入深烤盘，注入热水至烤碗一半高度。\n5. 烤箱预热140°C，水浴烘烤40-45分钟至表面微凝、中心略有晃动。\n6. 冷藏4小时以上，食用前撒糖粉，用喷枪烧至焦糖色。',
+    notes:'水浴是关键，温度不能太高否则会变成蜂窝状。过筛要仔细，确保布丁液无气泡。'
+  },
+];
 
 /* ---------- Default sample recipes ---------- */
 function seedRecipes(){
@@ -847,7 +1296,7 @@ function seedRecipes(){
   return [
     ...REFERENCE_RECIPES.map((r,i)=>({...r, updated:now - i*3600000})),
     {
-      id:'r-seed-1', cat:'cakes', name:'Basque Cheesecake',
+      id:'r-seed-1', cat:'cakes', name:'Basque Cheesecake', image:'recipe-images/r-seed-1.jpg',
       updated: now - 86400000*2,
       ingredients:[
         {name:'奶油奶酪（室温）', gram:'250'},
@@ -861,7 +1310,7 @@ function seedRecipes(){
       notes:'焦黑的裂纹表面是有意为之——这就是"焦香"的特色。不要过度烘烤否则会变干；冷藏后中心会凝固。'
     },
     {
-      id:'r-seed-2', cat:'cakes', name:'经典提拉米苏',
+      id:'r-seed-2', cat:'cakes', name:'经典提拉米苏', image:'recipe-images/r-seed-2.jpg',
       updated: now - 86400000,
       ingredients:[
         {name:'马斯卡彭芝士', gram:'250'},
@@ -879,6 +1328,42 @@ function seedRecipes(){
   ];
 }
 
+/* ---------- Migrate categories to new grouped structure ---------- */
+function migrateCategories(){
+  let changed=false;
+  // 1. Rename old English category names to Chinese
+  state.categories.forEach(c=>{
+    if(OLD_TO_NEW[c.name]){
+      c.name=OLD_TO_NEW[c.name];
+      changed=true;
+    }
+    // 2. Add nameEn and group fields from lookup
+    const meta=CATEGORY_LOOKUP[c.name];
+    if(meta){
+      if(!c.nameEn){ c.nameEn=meta.nameEn; changed=true; }
+      if(!c.group){ c.group=meta.group; changed=true; }
+    }
+  });
+  // 3. Add missing categories from the defined list
+  const existing=new Set(state.categories.map(c=>c.name));
+  CATEGORY_GROUPS.forEach(g=>{
+    g.items.forEach(item=>{
+      if(!existing.has(item.name)){
+        state.categories.push({
+          id:'cat-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),
+          name:item.name, nameEn:item.nameEn, group:g.name, image:''
+        });
+        changed=true;
+      }
+    });
+  });
+  if(changed){
+    state.sync.localUpdatedAt=Date.now();
+    writeLocal();
+  }
+  return changed;
+}
+
 /* ---------- Inject reference recipes for existing users ---------- */
 function ensureReferenceRecipes(){
   let added=false;
@@ -886,6 +1371,17 @@ function ensureReferenceRecipes(){
     if(!state.recipes.find(r=>r.id===ref.id)){
       state.recipes.unshift({...ref, updated:Date.now()});
       added=true;
+    }
+  });
+  // Add new Chinese-named reference recipes (lookup category ID by name)
+  NEW_REFERENCE_RECIPES.forEach(ref=>{
+    if(!state.recipes.find(r=>r.id===ref.id)){
+      const cat=state.categories.find(c=>c.name===ref.catName);
+      if(cat){
+        const {catName, ...recipeData}=ref;
+        state.recipes.unshift({...recipeData, cat:cat.id, updated:Date.now()});
+        added=true;
+      }
     }
   });
   if(added){
@@ -941,12 +1437,56 @@ const GIST_DESC = '甜品配方工作台 — 云同步数据';
 const DEFAULT_SYNC = { token:'', gistId:'', giteeToken:'', giteeRepo:'', autoSync:true, lastSyncedAt:0, localUpdatedAt:0 };
 const DEFAULT_AI = { apiKey:'sk-ws-H.ERMLHDH.xhJ8.MEUCIQCBGExi5HRzX2j5KDwDXlbiMloZcAIbTTHanMN9Hkv41gIgbzOYbi_2bBGWVkZsThzCJPIHD01qb9Mpf6EzSckhr9w', model:'wan2.6-t2i' };
 const DEFAULT_PROFILE = { name:'XiaFei', avatar:'', tagline:'与木&Kimiko' };
-let state = { recipes:[], pantry:[], wiki:{}, categories:[], showcases:[], sync:{...DEFAULT_SYNC}, aiImage:{...DEFAULT_AI}, profile:{...DEFAULT_PROFILE}, activeTab:'gallery', wikiCat:'面粉类', gView:'home', catId:null, recipeId:null };
+
+// Recipe category groups — defines display order and major category headers
+const CATEGORY_GROUPS = [
+  { name:'经典法式甜品', nameEn:'Classic French Desserts', items:[
+    {name:'马卡龙',nameEn:'Macaron'},
+    {name:'牛角包',nameEn:'Croissant'},
+    {name:'玛德琳蛋糕',nameEn:'Madeleine'},
+    {name:'可露丽',nameEn:'Canelé'},
+    {name:'千层酥/拿破仑蛋糕',nameEn:'Mille-feuille'},
+    {name:'布雷斯特泡芙',nameEn:'Paris-Brest'},
+    {name:'焦糖奶油酥',nameEn:'Kouign-amann'},
+    {name:'闪电泡芙',nameEn:'Éclair'},
+    {name:'舒芙蕾',nameEn:'Soufflé'},
+  ]},
+  { name:'整块/切块蛋糕', nameEn:'Whole & Slice Cakes', items:[
+    {name:'巴斯克',nameEn:'Basque'},
+    {name:'戚风',nameEn:'Chiffon'},
+    {name:'慕斯',nameEn:'Mousse'},
+    {name:'红丝绒',nameEn:'Red Velvet'},
+    {name:'黑森林',nameEn:'Black Forest'},
+    {name:'提拉米苏',nameEn:'Tiramisu'},
+  ]},
+  { name:'小蛋糕/茶点', nameEn:'Small Cakes & Tea Time', items:[
+    {name:'麦芬',nameEn:'Muffin'},
+    {name:'费南雪',nameEn:'Financier'},
+  ]},
+  { name:'面包类', nameEn:'Bread', items:[
+    {name:'可颂/牛角包',nameEn:'Croissant'},
+    {name:'丹麦酥皮面包',nameEn:'Danish Pastry'},
+    {name:'贝果',nameEn:'Bagel'},
+  ]},
+  { name:'其他常见', nameEn:'Other Common', items:[
+    {name:'泡芙',nameEn:'Cream Puff'},
+    {name:'蛋挞',nameEn:'Egg Tart'},
+    {name:'曲奇饼干',nameEn:'Cookies'},
+    {name:'布丁',nameEn:'Pudding'},
+  ]},
+];
+// Flat lookup: Chinese name → { nameEn, group, groupEn }
+const CATEGORY_LOOKUP={};
+CATEGORY_GROUPS.forEach(g=>{g.items.forEach(it=>{if(!CATEGORY_LOOKUP[it.name])CATEGORY_LOOKUP[it.name]={nameEn:it.nameEn,group:g.name,groupEn:g.nameEn};});});
+// Old English category names → new Chinese names
+const OLD_TO_NEW={'Yeast Bread':'丹麦酥皮面包','Artisan Bread':'贝果','Cakes & Sponge':'戚风','Cookies':'曲奇饼干','Laminated Pastry':'千层酥/拿破仑蛋糕','Tarts & Pies':'蛋挞','Quick Bread & Scones':'麦芬','Choux & Meringue':'泡芙'};
+
+let state = { recipes:[], pantry:[], wiki:{}, categories:[], showcases:[], groupOrder:[], sync:{...DEFAULT_SYNC}, aiImage:{...DEFAULT_AI}, profile:{...DEFAULT_PROFILE}, activeTab:'gallery', wikiCat:'面粉类', gView:'home', catId:null, recipeId:null };
 
 // pure local write — no side effects, no toast, no sync trigger
 function writeLocal(){
   localStorage.setItem(KEY, JSON.stringify({
-    recipes:state.recipes, pantry:state.pantry, wiki:state.wiki, categories:state.categories, showcases:state.showcases, sync:state.sync, aiImage:state.aiImage, profile:state.profile
+    recipes:state.recipes, pantry:state.pantry, wiki:state.wiki, categories:state.categories, showcases:state.showcases, groupOrder:state.groupOrder, sync:state.sync, aiImage:state.aiImage, profile:state.profile
   }));
 }
 // public mutation saver — records local change time + triggers debounced cloud push
@@ -979,6 +1519,7 @@ function load(){
       state.wiki = d.wiki||{};
       state.categories = d.categories||[];
       state.showcases = d.showcases||[];
+      state.groupOrder = d.groupOrder||[];
       state.sync = Object.assign({...DEFAULT_SYNC}, d.sync||{});
       state.aiImage = Object.assign({...DEFAULT_AI}, d.aiImage||{});
       state.profile = Object.assign({...DEFAULT_PROFILE}, d.profile||{});
@@ -1006,6 +1547,19 @@ function load(){
     state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
     writeLocal();
   }
+  // migrate categories to new grouped Chinese structure
+  migrateCategories();
+  // deduplicate categories and recipes after migration
+  const catsBefore=state.categories.length;
+  const recipesBefore=state.recipes.length;
+  state.categories=dedupeCategories(state.categories);
+  state.recipes=dedupeRecipes(state.recipes);
+  if(state.categories.length!==catsBefore || state.recipes.length!==recipesBefore){
+    state.sync.localUpdatedAt=Date.now();
+    writeLocal();
+  }
+  // inject reference recipes after categories are migrated (so new Chinese-named categories exist)
+  ensureReferenceRecipes();
   // seed showcase defaults if empty
   if(!state.showcases || state.showcases.length===0){
     state.showcases = JSON.parse(JSON.stringify(DEFAULT_SHOWCASES));
@@ -1070,8 +1624,10 @@ function buildPayload(){
     wiki: state.wiki,
     categories: state.categories,
     showcases: state.showcases,
+    groupOrder: state.groupOrder,
     aiImage: state.aiImage,
-    profile: state.profile
+    // avatar is device-local only — never sync to cloud
+    profile: { name: state.profile.name, tagline: state.profile.tagline }
   };
 }
 // create a new secret gist, return its id
@@ -1310,6 +1866,40 @@ function mergeByKey(local, remote, keyFn){
   (local||[]).forEach(x=>{ const k=keyFn(x); if(k!=null && !seen.has(k)) result.push(x); });
   return result;
 }
+// Deduplicate categories by name — keeps the one with an image, or the first occurrence
+function dedupeCategories(cats){
+  if(!cats || !cats.length) return cats;
+  const seen=new Map();
+  cats.forEach(c=>{
+    const key=(c.name||'').trim();
+    if(!key) return;
+    if(!seen.has(key)){
+      seen.set(key, c);
+    } else {
+      const prev=seen.get(key);
+      // prefer the one that has an image
+      if(!prev.image && c.image) seen.set(key, c);
+    }
+  });
+  return [...seen.values()];
+}
+// Deduplicate recipes by name within the same category — keeps the one with more content
+function dedupeRecipes(recipes){
+  if(!recipes || !recipes.length) return recipes;
+  const seen=new Map();
+  recipes.forEach(r=>{
+    const key=(r.cat||'')+'|'+(r.name||'').trim();
+    if(!seen.has(key)){
+      seen.set(key, r);
+    } else {
+      const prev=seen.get(key);
+      const prevLen=(prev.steps||'').length+(prev.ingredients||[]).length;
+      const curLen=(r.steps||'').length+(r.ingredients||[]).length;
+      if(curLen>prevLen) seen.set(key, r);
+    }
+  });
+  return [...seen.values()];
+}
 
 async function syncPull(silent){
   if(!syncConfigured()) return false;
@@ -1343,21 +1933,36 @@ async function syncPull(silent){
       state.recipes = mergeByKey(state.recipes, remote.recipes, x=>x.id);
       // Categories: merge by id
       state.categories = mergeByKey(state.categories, remote.categories, x=>x.id);
+      // Deduplicate after merge (same name, different id → keep one)
+      state.categories = dedupeCategories(state.categories);
+      state.recipes = dedupeRecipes(state.recipes);
       // Showcases: merge by id
       state.showcases = mergeByKey(state.showcases, remote.showcases, x=>x.id);
+      // Group order: remote wins if present
+      if(remote.groupOrder && Array.isArray(remote.groupOrder) && remote.groupOrder.length>0){
+        state.groupOrder = remote.groupOrder;
+      }
       // Pantry: merge by value (string itself is the key)
       state.pantry = mergeByKey(state.pantry, remote.pantry, x=>x);
       // Wiki: merge by property name (object)
       state.wiki = mergeByKey(state.wiki, remote.wiki);
       // Settings: remote wins
       if(remote.aiImage) state.aiImage = Object.assign({...DEFAULT_AI}, remote.aiImage);
-      if(remote.profile) state.profile = Object.assign({...DEFAULT_PROFILE}, remote.profile);
+      // Profile: sync name/tagline but preserve device-local avatar
+      if(remote.profile){
+        const localAvatar = state.profile.avatar;
+        state.profile = Object.assign({...DEFAULT_PROFILE}, remote.profile);
+        state.profile.avatar = localAvatar;
+      }
 
       // Repair any garbled text that came from cloud
       repairAllData();
-      // Ensure reference recipes and wiki ingredients exist
-      ensureReferenceRecipes();
+      // Ensure wiki ingredients exist
       ensureWikiIngredients();
+      // Migrate categories to new grouped Chinese structure
+      migrateCategories();
+      // Ensure reference recipes exist (after categories are migrated)
+      ensureReferenceRecipes();
       // Re-lock recipes after cloud merge (cloud data may lack 'locked' field)
       let relockChanged=false;
       if(state.recipes && state.recipes.length>0){
@@ -1578,18 +2183,21 @@ function renderNav(){
 let scDelMode=false;
 function renderShowcase(){
   const items = state.showcases || [];
+  const isAdmin=isLoggedIn()&&isAdminPhone();
   content.innerHTML = `
     <div class="screen">
       <div class="hd">
         <div class="hd-row">
           <div>
-            <h1>Showcase</h1>
-            <p>展示你的烘焙成品</p>
+            <h1>甜品橱窗</h1>
+            <p>展示你的烘焙成品 🧁</p>
           </div>
+          ${isAdmin?`
           <div class="hd-actions">
             <button class="hd-btn brand" id="scAdd">${svg('plus',2)}</button>
             <button class="hd-btn danger ${scDelMode?'active':''}" id="scDelBtn" ${items.length===0?'disabled':''}>${svg('trash')}</button>
           </div>
+          `:''}
         </div>
       </div>
       <div class="sc-grid ${scDelMode?'del-mode':''}" id="scGrid">
@@ -1603,17 +2211,18 @@ function renderShowcase(){
               <div class="sc-price">${item.price?esc(String(item.price).replace(/^[¥￥]\s*/,'')):'—'}</div>
               <div class="sc-desc">${esc(item.desc||'')}</div>
             </div>
-            <button class="sc-del" data-del="${item.id}">✕</button>
+            ${isAdmin?`<button class="sc-del" data-del="${item.id}">✕</button>`:''}
           </div>
         `).join('')}
       </div>
-      ${items.length===0 ? `<div class="empty">还没有展示成品。<br>点击右上角 + 来添加。</div>` : ''}
+      ${items.length===0 ? `<div class="empty">${isAdmin?'还没有展示成品。<br>点击右上角 + 来添加。':'还没有展示成品。'}</div>` : ''}
     </div>`;
 
-  // Add new
+  // Add new (admin only)
+  if(isAdmin){
   document.getElementById('scAdd').onclick=()=>{ scDelMode=false; openShowcaseEditor(null); };
 
-  // Toggle delete mode
+  // Toggle delete mode (admin only)
   const delBtn=document.getElementById('scDelBtn');
   if(delBtn){
     delBtn.onclick=()=>{
@@ -1621,8 +2230,10 @@ function renderShowcase(){
       renderShowcase();
     };
   }
+  } // end if(isAdmin)
 
-  // Click card to edit (or delete in del mode)
+  // Click card to edit (or delete in del mode) — admin only
+  if(isAdmin){
   document.querySelectorAll('.sc-card').forEach(card=>{
     card.onclick=(e)=>{
       if(e.target.classList.contains('sc-del')) return;
@@ -1643,7 +2254,7 @@ function renderShowcase(){
     };
   });
 
-  // Delete via ✕ button
+  // Delete via ✕ button (admin only)
   document.querySelectorAll('.sc-del').forEach(btn=>{
     btn.onclick=(e)=>{
       e.stopPropagation();
@@ -1657,6 +2268,7 @@ function renderShowcase(){
       });
     };
   });
+  }
 }
 
 function openShowcaseEditor(existing){
@@ -1779,16 +2391,18 @@ function openShowcaseEditor(existing){
 
 /* ---------- Tab 1: Gallery ---------- */
 function renderGallery(){
-  // Always render gallery content first (behind the lock overlay)
+  // Render gallery content (no gallery-wide lock overlay; individual recipes still have their own locks)
   if(state.gView==='home') renderGalleryHome();
   else if(state.gView==='list') renderRecipeList();
   else if(state.gView==='editor') renderEditor();
-  // Then overlay the lock on top if not unlocked
-  if(!isGalleryUnlocked()){ renderGalleryLock(); }
 }
 
 function renderGalleryHome(){
   catSelected.clear();
+  const isAdmin=isLoggedIn()&&isAdminPhone();
+  // Determine lock button visibility and text
+  const showLockBtn = isAdmin ? true : !isAllRecipesUnlocked();
+  const lockBtnText = isAdmin ? '全部' : (deviceRecipePermissions.length > 0 ? '部分' : '全部');
   content.innerHTML = `
     <div class="screen">
       <div class="hd">
@@ -1798,313 +2412,451 @@ function renderGalleryHome(){
             <p>经典配方，选一个，做成你的</p>
           </div>
           <div class="hd-actions">
-            <button class="hd-btn brand" id="lockAllBtn" title="全部上锁" style="font-size:11px;width:auto;padding:0 10px;gap:3px">${svg('lock',1.5)}<span>全部</span></button>
+            ${isAdmin?`<button class="hd-btn brand" id="catSortBtn" title="排序">${svg('sort',2)}</button>`:''}
+            ${showLockBtn?`<button class="hd-btn brand" id="lockAllBtn" title="解锁全部" style="font-size:11px;width:auto;padding:0 10px;gap:3px">${svg('lock',1.5)}<span>${lockBtnText}</span></button>`:''}
+            ${isAdmin?`
             <button class="hd-btn brand" id="catAdd">${svg('plus',2)}</button>
             <button class="hd-btn danger" id="catDel" disabled>${svg('trash')}</button>
+            `:''}
           </div>
         </div>
       </div>
-      <div class="grid">
-        ${state.categories.map(c=>`
-          <div class="cat" data-cat="${c.id}">
-            <div class="art">
-              ${c.image?`<img src="${c.image}" alt="">`:`<span class="cat-placeholder">${esc(c.name.charAt(0))}</span>`}
-              <button class="cat-check" data-cid="${c.id}">${svg('check')}</button>
-              <button class="cat-edit" data-cid="${c.id}">${svg('pencil')}</button>
-            </div>
-            <div class="meta">
-              <div class="nm">${esc(c.name)}</div>
-              <div class="ct">${recipeCount(c.id)} 个配方</div>
-            </div>
-          </div>`).join('')}
-      </div>
+      ${(()=>{const grouped={};const uncategorized=[];state.categories.forEach(c=>{if(c.group&&CATEGORY_LOOKUP[c.name]){if(!grouped[c.group])grouped[c.group]=[];grouped[c.group].push(c);}else{uncategorized.push(c);}});let html='';const _sortedGroups=state.groupOrder&&state.groupOrder.length?state.groupOrder.map(n=>CATEGORY_GROUPS.find(g=>g.name===n)).filter(Boolean):CATEGORY_GROUPS;_sortedGroups.forEach(g=>{const cats=grouped[g.name]||[];if(cats.length===0)return;cats.sort((a,b)=>{const ai=g.items.findIndex(it=>it.name===a.name);const bi=g.items.findIndex(it=>it.name===b.name);return(ai===-1?999:ai)-(bi===-1?999:bi);});html+=`<div class="cat-group"><div class="cat-group-header"><span class="cat-group-name">${g.name}</span><span class="cat-group-en">${g.nameEn}</span></div><div class="grid">${cats.map(c=>`<div class="cat" data-cat="${c.id}"><div class="art">${c.image?`<img src="${c.image}" alt="">`:`<span class="cat-placeholder">${esc(c.name.charAt(0))}</span>`}${isAdmin?`<button class="cat-check" data-cid="${c.id}">${svg('check')}</button><button class="cat-edit" data-cid="${c.id}">${svg('pencil')}</button>`:''}</div><div class="meta"><div class="nm">${esc(c.name)}</div><div class="nm-en">${esc(c.nameEn||'')}</div><div class="ct">${recipeCount(c.id)} 个配方</div></div></div>`).join('')}</div></div>`;});if(uncategorized.length>0){html+=`<div class="cat-group"><div class="cat-group-header"><span class="cat-group-name">其他</span><span class="cat-group-en">Other</span></div><div class="grid">${uncategorized.map(c=>`<div class="cat" data-cat="${c.id}"><div class="art">${c.image?`<img src="${c.image}" alt="">`:`<span class="cat-placeholder">${esc(c.name.charAt(0))}</span>`}${isAdmin?`<button class="cat-check" data-cid="${c.id}">${svg('check')}</button><button class="cat-edit" data-cid="${c.id}">${svg('pencil')}</button>`:''}</div><div class="meta"><div class="nm">${esc(c.name)}</div><div class="nm-en">${esc(c.nameEn||'')}</div><div class="ct">${recipeCount(c.id)} 个配方</div></div></div>`).join('')}</div></div>`;}return html;})()}
     </div>`;
   // card click -> open category list
   document.querySelectorAll('.cat').forEach(b=>{
     b.onclick=(e)=>{
-      if(catDragJustEnded) return;
       if(e.target.closest('.cat-check')||e.target.closest('.cat-edit')) return;
       state.catId=b.dataset.cat; state.gView='list'; render(); window.scrollTo(0,0);
     };
   });
-  // checkbox toggle
-  document.querySelectorAll('.cat-check').forEach(cb=>{
-    cb.onclick=(e)=>{
-      e.stopPropagation();
-      const cid=cb.dataset.cid;
-      if(cb.classList.contains('on')){ cb.classList.remove('on'); catSelected.delete(cid); }
-      else{ cb.classList.add('on'); catSelected.add(cid); }
-      updateCatDelBtn();
-    };
-  });
-  // edit button
-  document.querySelectorAll('.cat-edit').forEach(eb=>{
-    eb.onclick=(e)=>{
-      e.stopPropagation();
-      const c=state.categories.find(x=>x.id===eb.dataset.cid);
-      if(c) openCatEditor(c);
-    };
-  });
-  // add button
-  document.getElementById('catAdd').onclick=()=>openCatEditor(null);
-  // lock all / unlock all toggle
-  document.getElementById('lockAllBtn').onclick=()=>{
-    const allLocked=state.recipes.length>0 && state.recipes.every(r=>r.locked);
-    if(allLocked){
-      openActionSheet('配方锁定','选择操作',[
-        {label:'全部解锁',action:()=>{
-          state.recipes.forEach(r=>{ r.locked=false; });
-          persist(true); renderGalleryHome();
-          toast('已解锁全部配方','success');
-        }},
-        {label:'取消'}
-      ]);
-    }else{
-      openActionSheet('配方锁定','选择操作',[
-        {label:'全部上锁',action:()=>{
-          state.recipes.forEach(r=>{ r.locked=true; if(!r.lockPwd) r.lockPwd=DEFAULT_RECIPE_PWD; });
-          persist(true); renderGalleryHome();
-          toast('已锁定全部配方','success');
-        }},
-        {label:'取消'}
-      ]);
-    }
-  };
-  // delete button
-  document.getElementById('catDel').onclick=()=>{
-    if(catSelected.size===0) return;
-    const count=catSelected.size;
-    openModal('删除选中的分类？',`确认删除选中的 ${count} 个分类？分类下的配方不会被删除，但需要重新归类。此操作无法撤销。`,()=>{
-      state.categories=state.categories.filter(c=>!catSelected.has(c.id));
-      persist(true);
-      renderGalleryHome();
-      toast('已删除选中分类','success');
+  // checkbox toggle (admin only)
+  if(isAdmin){
+    document.querySelectorAll('.cat-check').forEach(cb=>{
+      cb.onclick=(e)=>{
+        e.stopPropagation();
+        const cid=cb.dataset.cid;
+        if(cb.classList.contains('on')){ cb.classList.remove('on'); catSelected.delete(cid); }
+        else{ cb.classList.add('on'); catSelected.add(cid); }
+        updateCatDelBtn();
+      };
     });
-  };
+  }
+  // edit button (admin only)
+  if(isAdmin){
+    document.querySelectorAll('.cat-edit').forEach(eb=>{
+      eb.onclick=(e)=>{
+        e.stopPropagation();
+        const c=state.categories.find(x=>x.id===eb.dataset.cid);
+        if(c) openCatEditor(c);
+      };
+    });
+  }
+  // add button (admin only)
+  if(isAdmin){
+    const catAddBtn=document.getElementById('catAdd');
+    if(catAddBtn) catAddBtn.onclick=()=>openCatEditor(null);
+  }
+  // lock all / unlock all toggle
+  const lockAllBtnEl=document.getElementById('lockAllBtn');
+  if(lockAllBtnEl){
+    lockAllBtnEl.onclick=()=>{
+      if(isAdmin){
+        // Admin: show lock/unlock action sheet
+        const allLocked=state.recipes.length>0 && state.recipes.every(r=>r.locked);
+        if(allLocked){
+          openActionSheet('配方锁定','选择操作',[
+            {label:'全部解锁',action:()=>{
+              state.recipes.forEach(r=>{ r.locked=false; });
+              persist(true); renderGalleryHome();
+              toast('已解锁全部配方','success');
+            }},
+            {label:'取消'}
+          ]);
+        }else{
+          openActionSheet('配方锁定','选择操作',[
+            {label:'全部上锁',action:()=>{
+              state.recipes.forEach(r=>{ r.locked=true; if(!r.lockPwd) r.lockPwd=DEFAULT_RECIPE_PWD; });
+              persist(true); renderGalleryHome();
+              toast('已锁定全部配方','success');
+            }},
+            {label:'取消'}
+          ]);
+        }
+      }else{
+        // Non-admin: show sweet gallery lock to unlock all recipes
+        renderGalleryLock();
+      }
+    };
+  }
+  // delete button (admin only)
+  if(isAdmin){
+    const catDelBtn=document.getElementById('catDel');
+    if(catDelBtn) catDelBtn.onclick=()=>{
+      if(catSelected.size===0) return;
+      const count=catSelected.size;
+      openModal('删除选中的分类？',`确认删除选中的 ${count} 个分类？分类下的配方不会被删除，但需要重新归类。此操作无法撤销。`,()=>{
+        state.categories=state.categories.filter(c=>!catSelected.has(c.id));
+        persist(true);
+        renderGalleryHome();
+        toast('已删除选中分类','success');
+      });
+    };
+  }
   function updateCatDelBtn(){
     const btn=document.getElementById('catDel');
     if(btn) btn.disabled=catSelected.size===0;
   }
-  // init long-press drag-to-reorder
-  initCategoryDrag();
+  // sort button (admin only)
+  if(isAdmin){
+    const sortBtn=document.getElementById('catSortBtn');
+    if(sortBtn) sortBtn.onclick=()=>openSortPanel();
+  }
 }
 
-/* ---------- Long-press drag-to-reorder for category cards (FLIP animation) ---------- */
-let catDragJustEnded=false;
-function initCategoryDrag(){
-  const cards=document.querySelectorAll('.cat');
-  if(cards.length<2) return;
-  let dragCard=null, dragGhost=null, longPressTimer=null, isHolding=false, isDragging=false;
-  let lastX=0, lastY=0, tiltAngle=0;
-  const HOLD_MS=500;
+/* ---------- Sort Panel: Large category + Small category drag sorting ---------- */
 
-  function getCardAtPoint(x, y){
-    if(dragGhost) dragGhost.style.display='none';
-    const el=document.elementFromPoint(x, y);
-    if(dragGhost) dragGhost.style.display='';
-    if(el){
-      const card=el.closest('.cat');
-      if(card) return card;
-    }
-    // fallback: coordinate matching
-    const grid=document.querySelector('.grid');
-    if(!grid) return null;
-    const allCards=[...grid.querySelectorAll('.cat')];
-    for(const card of allCards){
-      if(card===dragCard) continue;
-      const rect=card.getBoundingClientRect();
-      if(x>=rect.left && x<=rect.right && y>=rect.top && y<=rect.bottom) return card;
+// Open sort action sheet
+function openSortPanel(){
+  openActionSheet('排序','选择排序方式',[
+    {label:'大分类排序',variant:'brand',action:()=>openGroupSort()},
+    {label:'小分类排序',action:()=>openCardSort()},
+    {label:'取消'}
+  ]);
+}
+
+// ---- Large category sort: drag group names to reorder ----
+function openGroupSort(){
+  // Build working copy of groups in current order
+  const currentOrder = state.groupOrder && state.groupOrder.length
+    ? state.groupOrder
+    : CATEGORY_GROUPS.map(g=>g.name);
+  // Ensure all groups are present (in case new groups were added)
+  CATEGORY_GROUPS.forEach(g=>{
+    if(!currentOrder.includes(g.name)) currentOrder.push(g.name);
+  });
+  let items = currentOrder.map(name=>CATEGORY_GROUPS.find(g=>g.name===name)).filter(Boolean);
+  // Include "其他" (uncategorized) at the end if there are uncategorized items
+  const hasUncategorized = state.categories.some(c=>!c.group || !CATEGORY_LOOKUP[c.name]);
+
+  // Create overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'sort-overlay';
+  overlay.id = 'sortOverlay';
+  overlay.innerHTML = `
+    <div class="sort-hd">
+      <div class="sort-close" id="sortCloseBtn">${svg('arrowL')}</div>
+      <h2>大分类排序</h2>
+      <button class="sort-done" id="sortDoneBtn">完成</button>
+    </div>
+    <div class="sort-body" id="sortGroupBody">
+      <div class="sort-hint">长按名称拖动排序</div>
+      ${items.map(g=>{
+        const count = state.categories.filter(c=>c.group===g.name).length;
+        return `<div class="sort-row" data-group="${esc(g.name)}">
+          <div class="sr-info">
+            <div class="sr-name">${esc(g.name)}</div>
+            <div class="sr-en">${esc(g.nameEn||'')}</div>
+            <div class="sr-count">${count} 个小分类</div>
+          </div>
+          <div class="sr-grip">${svg('grip')}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  if(navigator.vibrate) navigator.vibrate(10);
+
+  // Close handler
+  document.getElementById('sortCloseBtn').onclick = ()=>{ overlay.remove(); };
+  document.getElementById('sortDoneBtn').onclick = ()=>{
+    // Save new order
+    const newOrder = [...overlay.querySelectorAll('.sort-row')].map(r=>r.dataset.group);
+    state.groupOrder = newOrder;
+    persist(true);
+    overlay.remove();
+    renderGalleryHome();
+    toast('排序已保存','success');
+  };
+
+  // Drag logic for group rows
+  initRowDrag(overlay, '.sort-row', 'data-group');
+}
+
+// Generic row drag-to-reorder (for large category sort)
+function initRowDrag(container, rowSelector, attrName){
+  let dragRow=null, ghost=null, isDragging=false;
+  let startY=0, offsetX=0, offsetY=0;
+  const HOLD_MS=300;
+  let holdTimer=null;
+
+  function getRowAtPoint(y){
+    const rows = [...container.querySelectorAll(rowSelector)];
+    for(const r of rows){
+      if(r===dragRow) continue;
+      const rect = r.getBoundingClientRect();
+      if(y>=rect.top && y<=rect.bottom) return r;
     }
     return null;
   }
 
-  // FLIP: record positions → swap → invert → play
-  function swapWithFLIP(targetCard){
-    if(!targetCard || targetCard===dragCard) return false;
-    const grid=document.querySelector('.grid');
-    const all=[...grid.querySelectorAll('.cat')];
-    const fromIdx=all.indexOf(dragCard);
-    const toIdx=all.indexOf(targetCard);
-    if(fromIdx<0 || toIdx<0 || fromIdx===toIdx) return false;
-
-    // FIRST: record positions of all cards
-    const positions=new Map();
-    all.forEach(c=>positions.set(c, c.getBoundingClientRect()));
-
-    // LAST: do the DOM swap
-    if(fromIdx<toIdx) targetCard.after(dragCard);
-    else grid.insertBefore(dragCard, targetCard);
-
-    // INVERT + PLAY: animate from old position to new
-    all.forEach(c=>{
-      const oldRect=positions.get(c);
-      const newRect=c.getBoundingClientRect();
-      const dx=oldRect.left-newRect.left;
-      const dy=oldRect.top-newRect.top;
-      if(dx===0 && dy===0) return;
-      c.classList.add('flip-anim');
-      c.style.transform=`translate(${dx}px, ${dy}px)`;
-      c.style.transition='none';
-      // force reflow
-      c.offsetHeight;
-      c.style.transition='';
-      c.style.transform='';
-    });
-    // cleanup flip-anim class after animation
-    setTimeout(()=>{ all.forEach(c=>c.classList.remove('flip-anim')); }, 360);
-    return true;
-  }
-
-  function beginDrag(card){
+  function beginDrag(row, x, y){
     isDragging=true;
-    const rect=card.getBoundingClientRect();
-    dragCard=card;
-    dragCard.classList.add('drag-ghost');
-    // create ghost
-    dragGhost=card.cloneNode(true);
-    dragGhost.classList.add('dragging');
-    dragGhost.classList.remove('drag-ghost');
-    dragGhost.style.width=rect.width+'px';
-    dragGhost.style.height=rect.height+'px';
-    dragGhost.style.left=rect.left+'px';
-    dragGhost.style.top=rect.top+'px';
-    dragGhost.style.transform='scale(1.05) rotate(0deg)';
-    document.body.appendChild(dragGhost);
-    // show hint
-    const hint=document.getElementById('dragHint');
-    if(hint) hint.classList.add('show');
+    dragRow=row;
+    const rect=row.getBoundingClientRect();
+    offsetX = x - rect.left;
+    offsetY = y - rect.top;
+    row.classList.add('placeholder');
+    // Create ghost
+    ghost = row.cloneNode(true);
+    ghost.classList.remove('placeholder');
+    ghost.classList.add('dragging');
+    ghost.style.width=rect.width+'px';
+    ghost.style.left=rect.left+'px';
+    ghost.style.top=rect.top+'px';
+    document.body.appendChild(ghost);
     if(navigator.vibrate) navigator.vibrate(20);
   }
 
   function moveDrag(x, y){
-    if(!dragGhost) return;
-    lastX=x; lastY=y;
-    const w=dragGhost.offsetWidth, h=dragGhost.offsetHeight;
-    dragGhost.style.left=(x - w/2)+'px';
-    dragGhost.style.top=(y - h/2)+'px';
-    // subtle tilt based on horizontal velocity
-    tiltAngle=Math.max(-4, Math.min(4, (x - lastX) * 0.3));
-    dragGhost.style.transform=`scale(1.05) rotate(${tiltAngle}deg)`;
-    // highlight target
-    document.querySelectorAll('.cat.drag-over').forEach(c=>c.classList.remove('drag-over'));
-    const target=getCardAtPoint(x, y);
-    if(target && target!==dragCard) target.classList.add('drag-over');
+    if(!ghost) return;
+    ghost.style.left=(x-offsetX)+'px';
+    ghost.style.top=(y-offsetY)+'px';
+    // Find target row to swap
+    const target=getRowAtPoint(y);
+    // Remove highlight from all
+    container.querySelectorAll(rowSelector+'.placeholder').forEach(r=>{
+      if(r!==dragRow) r.classList.remove('placeholder');
+    });
+    if(target && target!==dragRow){
+      // Insert dragRow before or after target based on position
+      const rows=[...container.querySelectorAll(rowSelector)];
+      const dragIdx=rows.indexOf(dragRow);
+      const targetIdx=rows.indexOf(target);
+      if(targetIdx < dragIdx){
+        target.parentNode.insertBefore(dragRow, target);
+      } else {
+        target.parentNode.insertBefore(dragRow, target.nextSibling);
+      }
+    }
   }
 
   function endDrag(){
-    if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; }
-    if(!isDragging){ isHolding=false; return; }
-    isDragging=false; isHolding=false;
-    catDragJustEnded=true;
-    setTimeout(()=>{ catDragJustEnded=false; }, 400);
-
-    const hint=document.getElementById('dragHint');
-    if(hint) hint.classList.remove('show');
-    document.querySelectorAll('.cat.drag-over').forEach(c=>c.classList.remove('drag-over'));
-
-    if(dragGhost && dragCard){
-      // determine drop target
-      const rect=dragGhost.getBoundingClientRect();
-      const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
-      const target=getCardAtPoint(cx, cy);
-      const didSwap = target && target!==dragCard;
-
-      if(didSwap){
-        // animate ghost to target card's position, then swap with FLIP
-        const targetRect=target.getBoundingClientRect();
-        dragGhost.style.transition='left .3s cubic-bezier(.2,.9,.3,1), top .3s cubic-bezier(.2,.9,.3,1), transform .3s ease, opacity .3s ease';
-        dragGhost.style.left=targetRect.left+'px';
-        dragGhost.style.top=targetRect.top+'px';
-        dragGhost.style.transform='scale(1) rotate(0deg)';
-        dragGhost.style.opacity='0';
-
-        // after ghost animation, do FLIP swap and cleanup
-        setTimeout(()=>{
-          swapWithFLIP(target);
-          if(dragCard) dragCard.classList.remove('drag-ghost');
-          if(dragGhost){ dragGhost.remove(); dragGhost=null; }
-          saveNewOrder();
-          dragCard=null;
-        }, 300);
-      } else {
-        // no swap — animate ghost back to original position
-        const origRect=dragCard.getBoundingClientRect();
-        dragGhost.style.transition='left .3s cubic-bezier(.2,.9,.3,1), top .3s cubic-bezier(.2,.9,.3,1), transform .3s ease';
-        dragGhost.style.left=origRect.left+'px';
-        dragGhost.style.top=origRect.top+'px';
-        dragGhost.style.transform='scale(1) rotate(0deg)';
-        setTimeout(()=>{
-          if(dragCard) dragCard.classList.remove('drag-ghost');
-          if(dragGhost){ dragGhost.remove(); dragGhost=null; }
-          dragCard=null;
-        }, 300);
-      }
-    } else {
-      if(dragCard) dragCard.classList.remove('drag-ghost');
-      dragCard=null; dragGhost=null;
+    if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}
+    if(!isDragging){ return; }
+    isDragging=false;
+    if(dragRow) dragRow.classList.remove('placeholder');
+    if(ghost){
+      const rect=dragRow.getBoundingClientRect();
+      ghost.style.transition='left .25s cubic-bezier(.2,.9,.3,1), top .25s cubic-bezier(.2,.9,.3,1), opacity .25s ease';
+      ghost.style.left=rect.left+'px';
+      ghost.style.top=rect.top+'px';
+      ghost.style.opacity='0';
+      setTimeout(()=>{ if(ghost){ghost.remove();ghost=null;} },250);
     }
-
-    document.removeEventListener('mousemove', docMouseMove);
-    document.removeEventListener('mouseup', docMouseUp);
-    document.removeEventListener('touchmove', docTouchMove);
-    document.removeEventListener('touchend', docTouchEnd);
-    document.removeEventListener('touchcancel', docTouchEnd);
+    dragRow=null;
+    document.removeEventListener('mousemove',onMouseMove);
+    document.removeEventListener('mouseup',onMouseUp);
+    document.removeEventListener('touchmove',onTouchMove);
+    document.removeEventListener('touchend',onTouchEnd);
+    document.removeEventListener('touchcancel',onTouchEnd);
   }
 
-  function saveNewOrder(){
+  function onMouseMove(e){ if(!isDragging) return; e.preventDefault(); moveDrag(e.clientX,e.clientY); }
+  function onMouseUp(){ endDrag(); }
+  function onTouchMove(e){ if(!isDragging) return; e.preventDefault(); const t=e.touches[0]; moveDrag(t.clientX,t.clientY); }
+  function onTouchEnd(){ endDrag(); }
+
+  container.querySelectorAll(rowSelector).forEach(row=>{
+    // Mouse
+    row.addEventListener('mousedown',(e)=>{
+      if(e.button!==0) return;
+      holdTimer=setTimeout(()=>{
+        beginDrag(row, e.clientX, e.clientY);
+        document.addEventListener('mousemove',onMouseMove);
+        document.addEventListener('mouseup',onMouseUp);
+      },HOLD_MS);
+    });
+    row.addEventListener('mouseup',()=>{ if(holdTimer){clearTimeout(holdTimer);holdTimer=null;} });
+    // Touch
+    row.addEventListener('touchstart',(e)=>{
+      const t=e.touches[0];
+      holdTimer=setTimeout(()=>{
+        beginDrag(row, t.clientX, t.clientY);
+        document.addEventListener('touchmove',onTouchMove,{passive:false});
+        document.addEventListener('touchend',onTouchEnd);
+        document.addEventListener('touchcancel',onTouchEnd);
+      },HOLD_MS);
+    },{passive:true});
+    row.addEventListener('touchmove',()=>{ if(holdTimer && !isDragging){clearTimeout(holdTimer);holdTimer=null;} },{passive:true});
+    row.addEventListener('touchend',()=>{ if(holdTimer){clearTimeout(holdTimer);holdTimer=null;} });
+  });
+}
+
+// ---- Small category sort: shaking cards, drag to reorder ----
+function openCardSort(){
+  // Add shaking class to all cards
+  const cards = document.querySelectorAll('.cat');
+  if(cards.length<2){ toast('至少需要2个分类才能排序','info'); return; }
+  cards.forEach(c=>c.classList.add('shaking'));
+
+  // Hide admin buttons during sort mode
+  document.querySelectorAll('.cat-check, .cat-edit, #catAdd, #catDel, #catSortBtn, #lockAllBtn').forEach(el=>el.style.display='none');
+
+  // Show exit bar
+  const exitBar = document.createElement('div');
+  exitBar.className='sort-exit-bar';
+  exitBar.id='sortExitBar';
+  exitBar.innerHTML=`<button class="mb-ok" id="sortExitBtn" style="background:var(--brand)">完成排序</button>`;
+  document.body.appendChild(exitBar);
+
+  if(navigator.vibrate) navigator.vibrate(15);
+
+  // Exit handler
+  document.getElementById('sortExitBtn').onclick = ()=>{
+    // Save new order
     const grid=document.querySelector('.grid');
     if(grid){
-      const newOrder=[...grid.querySelectorAll('.cat')].map(el=>el.dataset.cat);
+      // Collect all cards across all grids in order
+      const grids = document.querySelectorAll('.grid');
+      const allCards = [];
+      grids.forEach(g=>{ allCards.push(...g.querySelectorAll('.cat')); });
+      const newOrder = allCards.map(el=>el.dataset.cat);
       state.categories.sort((a,b)=>newOrder.indexOf(a.id)-newOrder.indexOf(b.id));
       persist(true);
     }
+    // Cleanup
+    cards.forEach(c=>{c.classList.remove('shaking');c.classList.remove('sort-dragging');c.classList.remove('sort-placeholder');});
+    exitBar.remove();
+    // Restore admin buttons
+    document.querySelectorAll('.cat-check, .cat-edit, #catAdd, #catDel, #catSortBtn, #lockAllBtn').forEach(el=>el.style.display='');
+    renderGalleryHome();
+    toast('排序已保存','success');
+  };
+
+  // Card drag logic — long press on image to drag
+  initCardSortDrag();
+}
+
+function initCardSortDrag(){
+  const cards = document.querySelectorAll('.cat.shaking');
+  if(!cards.length) return;
+  let dragCard=null, ghost=null, isDragging=false;
+  let startX=0, startY=0, offsetX=0, offsetY=0;
+  const HOLD_MS=400;
+  let holdTimer=null;
+
+  function getCardAtPoint(x, y){
+    if(ghost) ghost.style.display='none';
+    const el=document.elementFromPoint(x, y);
+    if(ghost) ghost.style.display='';
+    if(el){
+      const card=el.closest('.cat');
+      if(card && card!==dragCard && card.classList.contains('shaking')) return card;
+    }
+    return null;
   }
 
-  function docMouseMove(e){
-    if(!isHolding) return;
-    if(!isDragging) beginDrag(dragCard);
-    e.preventDefault();
-    moveDrag(e.clientX, e.clientY);
+  function beginDrag(card, x, y){
+    isDragging=true;
+    dragCard=card;
+    card.classList.add('sort-placeholder');
+    card.classList.remove('shaking');
+    const rect=card.getBoundingClientRect();
+    offsetX=x-rect.left;
+    offsetY=y-rect.top;
+    // Create ghost
+    ghost=card.cloneNode(true);
+    ghost.classList.remove('sort-placeholder');
+    ghost.classList.remove('shaking');
+    ghost.classList.add('sort-dragging');
+    ghost.style.width=rect.width+'px';
+    ghost.style.height=rect.height+'px';
+    ghost.style.left=rect.left+'px';
+    ghost.style.top=rect.top+'px';
+    document.body.appendChild(ghost);
+    if(navigator.vibrate) navigator.vibrate(30);
   }
-  function docMouseUp(){ endDrag(); }
-  function docTouchMove(e){
-    if(!isHolding) return;
-    if(!isDragging) beginDrag(dragCard);
-    e.preventDefault();
-    const t=e.touches[0];
-    moveDrag(t.clientX, t.clientY);
+
+  function moveDrag(x, y){
+    if(!ghost) return;
+    ghost.style.left=(x-offsetX)+'px';
+    ghost.style.top=(y-offsetY)+'px';
+    const target=getCardAtPoint(x, y);
+    // Remove highlight
+    document.querySelectorAll('.cat.sort-placeholder').forEach(c=>{ if(c!==dragCard) c.classList.remove('sort-placeholder'); });
+    if(target){
+      target.classList.add('sort-placeholder');
+      // Swap in DOM
+      const allGrids=[...document.querySelectorAll('.grid')];
+      for(const grid of allGrids){
+        const rows=[...grid.querySelectorAll('.cat')];
+        const dragIdx=rows.indexOf(dragCard);
+        const targetIdx=rows.indexOf(target);
+        if(dragIdx>=0 && targetIdx>=0){
+          if(targetIdx<dragIdx) grid.insertBefore(dragCard, target);
+          else grid.insertBefore(dragCard, target.nextSibling);
+          break;
+        }
+      }
+    }
   }
-  function docTouchEnd(){ endDrag(); }
+
+  function endDrag(){
+    if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}
+    if(!isDragging) return;
+    isDragging=false;
+    if(dragCard){
+      dragCard.classList.remove('sort-placeholder');
+      dragCard.classList.add('shaking');
+    }
+    if(ghost){
+      const rect=dragCard.getBoundingClientRect();
+      ghost.style.transition='left .25s cubic-bezier(.2,.9,.3,1), top .25s cubic-bezier(.2,.9,.3,1), opacity .25s ease, transform .25s ease';
+      ghost.style.left=rect.left+'px';
+      ghost.style.top=rect.top+'px';
+      ghost.style.transform='scale(1)';
+      ghost.style.opacity='0';
+      setTimeout(()=>{ if(ghost){ghost.remove();ghost=null;} },250);
+    }
+    dragCard=null;
+    document.removeEventListener('mousemove',onMouseMove);
+    document.removeEventListener('mouseup',onMouseUp);
+    document.removeEventListener('touchmove',onTouchMove);
+    document.removeEventListener('touchend',onTouchEnd);
+    document.removeEventListener('touchcancel',onTouchEnd);
+  }
+
+  function onMouseMove(e){ if(!isDragging) return; e.preventDefault(); moveDrag(e.clientX,e.clientY); }
+  function onMouseUp(){ endDrag(); }
+  function onTouchMove(e){ if(!isDragging) return; e.preventDefault(); const t=e.touches[0]; moveDrag(t.clientX,t.clientY); }
+  function onTouchEnd(){ endDrag(); }
 
   cards.forEach(card=>{
-    card.addEventListener('mousedown', (e)=>{
-      if(e.target.closest('.cat-check')||e.target.closest('.cat-edit')) return;
+    const art = card.querySelector('.art');
+    const target = art || card;
+    // Mouse
+    target.addEventListener('mousedown',(e)=>{
       if(e.button!==0) return;
-      isHolding=true; isDragging=false; dragCard=card;
-      longPressTimer=setTimeout(()=>{
-        if(!isHolding) return;
-        document.addEventListener('mousemove', docMouseMove);
-        document.addEventListener('mouseup', docMouseUp);
-      }, HOLD_MS);
+      holdTimer=setTimeout(()=>{
+        beginDrag(card, e.clientX, e.clientY);
+        document.addEventListener('mousemove',onMouseMove);
+        document.addEventListener('mouseup',onMouseUp);
+      },HOLD_MS);
     });
-    card.addEventListener('touchstart', (e)=>{
-      if(e.target.closest('.cat-check')||e.target.closest('.cat-edit')) return;
-      isHolding=true; isDragging=false; dragCard=card;
-      longPressTimer=setTimeout(()=>{
-        if(!isHolding) return;
-        if(navigator.vibrate) navigator.vibrate(30);
-        document.addEventListener('touchmove', docTouchMove, {passive:false});
-        document.addEventListener('touchend', docTouchEnd);
-        document.addEventListener('touchcancel', docTouchEnd);
-      }, HOLD_MS);
-    }, {passive:true});
-    card.addEventListener('touchmove', ()=>{
-      if(longPressTimer && !isHolding){ clearTimeout(longPressTimer); longPressTimer=null; }
-    }, {passive:true});
-    card.addEventListener('touchend', ()=>{
-      if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; }
-      isHolding=false;
-    });
+    target.addEventListener('mouseup',()=>{ if(holdTimer){clearTimeout(holdTimer);holdTimer=null;} });
+    // Touch
+    target.addEventListener('touchstart',(e)=>{
+      const t=e.touches[0];
+      holdTimer=setTimeout(()=>{
+        beginDrag(card, t.clientX, t.clientY);
+        document.addEventListener('touchmove',onTouchMove,{passive:false});
+        document.addEventListener('touchend',onTouchEnd);
+        document.addEventListener('touchcancel',onTouchEnd);
+      },HOLD_MS);
+    },{passive:true});
+    target.addEventListener('touchmove',()=>{ if(holdTimer && !isDragging){clearTimeout(holdTimer);holdTimer=null;} },{passive:true});
+    target.addEventListener('touchend',()=>{ if(holdTimer){clearTimeout(holdTimer);holdTimer=null;} });
   });
 }
 
@@ -2233,7 +2985,84 @@ function processCatImage(dataUrl, callback){
   img.src=dataUrl;
 }
 
-/* ---------- Search Modal (image search → pick → generate) ---------- */
+/* ---------- Batch auto-fill category images ---------- */
+async function autoFillCategoryImages(){
+  const missing = state.categories.filter(c=>!c.image);
+  if(missing.length===0){ toast('所有分类都已有图片','info'); return; }
+  if(!state.aiImage.apiKey){
+    openActionSheet('补充图片','需要配置AI图片API密钥才能自动搜索并生成统一风格图片',[
+      {label:'手动搜索',action:()=>{
+        // Fallback: search without AI style edit (just search + process)
+        autoFillSimple(missing);
+      }},
+      {label:'取消'}
+    ]);
+    return;
+  }
+  toast(`开始搜索 ${missing.length} 个分类图片...`,'info');
+  let done=0, failed=0;
+  for(const cat of missing){
+    try{
+      const query = cat.nameEn || cat.name;
+      const results = await searchFoodImages(query);
+      if(results.length>0){
+        // Pick the first result
+        const imgUrl = results[0].url;
+        let finalImage;
+        try{
+          // Try AI style edit first
+          const base64 = await fetchImageAsBase64(imgUrl);
+          if(state.aiImage.apiKey){
+            const editedUrl = await editImageWithReference(base64);
+            finalImage = await downloadAndProcessAI(editedUrl);
+          } else {
+            finalImage = await downloadAndProcessAI(imgUrl);
+          }
+        }catch(e){
+          // Fallback: just download and process without AI edit
+          finalImage = await downloadAndProcessAI(imgUrl);
+        }
+        cat.image = finalImage;
+        done++;
+        toast(`已补充 ${done}/${missing.length}: ${cat.name}`,'success');
+      } else {
+        failed++;
+      }
+    }catch(e){
+      console.warn('autoFill error for',cat.name,e);
+      failed++;
+    }
+    // Small delay between requests
+    await new Promise(r=>setTimeout(r,500));
+  }
+  if(done>0){
+    persist(true);
+    renderGalleryHome();
+    toast(`完成！成功补充 ${done} 个图片${failed>0?'，'+failed+'个失败':''}`,'success');
+  } else {
+    toast('搜索失败，请检查网络或稍后重试','error');
+  }
+}
+// Simple auto-fill without AI style edit (fallback when no API key)
+async function autoFillSimple(missing){
+  toast(`开始搜索 ${missing.length} 个分类图片（简化模式）...`,'info');
+  let done=0;
+  for(const cat of missing){
+    try{
+      const results = await searchFoodImages(cat.nameEn || cat.name);
+      if(results.length>0){
+        const finalImage = await downloadAndProcessAI(results[0].url);
+        cat.image = finalImage;
+        done++;
+        toast(`已补充 ${done}/${missing.length}: ${cat.name}`,'success');
+      }
+    }catch(e){ console.warn('simple fill error',cat.name,e); }
+    await new Promise(r=>setTimeout(r,500));
+  }
+  if(done>0){ persist(true); renderGalleryHome(); toast(`完成！成功补充 ${done} 个图片`,'success'); }
+  else{ toast('搜索失败','error'); }
+}
+
 function openSearchModal(initialQuery, onConfirm){
   let searchResults=[];
   let selectedUrl=null;
@@ -2412,30 +3241,35 @@ function renderRecipeList(){
   const cat = state.categories.find(c=>c.id===state.catId);
   const list = state.recipes.filter(r=>r.cat===state.catId).sort((a,b)=>b.updated-a.updated);
   recipeSelected.clear();
+  const isAdmin=isLoggedIn()&&isAdminPhone();
   content.innerHTML = `
     <div class="screen">
       <div class="hd">
         <div class="hd-row">
           <div class="crumb" style="margin-bottom:0"><button class="back" id="backHome">${svg('arrowL')}</button><span>${cat?cat.name:''}</span></div>
+          ${isAdmin?`
           <div class="hd-actions">
             <button class="hd-btn brand" id="newRecipe">${svg('plus',2)}</button>
             <button class="hd-btn danger" id="delRecipe" disabled>${svg('trash')}</button>
           </div>
+          `:''}
         </div>
         <div style="font-size:13px;color:var(--sub);margin-top:10px">${list.length} 个配方</div>
       </div>
-      ${list.length===0 ? `<div class="empty">这里还没有配方。<br>点击右上角 + 来创建一个。</div>` :
+      ${list.length===0 ? `<div class="empty">${isAdmin?'这里还没有配方。<br>点击右上角 + 来创建一个。':'这里还没有配方。'}</div>` :
         list.map(r=>`
           <div class="rcard" data-recipe="${r.id}">
-            <button class="rcard-check" data-rid="${r.id}">${svg('check')}</button>
+            ${isAdmin?`<button class="rcard-check" data-rid="${r.id}">${svg('check')}</button>`:''}
+            ${r.image?`<img class="rcard-thumb" src="${r.image}" alt="">`:`<div class="rcard-thumb-placeholder">${esc(r.name.charAt(0))}</div>`}
             <div class="rcard-info"><div class="rt">${esc(r.name)}</div><div class="rd">${fmtDate(r.updated)}</div></div>
-            ${r.locked?'<span class="rcard-lock">'+svg('lock')+'</span>':''}
+            ${!canAccessRecipe(r)?'<span class="rcard-lock">'+svg('lock')+'</span>':''}
             <span class="arrow">${svg('chevR')}</span>
           </div>`).join('')}
     </div>`;
   document.getElementById('backHome').onclick=()=>{ state.gView='home'; render(); window.scrollTo(0,0); };
+  if(isAdmin){
   document.getElementById('newRecipe').onclick=()=>{
-    const r={ id:uid(), cat:state.catId, name:'未命名配方', updated:Date.now(), ingredients:[{name:'',gram:''}], steps:'', notes:'', locked:true, lockPwd:DEFAULT_RECIPE_PWD };
+    const r={ id:uid(), cat:state.catId, name:'未命名配方', updated:Date.now(), image:'', ingredients:[{name:'',gram:''}], steps:'', notes:'', locked:true, lockPwd:DEFAULT_RECIPE_PWD };
     state.recipes.unshift(r); state.recipeId=r.id; state.gView='editor'; persist(true); render(); window.scrollTo(0,0);
   };
   // checkbox toggle
@@ -2446,19 +3280,6 @@ function renderRecipeList(){
       if(cb.classList.contains('on')){ cb.classList.remove('on'); recipeSelected.delete(rid); }
       else{ cb.classList.add('on'); recipeSelected.add(rid); }
       updateRecipeDelBtn();
-    };
-  });
-  // card click -> open editor (with lock check)
-  document.querySelectorAll('.rcard').forEach(b=>{
-    b.onclick=(e)=>{
-      if(e.target.closest('.rcard-check')) return;
-      const rid=b.dataset.recipe;
-      const recipe=state.recipes.find(r=>r.id===rid);
-      if(recipe && recipe.locked){
-        promptRecipeUnlock(recipe);
-      }else{
-        state.recipeId=rid; state.gView='editor'; render(); window.scrollTo(0,0);
-      }
     };
   });
   // delete selected
@@ -2475,42 +3296,77 @@ function renderRecipeList(){
     const btn=document.getElementById('delRecipe');
     if(btn) btn.disabled = recipeSelected.size===0;
   }
+  } // end if(isAdmin)
+  // card click -> open editor (with lock check)
+  document.querySelectorAll('.rcard').forEach(b=>{
+    b.onclick=(e)=>{
+      if(e.target.closest('.rcard-check')) return;
+      const rid=b.dataset.recipe;
+      const recipe=state.recipes.find(r=>r.id===rid);
+      if(recipe && !canAccessRecipe(recipe)){
+        promptRecipeUnlock(recipe);
+      }else{
+        state.recipeId=rid; state.gView='editor'; render(); window.scrollTo(0,0);
+      }
+    };
+  });
 }
 
 /* ---------- Recipe Unlock Prompt ---------- */
 function promptRecipeUnlock(recipe){
   const m=document.getElementById('modal');
-  m.innerHTML=`
-    <div class="msheet">
-      <div class="mb">
-        <div class="mt">${svg('lock')} 解锁配方</div>
-        <div class="md">输入密码查看"${esc(recipe.name)}"</div>
-      </div>
-      <div style="padding:0 20px 16px">
-        <input type="password" id="recipeUnlockInput" placeholder="输入密码" style="width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);font-size:15px;outline:none;text-align:center;letter-spacing:2px" autocomplete="off">
-      </div>
-      <div class="ma">
-        <button class="mb-cancel" id="mbCancel">取消</button>
-        <button class="mb-ok" id="mbOk">解锁</button>
-      </div>
-    </div>`;
-  m.classList.add('show');
-  const input=document.getElementById('recipeUnlockInput');
-  input.focus();
-  input.addEventListener('keydown',(e)=>{ if(e.key==='Enter') document.getElementById('mbOk').click(); });
-  document.getElementById('mbCancel').onclick=closeModal;
-  document.getElementById('mbOk').onclick=()=>{
-    const pwd=input.value.trim();
-    if(pwd===RECIPE_MASTER_PWD || pwd===(recipe.lockPwd||DEFAULT_RECIPE_PWD)){
-      closeModal();
-      state.recipeId=recipe.id; state.gView='editor'; render(); window.scrollTo(0,0);
-    }else{
-      input.style.borderColor='#c45c48';
-      input.value='';
-      input.placeholder='密码错误';
-      setTimeout(()=>{ input.placeholder='输入密码'; input.style.borderColor='var(--line)'; },1500);
-    }
-  };
+  const isAdmin=isLoggedIn()&&isAdminPhone();
+  if(isAdmin){
+    // Admin: show password input
+    m.innerHTML=`
+      <div class="msheet">
+        <div class="mb">
+          <div class="mt">${svg('lock')} 解锁配方</div>
+          <div class="md">输入密码查看"${esc(recipe.name)}"</div>
+        </div>
+        <div style="padding:0 20px 16px">
+          <input type="password" id="recipeUnlockInput" placeholder="输入密码" style="width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);font-size:15px;outline:none;text-align:center;letter-spacing:2px" autocomplete="off">
+        </div>
+        <div class="ma">
+          <button class="mb-cancel" id="mbCancel">取消</button>
+          <button class="mb-ok" id="mbOk">解锁</button>
+        </div>
+      </div>`;
+    m.classList.add('show');
+    const input=document.getElementById('recipeUnlockInput');
+    input.focus();
+    input.addEventListener('keydown',(e)=>{ if(e.key==='Enter') document.getElementById('mbOk').click(); });
+    document.getElementById('mbCancel').onclick=closeModal;
+    document.getElementById('mbOk').onclick=()=>{
+      const pwd=input.value.trim();
+      if(pwd===RECIPE_MASTER_PWD || pwd===(recipe.lockPwd||DEFAULT_RECIPE_PWD)){
+        closeModal();
+        state.recipeId=recipe.id; state.gView='editor'; render(); window.scrollTo(0,0);
+      }else{
+        input.style.borderColor='#c45c48';
+        input.value='';
+        input.placeholder='密码错误';
+        setTimeout(()=>{ input.placeholder='输入密码'; input.style.borderColor='var(--line)'; },1500);
+      }
+    };
+  }else{
+    // Non-admin: show "请联系管理员升级权限"
+    m.innerHTML=`
+      <div class="msheet">
+        <div class="mb" style="text-align:center;padding:28px 20px 20px">
+          <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#FFB6C1,#E8A0BF);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 4px 14px rgba(255,182,193,.35)">
+            ${svg('lock').replace('width="24" height="24"','width="28" height="28"').replace('stroke="currentColor"','stroke="white"')}
+          </div>
+          <div class="mt" style="font-size:17px;font-weight:800;color:var(--ink)">权限不足</div>
+          <div class="md" style="margin-top:10px;font-size:14px;color:var(--sub);line-height:1.6">该配方需要管理员授权才能查看<br>请联系管理员升级权限</div>
+        </div>
+        <div class="ma">
+          <button class="mb-ok" id="mbOk" style="width:100%">知道了</button>
+        </div>
+      </div>`;
+    m.classList.add('show');
+    document.getElementById('mbOk').onclick=closeModal;
+  }
 }
 
 /* ---------- Editor with autosave ---------- */
@@ -2544,6 +3400,17 @@ function renderEditor(){
     <div class="screen">
       <div class="hd">
         <div class="crumb"><button class="back" id="backList">${svg('arrowL')}</button><span>${cat?cat.name:'配方'}</span></div>
+      </div>
+
+      <div class="ed-block">
+        <div class="ed-label">配方图片</div>
+        <div class="ed-img-upload ${r.image?'has-img':''}" id="edImgUpload">
+          ${r.image?`<img src="${r.image}" alt="">`:''}
+          <svg class="up-icon" viewBox="0 0 24 24"><path d="M12 20V8M7 13l5-5 5 5"/><path d="M5 20h14"/></svg>
+          <span class="up-text">${r.image?'':'点击上传图片'}</span>
+          ${r.image?`<span class="up-change">更换图片</span>`:''}
+        </div>
+        <button class="ed-img-search" id="edImgSearch">🔍 按产品名称搜索图片</button>
       </div>
 
       <div class="ed-block">
@@ -2594,6 +3461,54 @@ function renderEditor(){
     </div>`;
 
   document.getElementById('backList').onclick=()=>{ saveNow(); state.gView='list'; render(); window.scrollTo(0,0); };
+
+  // ---- Recipe image upload + AI search ----
+  const edImgUpload=document.getElementById('edImgUpload');
+  const recipeImgInput=document.getElementById('recipeImgInput');
+  if(edImgUpload){
+    edImgUpload.onclick=()=>recipeImgInput.click();
+  }
+  if(recipeImgInput){
+    recipeImgInput.onchange=(e)=>{
+      const file=e.target.files[0];
+      if(!file) return;
+      if(file.size>20*1024*1024){ toast('图片不能超过20MB','error'); e.target.value=''; return; }
+      const reader=new FileReader();
+      reader.onload=()=>{
+        processCatImage(reader.result, (processed)=>{
+          r.image=processed;
+          persist(true);
+          edImgUpload.classList.add('has-img');
+          edImgUpload.innerHTML=`<img src="${processed}" alt=""><span class="up-change">更换图片</span>`;
+        });
+      };
+      reader.readAsDataURL(file);
+      e.target.value='';
+    };
+  }
+  const edImgSearchBtn=document.getElementById('edImgSearch');
+  if(edImgSearchBtn){
+    edImgSearchBtn.onclick=()=>{
+      const query=r.name&&r.name!=='未命名配方'?r.name:(cat?cat.name:'');
+      openSearchModal(query, async(selectedUrl)=>{
+        let finalImage;
+        try{
+          const base64=await fetchImageAsBase64(selectedUrl);
+          if(state.aiImage.apiKey){
+            const editedUrl=await editImageWithReference(base64);
+            finalImage=await downloadAndProcessAI(editedUrl);
+          } else {
+            finalImage=await downloadAndProcessAI(selectedUrl);
+          }
+        }catch(e){
+          finalImage=await downloadAndProcessAI(selectedUrl);
+        }
+        r.image=finalImage;
+        persist(true);
+        renderEditor();
+      });
+    };
+  }
 
   // autosave on input (debounced 1.5s)
   ['edName','edCat','edSteps','edNotes'].forEach(id=>{
@@ -2756,6 +3671,7 @@ function renderWiki(){
   if(!data){ content.innerHTML='<div class="screen"><div class="empty">暂无数据</div></div>'; return; }
   wikiSelected.clear();
   const selCount=()=>wikiSelected.size;
+  const isAdmin=isLoggedIn()&&isAdminPhone();
 
   content.innerHTML=`
     <div class="screen">
@@ -2765,26 +3681,38 @@ function renderWiki(){
             <h1>烘焙百科</h1>
             <p>每种食材都有它的故事</p>
           </div>
+          ${isAdmin?`
           <div class="hd-actions">
             <button class="hd-btn brand" id="wikiAdd">${svg('plus',2)}</button>
             <button class="hd-btn danger" id="wikiDel">${svg('trash')}</button>
           </div>
+          `:''}
         </div>
       </div>
       <div class="wiki-tabs">
         ${cats.map(c=>`<button class="wtab ${c===active?'on':''}" data-wcat="${c}">${c}</button>`).join('')}
       </div>
       <div class="wiki-grid" id="wikiGrid">
-        ${data.items.map((it,i)=>wikiCardHTML(it,i,data.icon)).join('')}
+        ${data.items.map((it,i)=>wikiCardHTML(it,i,data.icon,isAdmin)).join('')}
       </div>
     </div>`;
 
-  // tab switching
+  // tab switching — preserve scroll position
   document.querySelectorAll('.wtab').forEach(b=>{
-    b.onclick=()=>{ saveWikiNow(); state.wikiCat=b.dataset.wcat; renderWiki(); };
+    b.onclick=()=>{
+      saveWikiNow();
+      const tabsEl=document.querySelector('.wiki-tabs');
+      const savedScroll=tabsEl?tabsEl.scrollLeft:0;
+      state.wikiCat=b.dataset.wcat;
+      renderWiki();
+      // Restore tab scroll position after re-render
+      const newTabs=document.querySelector('.wiki-tabs');
+      if(newTabs) newTabs.scrollLeft=savedScroll;
+    };
   });
 
-  // add — chooser: category or item
+  // add — chooser: category or item (admin only)
+  if(isAdmin){
   document.getElementById('wikiAdd').onclick=()=>{
     openActionSheet('添加','请选择添加类型',[
       {label:'添加分类',variant:'brand',action:()=>{
@@ -2854,26 +3782,24 @@ function renderWiki(){
     opts.push({label:'取消'});
     openActionSheet('删除','请选择删除类型',opts);
   };
+  } // end if(isAdmin)
 
-  // auto-save on input
-  document.querySelectorAll('.wk-name, .wk-desc').forEach(el=>{
-    el.addEventListener('input',scheduleWikiSave);
-  });
+  // auto-save on input (admin only — non-admin inputs are readonly)
+  if(isAdmin){
+    document.querySelectorAll('.wk-name, .wk-desc').forEach(el=>{
+      el.addEventListener('input',scheduleWikiSave);
+    });
 
-  // checkbox toggle
-  document.querySelectorAll('.wk-check').forEach(cb=>{
-    cb.onclick=()=>{
-      const idx=parseInt(cb.dataset.idx,10);
-      if(cb.classList.contains('on')){ cb.classList.remove('on'); wikiSelected.delete(idx); }
-      else{ cb.classList.add('on'); wikiSelected.add(idx); }
-      updateWikiDelBtn();
-    };
-  });
-
-  // add item — insert at TOP so user doesn't need to scroll down
-  // (moved to wikiAdd action sheet above)
-
-  // delete selected — (moved to wikiDel action sheet above)
+    // checkbox toggle (admin only)
+    document.querySelectorAll('.wk-check').forEach(cb=>{
+      cb.onclick=()=>{
+        const idx=parseInt(cb.dataset.idx,10);
+        if(cb.classList.contains('on')){ cb.classList.remove('on'); wikiSelected.delete(idx); }
+        else{ cb.classList.add('on'); wikiSelected.add(idx); }
+        updateWikiDelBtn();
+      };
+    });
+  }
 
   function updateWikiDelBtn(){
     const btn=document.getElementById('wikiDel');
@@ -2881,14 +3807,16 @@ function renderWiki(){
   }
 }
 
-function wikiCardHTML(it,i,iconName){
+function wikiCardHTML(it,i,iconName,canEdit){
+  const ro=canEdit?'':'readonly';
+  const chk=canEdit?`<button class="wk-check" data-idx="${i}">${svg('check')}</button>`:'';
   return `<div class="wiki-card-edit">
-    <button class="wk-check" data-idx="${i}">${svg('check')}</button>
+    ${chk}
     <div class="wk-body">
       <div class="wk-icon">${svg(iconName)}</div>
       <div class="wk-fields">
-        <input class="wk-name" value="${esc(it.n)}" placeholder="食材名称">
-        <input class="wk-desc" value="${esc(it.d)}" placeholder="简短描述">
+        <input class="wk-name" value="${esc(it.n)}" placeholder="食材名称" ${ro}>
+        <input class="wk-desc" value="${esc(it.d)}" placeholder="简短描述" ${ro}>
       </div>
     </div>
   </div>`;
@@ -2960,24 +3888,66 @@ function renderProfile(){
   const giteeConnected = backend==='gitee';
   const ghConnected = backend==='gh';
   const gistUrl = ghConnected ? 'https://gist.github.com/'+state.sync.gistId : '';
-  content.innerHTML=`
-    <div class="screen">
-      <div class="hd"><h1>我的资料</h1></div>
-      <div class="prof">
-        <div class="avatar" id="profAvatar" style="${state.profile.avatar?'background-image:url('+state.profile.avatar+');background-size:cover;background-position:center':''}">${state.profile.avatar?'':'X'}</div>
-        <div class="un" id="profName" contenteditable="plaintext-only" spellcheck="false">${esc(state.profile.name)}</div>
-        <div class="us" id="profTagline" contenteditable="true" spellcheck="false">${esc(state.profile.tagline||'与木&Kimiko')}</div>
-        <div class="stat-row">
-          <div class="stat"><div class="v">${totalShowcases}</div><div class="l">Showcase</div></div>
-          <div class="stat"><div class="v">${totalRecipes}</div><div class="l">配方</div></div>
-        </div>
-      </div>
+  const adminUser = isLoggedIn()&&isAdminPhone();
 
+  // Brand philosophy HTML block
+  const brandPhilosophyHTML = `
+      <div class="brand-section">
+        <div class="brand-inner">
+          <div class="brand-slogan">构建味觉的秩序</div>
+          <hr class="brand-divider">
+          <div class="brand-mission">
+            <p>我叫kimiko，一个不肯"随便做做"的甜品师。</p>
+            <p>在我的世界里，糖不是甜的廉价来源，<br>而是让一块黄油、一捧面粉、一枚鸡蛋，<br>各自抵达它们此生最美形态的引路者。</p>
+            <p>流水线生产的是糖分，而手工注入的是情感。<br>世界已经够匆忙了，至少在这里，你可以慢下来。</p>
+            <p>我的甜品，不为取悦所有人，<br>只为遇见那些懂得"甜不止是甜"的你。</p>
+            <p>用一口温柔，推翻一整天的乏味。<br>这是我对生活的小小起义。</p>
+          </div>
+          <hr class="brand-divider">
+          <div class="brand-values">
+            <div class="brand-value-card" data-delay="0">
+              <div class="brand-value-num">I</div>
+              <div class="brand-value-body">
+                <div class="brand-value-title">克制</div>
+                <div class="brand-value-text">真正的甜，从不声张。我们减少糖量，不是吝啬，是为了让草莓更草莓，让奶油更像云。高级的甜，懂得退让，留白才有余味。</div>
+              </div>
+            </div>
+            <div class="brand-value-card" data-delay="1">
+              <div class="brand-value-num">II</div>
+              <div class="brand-value-body">
+                <div class="brand-value-title">秩序</div>
+                <div class="brand-value-text">打发有黄金时间，发酵有最佳温度。我们相信，自由生于框架之中。每一道工序都是一行代码，而最终的作品，是一首不被察觉的精密诗篇。</div>
+              </div>
+            </div>
+            <div class="brand-value-card" data-delay="2">
+              <div class="brand-value-num">III</div>
+              <div class="brand-value-body">
+                <div class="brand-value-title">诚实</div>
+                <div class="brand-value-text">一块蛋糕不会说谎。你用的是鲜果还是果酱，是发酵黄油还是人造油脂，入口那一刻，它全盘托出。我们选择诚实——对食材诚实，对手艺诚实，对每一位客户诚实。味道不会说谎，而好食材是唯一的捷径。</div>
+              </div>
+            </div>
+            <div class="brand-value-card" data-delay="3">
+              <div class="brand-value-num">IV</div>
+              <div class="brand-value-body">
+                <div class="brand-value-title">偏执</div>
+                <div class="brand-value-text">为了一枚可露丽的焦壳，我们可以等二十四小时。为了一种理想的酸度，我们测试了十一种柠檬。在别人看来这是偏执，在我们看来，这是对"好吃"二字的起码尊重。</div>
+              </div>
+            </div>
+          </div>
+          <hr class="brand-divider">
+          <div class="brand-motto">安静地甜，就是一种力量。<br>我们不制造多巴胺，我们制造记忆。</div>
+        </div>
+      </div>`;
+
+  // Memo card HTML
+  const memoHTML = `
       <div class="memo-card">
         <div class="h"><span>📝 备忘录</span><button class="memo-add-btn" id="memoAdd">+</button></div>
         <div class="memo-list" id="memoList"></div>
-      </div>
+      </div>`;
 
+  // Cloud sync card HTML
+  const syncHTML = `
       <div class="dm-card">
         <div class="h">
           <span>云同步</span>
@@ -3049,40 +4019,71 @@ function renderProfile(){
             <button class="sync-btn ghost block" id="connectBtn">连接 GitHub Gist</button>
           `}
         </div>
-      </div>
+      </div>`;
 
-      ${isLoggedIn()&&isAdminPhone()?`
+  // Device management HTML (admin only)
+  const deviceHTML = adminUser ? `
       <div class="dm-card" style="margin-top:16px">
-        <div class="h"><span>📱 设备管理</span></div>
+        <div class="h">
+          <span>📱 设备管理</span>
+          <button id="phonePermBtn" style="font-size:11px;padding:5px 12px;border-radius:10px;border:none;background:var(--brand);color:#fff;cursor:pointer;font-weight:700;white-space:nowrap">🔑 解锁配方权限</button>
+        </div>
         <div id="deviceList" style="padding:12px 14px">
           <div style="text-align:center;padding:12px;color:var(--sub);font-size:13px">加载中...</div>
         </div>
-      </div>
-      `:''}
+      </div>` : '';
 
+  // Footer HTML — trash button only for admin
+  const footerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 0 8px">
-        <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
+        ${adminUser?`<button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
-        </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v49</div>
+        </button>`:''}
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v64</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
+      </div>`;
+
+  // Build layout: admin gets device management above sync, non-admin puts brand philosophy before memo
+  let sectionsAfterProfile;
+  if(adminUser){
+    sectionsAfterProfile = memoHTML + deviceHTML + syncHTML + brandPhilosophyHTML + footerHTML;
+  }else{
+    sectionsAfterProfile = brandPhilosophyHTML + memoHTML + syncHTML + footerHTML;
+  }
+
+  content.innerHTML=`
+    <div class="screen">
+      <div class="hd"><h1>我的资料</h1></div>
+      <div class="prof">
+        <div class="avatar" id="profAvatar" style="${state.profile.avatar?'background-image:url('+state.profile.avatar+')':'background-image:url(./default-avatar.jpg)'};background-size:cover;background-position:center"></div>
+        <div class="un" id="profName" contenteditable="plaintext-only" spellcheck="false">${esc(state.profile.name)}</div>
+        <div class="us" id="profTagline" contenteditable="true" spellcheck="false">${esc(state.profile.tagline||'与木&Kimiko')}</div>
+        <div class="stat-row">
+          <div class="stat"><div class="v">${totalShowcases}</div><div class="l">Showcase</div></div>
+          <div class="stat"><div class="v">${totalRecipes}</div><div class="l">配方</div></div>
+        </div>
       </div>
+      ${sectionsAfterProfile}
     </div>`;
 
-  document.getElementById('backupTrashBtn').onmouseenter=function(){this.style.opacity='1'};
-  document.getElementById('backupTrashBtn').onmouseleave=function(){this.style.opacity='.5'};
-  document.getElementById('backupTrashBtn').onclick=()=>{
-    openActionSheet('本地备份','选择操作',[
-      {label:'导出备份',action:exportData},
-      {label:'导入备份',action:()=>document.getElementById('fileImport').click()},
-      {label:'锁定配方画廊',variant:'danger',action:()=>{
-        localStorage.removeItem(GALLERY_LOCK_KEY);
-        toast('配方画廊已锁定','success');
-        setTimeout(()=>{ state.activeTab='gallery'; state.gView='home'; render(); },500);
-      }}
-    ]);
-  };
+  const backupTrashBtnEl=document.getElementById('backupTrashBtn');
+  if(backupTrashBtnEl){
+    backupTrashBtnEl.onmouseenter=function(){this.style.opacity='1'};
+    backupTrashBtnEl.onmouseleave=function(){this.style.opacity='.5'};
+    backupTrashBtnEl.onclick=()=>{
+      openActionSheet('本地备份','选择操作',[
+        {label:'导出备份',action:exportData},
+        {label:'导入备份',action:()=>document.getElementById('fileImport').click()},
+        {label:'锁定配方画廊',variant:'danger',action:()=>{
+          localStorage.removeItem(GALLERY_LOCK_KEY);
+          localStorage.removeItem(ALL_RECIPES_UNLOCKED_KEY);
+          toast('配方画廊已锁定','success');
+          setTimeout(()=>{ state.activeTab='gallery'; state.gView='home'; render(); },500);
+        }}
+      ]);
+    };
+  }
   document.getElementById('forceUpdateBtn').onclick=async function(){
     this.textContent='更新中...'; this.disabled=true;
     try{
@@ -3106,38 +4107,12 @@ function renderProfile(){
       });
     };
   }
-  // Profile editing — avatar upload + name editing
+  // Profile editing — avatar library + upload + name editing
   const profAvatar=document.getElementById('profAvatar');
   const profName=document.getElementById('profName');
   profAvatar.style.cursor='pointer';
   profAvatar.onclick=()=>{
-    const input=document.createElement('input');
-    input.type='file'; input.accept='image/*';
-    input.onchange=(e)=>{
-      const file=e.target.files[0];
-      if(!file) return;
-      if(file.size>20*1024*1024){ toast('图片不能超过20MB','error'); return; }
-      const reader=new FileReader();
-      reader.onload=()=>{
-        // Resize avatar to 120x120
-        const img=new Image();
-        img.onload=()=>{
-          const canvas=document.createElement('canvas');
-          canvas.width=120; canvas.height=120;
-          const ctx=canvas.getContext('2d');
-          const minDim=Math.min(img.width,img.height);
-          const sx=(img.width-minDim)/2, sy=(img.height-minDim)/2;
-          ctx.drawImage(img,sx,sy,minDim,minDim,0,0,120,120);
-          state.profile.avatar=canvas.toDataURL('image/jpeg',0.85);
-          persist(true);
-          renderProfile();
-          toast('头像已更新','success');
-        };
-        img.src=reader.result;
-      };
-      reader.readAsDataURL(file);
-    };
-    input.click();
+    uploadAvatar();
   };
   profName.addEventListener('blur',()=>{
     const val=profName.textContent.trim()||'XiaFei';
@@ -3167,6 +4142,21 @@ function renderProfile(){
   }
   // Memo
   initMemo();
+
+  // Brand philosophy: scroll-triggered fade-in for value cards
+  const brandCards=document.querySelectorAll('.brand-value-card');
+  if(brandCards.length>0){
+    const observer=new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          const delay=parseInt(entry.target.dataset.delay||'0')*150;
+          setTimeout(()=>entry.target.classList.add('visible'),delay);
+          observer.unobserve(entry.target);
+        }
+      });
+    },{threshold:0.15,rootMargin:'0px 0px -40px 0px'});
+    brandCards.forEach(c=>observer.observe(c));
+  }
 
   if(giteeConnected){
     document.getElementById('copyLinkBtn').onclick=()=>{
@@ -3261,7 +4251,7 @@ function renderProfile(){
         const isCurrent=dev.deviceId===currentDeviceId;
         const isLocked=dev.locked;
         const isAdmin=ADMIN_PHONES.includes(dev.phone);
-        return `<div class="device-card ${isLocked?'locked':''} ${isCurrent?'current':''}">
+        const cardInner=`
           <div class="device-icon">${svg('phone').replace('width="24" height="24"','width="20" height="20"')}</div>
           <div class="device-info">
             <div class="device-name">
@@ -3272,7 +4262,20 @@ function renderProfile(){
             </div>
             <div class="device-meta">${esc(dev.phone||'')} · ${esc(dev.platform||'Unknown')} · ${dev.lastLogin?fmtSyncTime(new Date(dev.lastLogin).getTime()):'未知'}</div>
           </div>
-          ${isCurrent?'':`<button class="device-lock-btn ${isLocked?'unlock':'lock'}" data-id="${esc(dev.deviceId)}">${isLocked?'解锁':'锁定'}</button>`}
+          ${isCurrent?'':`<button class="device-lock-btn ${isLocked?'unlock':'lock'}" data-id="${esc(dev.deviceId)}">${isLocked?'解锁':'锁定'}</button>`}`;
+        if(isCurrent){
+          return `<div class="device-swipe-wrap"><div class="device-swipe-content current" data-id="${esc(dev.deviceId)}">${cardInner}</div></div>`;
+        }
+        if(isLocked){
+          // Locked devices: no swipe-to-delete, only unlock button (already in cardInner)
+          return `<div class="device-swipe-wrap"><div class="device-swipe-content locked" data-id="${esc(dev.deviceId)}">${cardInner}</div></div>`;
+        }
+        return `<div class="device-swipe-wrap">
+          <button class="device-swipe-delete" data-id="${esc(dev.deviceId)}" data-name="${esc(dev.deviceName||'未知设备')}">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
+            删除
+          </button>
+          <div class="device-swipe-content" data-id="${esc(dev.deviceId)}">${cardInner}</div>
         </div>`;
       }).join('');
       // Bind lock/unlock buttons
@@ -3291,10 +4294,54 @@ function renderProfile(){
           }
         };
       });
+      // Bind swipe-to-delete
+      bindDeviceSwipeDelete(listEl);
+      // Bind click on device card (admin) to manage recipe permissions
+      listEl.querySelectorAll('.device-swipe-content').forEach(card=>{
+        card.addEventListener('click',(e)=>{
+          if(e.target.closest('.device-lock-btn')||e.target.closest('.device-swipe-delete')) return;
+          if(card.classList.contains('swiped')) return;
+          const dev=devices.find(d=>d.deviceId===card.dataset.id);
+          if(!dev) return;
+          showAdminPasswordPrompt(()=>{
+            showRecipePermissionPanel(dev.deviceId,dev.deviceName||'未知设备',dev.phone||'');
+          });
+        });
+      });
     }).catch(()=>{
       const listEl=document.getElementById('deviceList');
       if(listEl) listEl.innerHTML='<div style="text-align:center;padding:12px;color:var(--sub);font-size:13px">无法加载设备列表</div>';
     });
+  }
+
+  // Phone number permission search — button → admin password → phone input → recipe permission panel
+  if(isLoggedIn()&&isAdminPhone()){
+    const phonePermBtn=document.getElementById('phonePermBtn');
+    if(phonePermBtn){
+      phonePermBtn.onclick=()=>{
+        // Step 1: Admin password verification
+        showAdminPasswordPrompt(()=>{
+          // Step 2: Show phone number input overlay
+          showPhoneInputOverlay(async(phone)=>{
+            phonePermBtn.disabled=true; phonePermBtn.textContent='查找中...';
+            try{
+              const devices=await getDevicesList();
+              const dev=devices.find(d=>d.phone===phone);
+              if(!dev){
+                toast('未找到该手机号的设备','error');
+                phonePermBtn.disabled=false; phonePermBtn.textContent='🔑 解锁配方权限';
+                return;
+              }
+              // Step 3: Show recipe permission panel
+              showRecipePermissionPanel(dev.deviceId,dev.deviceName||'未知设备',dev.phone||'');
+            }catch(e){
+              toast('查找失败，请重试','error');
+            }
+            phonePermBtn.disabled=false; phonePermBtn.textContent='🔑 解锁配方权限';
+          });
+        });
+      };
+    }
   }
 }
 function exportData(){
@@ -3373,10 +4420,12 @@ function bindGlobalFocusScroll(){
 /* ---------- Phone Auth & Device Management ---------- */
 // 配置: 部署阿里云FC函数后，将URL填入此处
 const FC_API_URL='https://recipe-auth-qfcvanmdxp.cn-beijing.fcapp.run';
+// Gitee 仓库私人令牌 — 新设备登录后自动填入
+const DEFAULT_GITEE_TOKEN='5693098aa31d64a8a104a48a6da99345';
 const AUTH_KEY='auth_state';
 const DEVICE_ID_KEY='device_id';
 // 管理员手机号 — 只有这些手机号登录后才能看到设备管理库
-const ADMIN_PHONES=['15057892820'];
+const ADMIN_PHONES=['15057892820','18071607899'];
 function isAdminPhone(){
   const auth=getAuthState();
   return ADMIN_PHONES.includes(auth.phone);
@@ -3450,7 +4499,15 @@ async function getDevicesList(){
         allDevices.push({...d, phone:u.phone});
       });
     });
-    return allDevices;
+    // Deduplicate: per phone + deviceName + platform, keep most recent login
+    const dedupMap={};
+    allDevices.forEach(d=>{
+      const key=(d.phone||'')+'|'+(d.deviceName||'未知设备')+'|'+(d.platform||'Unknown');
+      if(!dedupMap[key]||new Date(d.lastLogin)>new Date(dedupMap[key].lastLogin)){
+        dedupMap[key]=d;
+      }
+    });
+    return Object.values(dedupMap);
   }catch(e){return[];}
 }
 
@@ -3482,6 +4539,168 @@ async function lockUnlockDevice(deviceId,locked){
   }catch(e){return false;}
 }
 
+async function deleteDevice(deviceId){
+  const auth=getAuthState();
+  if(!auth.phone||!auth.token) return false;
+  try{
+    const url=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json?access_token='+encodeURIComponent(auth.token);
+    const res=await fetch(url);
+    if(!res.ok) return false;
+    const data=await res.json();
+    const content=decodeURIComponent(escape(atob(data.content)));
+    const users=JSON.parse(content);
+    let found=false;
+    users.forEach(u=>{
+      const before=(u.devices||[]).length;
+      u.devices=(u.devices||[]).filter(d=>d.deviceId!==deviceId);
+      if(u.devices.length<before) found=true;
+    });
+    if(!found) return false;
+    const newContent=btoa(unescape(encodeURIComponent(JSON.stringify(users,null,2))));
+    const updateUrl=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json';
+    const updateRes=await fetch(updateUrl,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({access_token:auth.token,content:newContent,sha:data.sha,message:'Delete device record'})
+    });
+    return updateRes.ok;
+  }catch(e){return false;}
+}
+
+// Fetch recipe permissions for the current device
+async function fetchDeviceRecipePermissions(){
+  const auth=getAuthState();
+  if(!auth.phone||!auth.token) return [];
+  try{
+    const url=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json?access_token='+encodeURIComponent(auth.token);
+    const res=await fetch(url);
+    if(!res.ok) return [];
+    const data=await res.json();
+    const content=decodeURIComponent(escape(atob(data.content)));
+    const users=JSON.parse(content);
+    const user=users.find(u=>u.phone===auth.phone);
+    if(!user) return [];
+    const dev=(user.devices||[]).find(d=>d.deviceId===getDeviceId());
+    return (dev&&dev.recipePermissions)||[];
+  }catch(e){return [];}
+}
+
+// Set recipe permissions for a specific device
+async function setDeviceRecipePermissions(deviceId,recipeIds){
+  const auth=getAuthState();
+  if(!auth.phone||!auth.token) return false;
+  try{
+    const url=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json?access_token='+encodeURIComponent(auth.token);
+    const res=await fetch(url);
+    if(!res.ok) return false;
+    const data=await res.json();
+    const content=decodeURIComponent(escape(atob(data.content)));
+    const users=JSON.parse(content);
+    let found=false;
+    users.forEach(u=>{
+      const dev=(u.devices||[]).find(d=>d.deviceId===deviceId);
+      if(dev){ dev.recipePermissions=recipeIds; found=true; }
+    });
+    if(!found) return false;
+    const newContent=btoa(unescape(encodeURIComponent(JSON.stringify(users,null,2))));
+    const updateUrl=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json';
+    const updateRes=await fetch(updateUrl,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({access_token:auth.token,content:newContent,sha:data.sha,message:'Update device recipe permissions'})
+    });
+    return updateRes.ok;
+  }catch(e){return false;}
+}
+
+function bindDeviceSwipeDelete(listEl){
+  const DELETE_WIDTH=76;
+  let activeSwipe=null;
+  // Close all swipes
+  function closeAllSwipes(except){
+    listEl.querySelectorAll('.device-swipe-content.swiped').forEach(el=>{
+      if(el!==except){ el.classList.remove('swiped'); }
+    });
+  }
+  // Touch handlers
+  listEl.querySelectorAll('.device-swipe-content').forEach(content=>{
+    let startX=0,startY=0,currentX=0,dragging=false,lockedDir=false,isHorizontal=false;
+    content.addEventListener('touchstart',e=>{
+      if(content.classList.contains('current')) return;
+      startX=e.touches[0].clientX;
+      startY=e.touches[0].clientY;
+      currentX=content.classList.contains('swiped')?-DELETE_WIDTH:0;
+      dragging=true; lockedDir=false; isHorizontal=false;
+      content.classList.add('dragging');
+      // Close other swipes
+      closeAllSwipes(content);
+      activeSwipe=content;
+    },{passive:true});
+    content.addEventListener('touchmove',e=>{
+      if(!dragging||content.classList.contains('current')) return;
+      const dx=e.touches[0].clientX-startX;
+      const dy=e.touches[0].clientY-startY;
+      if(!lockedDir){
+        if(Math.abs(dx)>8||Math.abs(dy)>8){
+          isHorizontal=Math.abs(dx)>Math.abs(dy);
+          lockedDir=true;
+        }
+      }
+      if(isHorizontal){
+        let newX=currentX+dx;
+        if(newX>0) newX=0;
+        if(newX<-DELETE_WIDTH) newX=-DELETE_WIDTH;
+        content.style.transform='translateX('+newX+'px)';
+      }
+    },{passive:true});
+    content.addEventListener('touchend',e=>{
+      if(!dragging||content.classList.contains('current')) return;
+      dragging=false;
+      content.classList.remove('dragging');
+      const dx=e.changedTouches[0].clientX-startX;
+      if(!isHorizontal){
+        content.style.transform='';
+        return;
+      }
+      const threshold=DELETE_WIDTH/2;
+      const shouldOpen=(currentX+dx)<-threshold||dx<-threshold;
+      if(shouldOpen){
+        content.classList.add('swiped');
+        content.style.transform='';
+        activeSwipe=content;
+      }else{
+        content.classList.remove('swiped');
+        content.style.transform='';
+      }
+    },{passive:true});
+  });
+  // Click delete button
+  listEl.querySelectorAll('.device-swipe-delete').forEach(btn=>{
+    btn.onclick=()=>{
+      const deviceId=btn.dataset.id;
+      const deviceName=btn.dataset.name;
+      openModal('删除设备记录？','将永久删除「'+deviceName+'」的登录记录，该设备下次需要重新登录。',async()=>{
+        btn.disabled=true;
+        const ok=await deleteDevice(deviceId);
+        if(ok){
+          toast('设备记录已删除','success');
+          renderProfile();
+        }else{
+          toast('删除失败，请重试','error');
+          btn.disabled=false;
+        }
+      });
+    };
+  });
+  // Click outside to close swipes
+  document.addEventListener('click',e=>{
+    if(activeSwipe&&!e.target.closest('.device-swipe-wrap')){
+      activeSwipe.classList.remove('swiped');
+      activeSwipe=null;
+    }
+  },{passive:true});
+}
+
 function showDeviceLockedScreen(){
   const existing=document.getElementById('deviceLockedOverlay');
   if(existing) existing.remove();
@@ -3502,8 +4721,21 @@ const GALLERY_LOCK_KEY='gallery_unlocked';
 const RECIPE_MASTER_PWD='0823';
 const DEFAULT_RECIPE_PWD='1234';
 const LOGIN_KEY='app_logged_in';
+const ALL_RECIPES_UNLOCKED_KEY='all_recipes_unlocked';
+let deviceRecipePermissions=[]; // recipe IDs this device has permission for
 function isGalleryUnlocked(){
   return localStorage.getItem(GALLERY_LOCK_KEY)==='true';
+}
+function isAllRecipesUnlocked(){
+  return localStorage.getItem(ALL_RECIPES_UNLOCKED_KEY)==='true';
+}
+// Check if a recipe is accessible for current device
+function canAccessRecipe(recipe){
+  if(isLoggedIn()&&isAdminPhone()) return true;
+  if(isAllRecipesUnlocked()) return true;
+  if(!recipe.locked) return true;
+  if(deviceRecipePermissions.includes(recipe.id)) return true;
+  return false;
 }
 
 /* ---------- Phone Auth Screen ---------- */
@@ -3602,7 +4834,7 @@ async function tryOneClickLogin(msgEl,overlay){
               if(phoneRes.success){
                 sdk.closeLoginPage();
                 setAuthState({phone:phoneRes.phone,token:phoneRes.token,giteeOwner:phoneRes.giteeOwner,giteeRepo:phoneRes.giteeRepo});
-                state.sync.giteeToken=phoneRes.token;
+                state.sync.giteeToken=DEFAULT_GITEE_TOKEN;
                 state.sync.giteeRepo=phoneRes.giteeOwner+'/'+phoneRes.giteeRepo;
                 state.sync.giteeOwner=phoneRes.giteeOwner;
                 writeLocal();
@@ -3633,17 +4865,42 @@ function showAuthScreen(){
   overlay.className='login-overlay';
   overlay.id='authOverlay';
   overlay.innerHTML=`
+    <div class="login-decor">
+      <div class="sugar-dot" style="top:8%;left:12%;width:6px;height:6px;animation-delay:0s"></div>
+      <div class="sugar-dot" style="top:15%;right:15%;width:4px;height:4px;animation-delay:.5s"></div>
+      <div class="sugar-dot" style="top:70%;left:8%;width:5px;height:5px;animation-delay:1s"></div>
+      <div class="sugar-dot" style="bottom:12%;right:10%;width:7px;height:7px;animation-delay:1.5s"></div>
+      <div class="sugar-dot" style="top:30%;left:5%;width:3px;height:3px;animation-delay:2s"></div>
+      <div class="sugar-dot" style="bottom:25%;left:18%;width:4px;height:4px;animation-delay:2.5s"></div>
+      <div class="sugar-dot" style="top:45%;right:6%;width:5px;height:5px;animation-delay:3s"></div>
+      <div class="sugar-dot" style="bottom:35%;right:22%;width:3px;height:3px;animation-delay:3.5s"></div>
+      <div class="sugar-star" style="top:20%;left:20%;animation-delay:0s">✦</div>
+      <div class="sugar-star" style="top:60%;right:20%;animation-delay:1.2s">✦</div>
+      <div class="sugar-star" style="bottom:15%;left:30%;animation-delay:2.4s">✦</div>
+      <div class="sugar-star" style="top:40%;right:8%;animation-delay:3.6s">✦</div>
+      <svg class="dessert-silhouette" style="top:-40px;right:-40px" viewBox="0 0 100 100" fill="#D2691E"><path d="M50 15c-12 0-22 8-22 20 0 3 1 6 2 8H26c-2 0-4 2-4 4s2 4 4 4h48c2 0 4-2 4-4s-2-4-4-4h-4c1-2 2-5 2-8 0-12-10-20-22-20z M30 55h40v25c0 3-2 5-5 5H35c-3 0-5-2-5-5V55z M35 85h30v5c0 2-2 4-4 4H39c-2 0-4-2-4-4v-5z"/></svg>
+      <svg class="dessert-silhouette" style="bottom:-40px;left:-40px;animation-direction:reverse" viewBox="0 0 100 100" fill="#FFB6C1"><path d="M50 15c-12 0-22 8-22 20 0 3 1 6 2 8H26c-2 0-4 2-4 4s2 4 4 4h48c2 0 4-2 4-4s-2-4-4-4h-4c1-2 2-5 2-8 0-12-10-20-22-20z M30 55h40v25c0 3-2 5-5 5H35c-3 0-5-2-5-5V55z M35 85h30v5c0 2-2 4-4 4H39c-2 0-4-2-4-4v-5z"/></svg>
+    </div>
     <div class="login-box">
-      <div class="login-logo">${svg('lock').replace('width="24" height="24"','width="30" height="30"')}</div>
-      <div class="login-title">甜品配方工作台</div>
-      <div class="login-sub">注册/登录以使用</div>
-      ${!FC_API_URL?'<div style="font-size:11px;color:rgba(196,92,72,.7);text-align:center;margin-bottom:12px;padding:6px 10px;background:rgba(196,92,72,.08);border-radius:8px">⚠ 后端服务未配置，请联系管理员</div>':''}
+      <div class="login-logo">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2C9 2 7 4.5 7 7.5c0 .8.2 1.5.4 2.2L6 11h12l-1.4-1.3c.2-.7.4-1.4.4-2.2C17 4.5 15 2 12 2z"/>
+          <path d="M8 11h8l-1 3H9l-1-3z"/>
+          <path d="M9 14v6a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6"/>
+          <path d="M10 21h4"/>
+          <circle cx="10.5" cy="6" r=".5" fill="white"/>
+          <circle cx="13.5" cy="7" r=".5" fill="white"/>
+        </svg>
+      </div>
+      <div class="login-title">甜蜜启程</div>
+      <div class="login-sub">输入手机号，解锁您的专属甜点之旅</div>
+      ${!FC_API_URL?'<div style="font-size:11px;color:#C45C48;text-align:center;margin-bottom:12px;padding:6px 10px;background:rgba(196,92,72,.08);border-radius:12px">⚠ 后端服务未配置，请联系管理员</div>':''}
       <div style="margin-bottom:16px">
-        <button class="login-btn" id="oneClickBtn" style="background:linear-gradient(135deg,#C48C5C,#C45C48);font-size:15px;letter-spacing:1px">📱 一键登录</button>
+        <button class="login-btn" id="oneClickBtn" style="background:linear-gradient(135deg,#FFB6C1,#D2691E);font-size:15px;letter-spacing:1px">📱 一键登录</button>
         <div style="display:flex;align-items:center;margin:14px 0;gap:10px">
-          <div style="flex:1;height:1px;background:rgba(0,0,0,.1)"></div>
-          <span style="font-size:11px;color:var(--sub);white-space:nowrap">或使用其他方式</span>
-          <div style="flex:1;height:1px;background:rgba(0,0,0,.1)"></div>
+          <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,182,193,.5),transparent)"></div>
+          <span style="font-size:11px;color:rgba(210,105,30,.4);white-space:nowrap;font-weight:600">或使用其他方式</span>
+          <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,182,193,.5),transparent)"></div>
         </div>
       </div>
       <div class="auth-tabs">
@@ -3671,7 +4928,7 @@ function showAuthScreen(){
           <label>验证码</label>
           <div class="code-row">
             <input type="text" id="regCode" placeholder="6位验证码" maxlength="6" inputmode="numeric">
-            <button class="code-btn" id="regSendBtn">发送验证码</button>
+            <button class="code-btn" id="regSendBtn">获取验证码</button>
           </div>
         </div>
         <div class="login-field">
@@ -3689,7 +4946,7 @@ function showAuthScreen(){
           <label>验证码</label>
           <div class="code-row">
             <input type="text" id="codeLoginCode" placeholder="6位验证码" maxlength="6" inputmode="numeric">
-            <button class="code-btn" id="codeSendBtn">发送验证码</button>
+            <button class="code-btn" id="codeSendBtn">获取验证码</button>
           </div>
         </div>
         <button class="login-btn" id="codeLoginBtn">登 录</button>
@@ -3723,21 +4980,21 @@ function showAuthScreen(){
   document.getElementById('backToPwdLogin').onclick=()=>switchForm('loginForm');
 
   function startCountdown(btn){
-    let cd=60; btn.disabled=true; btn.textContent=cd+'s';
+    let cd=60; btn.disabled=true; btn.classList.remove('pulsing'); btn.textContent=cd+'s';
     const timer=setInterval(()=>{
       cd--; btn.textContent=cd+'s';
-      if(cd<=0){clearInterval(timer);btn.disabled=false;btn.textContent='发送验证码';}
+      if(cd<=0){clearInterval(timer);btn.disabled=false;btn.textContent='获取验证码';}
     },1000);
   }
 
   async function doSendCode(phone,btn){
     if(!/^1[3-9]\d{9}$/.test(phone)){msg.textContent='请输入正确的手机号';return;}
-    btn.disabled=true;
+    btn.disabled=true; btn.classList.remove('pulsing');
     try{
       const res=await callBackend('sendCode',{phone});
       if(res.success){msg.textContent='验证码已发送';startCountdown(btn);}
-      else{msg.textContent=res.error||'发送失败';btn.disabled=false;btn.textContent='发送验证码';}
-    }catch(e){msg.textContent='网络错误或后端未配置';btn.disabled=false;btn.textContent='发送验证码';}
+      else{msg.textContent=res.error||'发送失败';btn.disabled=false;btn.textContent='获取验证码';}
+    }catch(e){msg.textContent='网络错误或后端未配置';btn.disabled=false;btn.textContent='获取验证码';}
   }
 
   document.getElementById('regSendBtn').onclick=()=>{
@@ -3747,13 +5004,29 @@ function showAuthScreen(){
     doSendCode(document.getElementById('codeLoginPhone').value.trim(),document.getElementById('codeSendBtn'));
   };
 
+  // 获取验证码按钮呼吸灯动画 — 输入有效手机号时自动脉动
+  function bindPhonePulse(phoneId,btnId){
+    const phoneInput=document.getElementById(phoneId);
+    const codeBtn=document.getElementById(btnId);
+    if(!phoneInput||!codeBtn) return;
+    phoneInput.addEventListener('input',()=>{
+      if(/^1[3-9]\d{9}$/.test(phoneInput.value.trim())&&!codeBtn.disabled){
+        codeBtn.classList.add('pulsing');
+      }else{
+        codeBtn.classList.remove('pulsing');
+      }
+    });
+  }
+  bindPhonePulse('regPhone','regSendBtn');
+  bindPhonePulse('codeLoginPhone','codeSendBtn');
+
   async function doLogin(action,phone,extra,btn,btnText){
     btn.disabled=true;btn.textContent='登录中...';msg.textContent='';
     try{
       const res=await callBackend(action,{phone,...extra,deviceId:getDeviceId(),deviceInfo:getDeviceInfo()});
       if(res.success){
         setAuthState({phone:res.phone,token:res.token,giteeOwner:res.giteeOwner,giteeRepo:res.giteeRepo});
-        state.sync.giteeToken=res.token;
+        state.sync.giteeToken=DEFAULT_GITEE_TOKEN;
         state.sync.giteeRepo=res.giteeOwner+'/'+res.giteeRepo;
         state.sync.giteeOwner=res.giteeOwner;
         writeLocal();
@@ -3799,7 +5072,7 @@ function showAuthScreen(){
         const loginRes=await callBackend('login',{phone,password:pwd,deviceId:getDeviceId(),deviceInfo:getDeviceInfo()});
         if(loginRes.success){
           setAuthState({phone:loginRes.phone,token:loginRes.token,giteeOwner:loginRes.giteeOwner,giteeRepo:loginRes.giteeRepo});
-          state.sync.giteeToken=loginRes.token;
+          state.sync.giteeToken=DEFAULT_GITEE_TOKEN;
           state.sync.giteeRepo=loginRes.giteeOwner+'/'+loginRes.giteeRepo;
           state.sync.giteeOwner=loginRes.giteeOwner;
           writeLocal();
@@ -3829,6 +5102,8 @@ function logout(){
   clearAuthState();
   disconnectSync();
   localStorage.removeItem(GALLERY_LOCK_KEY);
+  localStorage.removeItem(ALL_RECIPES_UNLOCKED_KEY);
+  deviceRecipePermissions=[];
   showAuthScreen();
 }
 bindGlobalFocusScroll();
@@ -3852,6 +5127,14 @@ if(!isLoggedIn()){
       showDeviceLockedScreen();
     }
   });
+  // Load device-specific recipe permissions (non-admin only)
+  if(!isAdminPhone()){
+    fetchDeviceRecipePermissions().then(perms=>{
+      deviceRecipePermissions=perms;
+      // Re-render gallery if currently showing
+      if(state.activeTab==='gallery') render();
+    });
+  }
 }
 render();
 if(bootRepaired){
@@ -3886,54 +5169,87 @@ if(syncConfigured()){
 // (constants & isGalleryUnlocked moved to Boot section above)
 
 function renderGalleryLock(){
-  // Remove any existing lock overlay
   const existing=document.getElementById('lockOverlay');
   if(existing) existing.remove();
-  // Create overlay as independent element on body (gallery content stays underneath)
   const overlay=document.createElement('div');
   overlay.className='lock-overlay';
   overlay.id='lockOverlay';
   overlay.innerHTML=`
-    <div class="lock-particles" id="lockParticles"></div>
-    <div class="lock-title">Recipe Gallery</div>
-    <div class="lock-subtitle">输入密码开启配方宝箱</div>
-    <div class="chest-wrap" id="chestWrap">
-      <div class="chest-glow" id="chestGlow"></div>
-      <div class="chest-lid" id="chestLid"></div>
-      <div class="chest-body"></div>
-      <div class="chest-lock" id="chestLock"></div>
-      <div class="lock-crack" id="lockCrack"></div>
-      <div class="lock-error-flash" id="lockFlash"></div>
-    </div>
-    <div class="pin-display" id="pinDisplay">
-      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
-    </div>
-    <div class="num-pad" id="numPad">
-      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="num-btn" data-num="${n}">${n}</button>`).join('')}
-      <button class="num-btn fn" id="numClear">清除</button>
-      <button class="num-btn" data-num="0">0</button>
-      <button class="num-btn fn" id="numConfirm">✓</button>
-    </div>
-    <div class="lock-msg" id="lockMsg"></div>
-  `;
+    <div class="lock-bg-decor" id="lockBgDecor"></div>
+    <button id="lockBackBtn" style="position:fixed;top:20px;left:20px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10001;transition:all .2s">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="lock-body" id="lockBody">
+      <div class="lock-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </div>
+      <div class="lock-title">Recipe Gallery</div>
+      <div class="lock-subtitle">输入密码，开启甜蜜配方</div>
+      <div class="pin-display" id="pinDisplay">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="num-pad" id="numPad">
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="num-btn" data-num="${n}">${n}</button>`).join('')}
+        <button class="num-btn fn" id="numClear">清除</button>
+        <button class="num-btn" data-num="0">0</button>
+        <button class="num-btn fn confirm" id="numConfirm">♥</button>
+      </div>
+      <div class="lock-msg-bubble" id="lockMsg"></div>
+    </div>`;
   document.body.appendChild(overlay);
 
-  // floating particles
-  const pc=document.getElementById('lockParticles');
-  for(let i=0;i<28;i++){
-    const s=document.createElement('span');
+  // Back button — remove overlay
+  document.getElementById('lockBackBtn').onclick=()=>{
+    overlay.classList.add('unlocking');
+    setTimeout(()=>overlay.remove(),400);
+  };
+
+  // === Generate dreamy background decorations ===
+  const bgDecor=document.getElementById('lockBgDecor');
+  // Transparent bubbles rising
+  for(let i=0;i<12;i++){
+    const b=document.createElement('div');
+    b.className='lock-bubble';
+    const sz=20+Math.random()*50;
+    b.style.width=sz+'px'; b.style.height=sz+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.animationDuration=(10+Math.random()*15)+'s';
+    b.style.animationDelay=Math.random()*10+'s';
+    bgDecor.appendChild(b);
+  }
+  // Falling flower petals
+  const petals=['🌸','🌺','🌷','💮'];
+  for(let i=0;i<8;i++){
+    const p=document.createElement('div');
+    p.className='lock-petal';
+    p.textContent=petals[Math.floor(Math.random()*petals.length)];
+    p.style.left=Math.random()*100+'%';
+    p.style.animationDuration=(8+Math.random()*8)+'s';
+    p.style.animationDelay=Math.random()*8+'s';
+    p.style.fontSize=(14+Math.random()*8)+'px';
+    bgDecor.appendChild(p);
+  }
+  // Twinkling sparkles
+  for(let i=0;i<15;i++){
+    const s=document.createElement('div');
+    s.className='lock-sparkle';
     s.style.left=Math.random()*100+'%';
-    s.style.animationDuration=(8+Math.random()*12)+'s';
-    s.style.animationDelay=Math.random()*10+'s';
-    s.style.opacity=0.15+Math.random()*0.35;
-    const sz=2+Math.random()*3;
+    s.style.top=Math.random()*100+'%';
+    s.style.animationDuration=(2+Math.random()*3)+'s';
+    s.style.animationDelay=Math.random()*3+'s';
+    const sz=3+Math.random()*4;
     s.style.width=sz+'px'; s.style.height=sz+'px';
-    pc.appendChild(s);
+    bgDecor.appendChild(s);
   }
 
+  // === PIN input logic ===
   let pinInput='';
-  const pinDots=document.querySelectorAll('#pinDisplay .pin-dot');
+  const pinDots=overlay.querySelectorAll('#pinDisplay .pin-dot');
+  const pinDisplay=document.getElementById('pinDisplay');
   const lockMsg=document.getElementById('lockMsg');
+  const lockBody=document.getElementById('lockBody');
 
   function updateDisplay(){
     pinDots.forEach((d,i)=>d.classList.toggle('filled',i<pinInput.length));
@@ -3945,104 +5261,494 @@ function renderGalleryLock(){
   }
 
   function unlockSuccess(){
-    const lid=document.getElementById('chestLid');
-    const glow=document.getElementById('chestGlow');
-    const cl=document.getElementById('chestLock');
-
-    cl.style.transform='translate(-50%,-50%) scale(1.3)';
-    cl.style.boxShadow='0 0 30px rgba(245,217,122,.9)';
-
-    setTimeout(()=>{
-      lid.classList.add('open');
-      glow.classList.add('show');
-      createGoldBurst();
-      localStorage.setItem(GALLERY_LOCK_KEY,'true');
-    },250);
-
-    // Start fading out the overlay (CSS has 0.8s delay + 0.6s fade)
-    setTimeout(()=>{ overlay.classList.add('unlocking'); },1000);
-
-    // Reveal gallery content behind as overlay fades out
-    setTimeout(()=>{
-      const sc=content.querySelector('.screen');
-      if(sc) sc.classList.add('gallery-reveal');
-    },1800);
-
-    // Remove overlay from DOM after fade completes
-    setTimeout(()=>{
-      overlay.remove();
-    },2400);
-  }
-
-  function createGoldBurst(){
-    const chest=document.getElementById('chestWrap');
-    const r=chest.getBoundingClientRect();
+    const r=lockBody.getBoundingClientRect();
     const cx=r.left+r.width/2, cy=r.top+r.height/2;
 
-    for(let i=0;i<45;i++){
+    // Heart glow expansion
+    const glow=document.createElement('div');
+    glow.className='heart-glow';
+    glow.style.left=cx+'px'; glow.style.top=cy+'px';
+    document.body.appendChild(glow);
+    setTimeout(()=>glow.remove(),1000);
+
+    // Screen brighten flash
+    const brighten=document.createElement('div');
+    brighten.className='success-brighten';
+    document.body.appendChild(brighten);
+    setTimeout(()=>brighten.remove(),800);
+
+    // Burst hearts, petals & sparkles
+    const hearts=['💕','💖','💗','💝','🌸','🌺','✨','⭐','🩷'];
+    for(let i=0;i<35;i++){
       const p=document.createElement('div');
-      p.className='gold-particle';
-      p.style.left=cx+'px'; p.style.top=cy+'px';
+      p.style.cssText='position:fixed;font-size:'+(14+Math.random()*16)+'px;pointer-events:none;z-index:10001;left:'+cx+'px;top:'+cy+'px;transition:all '+(.8+Math.random()*.6)+'s cubic-bezier(.25,.46,.45,.94)';
+      p.textContent=hearts[Math.floor(Math.random()*hearts.length)];
       document.body.appendChild(p);
       const ang=Math.random()*Math.PI*2;
       const dist=80+Math.random()*220;
       const dx=Math.cos(ang)*dist;
-      const dy=Math.sin(ang)*dist-40;
-      const sz=3+Math.random()*7;
-      const dur=700+Math.random()*700;
-      p.style.width=sz+'px'; p.style.height=sz+'px';
-      p.style.transition='all '+dur+'ms cubic-bezier(.25,.46,.45,.94)';
+      const dy=Math.sin(ang)*dist-60;
       requestAnimationFrame(()=>{
-        p.style.transform='translate('+dx+'px,'+dy+'px) scale(0)';
+        p.style.transform='translate('+dx+'px,'+dy+'px) scale(.3) rotate('+(Math.random()*360)+'deg)';
         p.style.opacity='0';
       });
-      setTimeout(()=>p.remove(),dur+100);
+      setTimeout(()=>p.remove(),1500);
     }
 
-    // light rays
-    const rays=document.createElement('div');
-    rays.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9998;pointer-events:none;background:radial-gradient(circle at '+cx+'px '+cy+'px,rgba(255,215,100,.3),transparent 50%);animation:rayExpand .8s ease forwards';
-    document.body.appendChild(rays);
-    setTimeout(()=>rays.remove(),800);
+    // Save unlock state
+    localStorage.setItem(GALLERY_LOCK_KEY,'true');
+    localStorage.setItem(ALL_RECIPES_UNLOCKED_KEY,'true');
+
+    // Melt away the lock overlay
+    setTimeout(()=>{ overlay.classList.add('unlocking'); },600);
+
+    // Show warm welcome message
+    setTimeout(()=>{
+      const welcome=document.createElement('div');
+      welcome.className='welcome-banner';
+      welcome.textContent='欢迎回来，甜蜜配方已为您准备好 ♡';
+      document.body.appendChild(welcome);
+      setTimeout(()=>welcome.remove(),1500);
+    },800);
+
+    // Reveal gallery content
+    setTimeout(()=>{
+      const sc=content.querySelector('.screen');
+      if(sc) sc.classList.add('gallery-reveal');
+    },1200);
+
+    // Remove overlay after melt completes and re-render to hide lock button
+    setTimeout(()=>{ overlay.remove(); renderGalleryHome(); },1600);
   }
 
   function unlockFail(){
-    const chest=document.getElementById('chestWrap');
-    const crack=document.getElementById('lockCrack');
-    const flash=document.getElementById('lockFlash');
-
-    chest.classList.add('shake');
-    crack.classList.add('show');
-    flash.classList.add('show');
-    lockMsg.textContent='密码错误，请重新输入';
+    lockBody.classList.add('shake-sweet');
+    pinDisplay.classList.add('error');
+    lockMsg.textContent='哎呀，密码好像不对哦～';
+    lockMsg.classList.add('show');
 
     setTimeout(()=>{
-      chest.classList.remove('shake');
-      crack.classList.remove('show');
-      flash.classList.remove('show');
-    },600);
+      lockBody.classList.remove('shake-sweet');
+      pinDisplay.classList.remove('error');
+      lockMsg.classList.remove('show');
+    },1500);
 
     pinInput='';
     updateDisplay();
-
-    setTimeout(()=>{ lockMsg.textContent=''; },2500);
+    setTimeout(()=>{ lockMsg.textContent=''; },1500);
   }
 
-  document.querySelectorAll('#numPad .num-btn[data-num]').forEach(btn=>{
+  overlay.querySelectorAll('#numPad .num-btn[data-num]').forEach(btn=>{
     btn.onclick=()=>{
       if(pinInput.length<4){
         pinInput+=btn.dataset.num;
         updateDisplay();
-        if(pinInput.length===4) setTimeout(tryUnlock,200);
+        if(pinInput.length===4) setTimeout(tryUnlock,250);
       }
     };
   });
   document.getElementById('numClear').onclick=()=>{
-    pinInput=''; updateDisplay(); lockMsg.textContent='';
+    pinInput=''; updateDisplay(); lockMsg.classList.remove('show'); lockMsg.textContent='';
   };
   document.getElementById('numConfirm').onclick=()=>{
     if(pinInput.length===4) tryUnlock();
   };
+}
+
+/* ---------- Admin Password Input (same sweet style as gallery lock) ---------- */
+function showAdminPasswordPrompt(onSuccess){
+  const existing=document.getElementById('adminPwdOverlay');
+  if(existing) existing.remove();
+  const overlay=document.createElement('div');
+  overlay.className='lock-overlay';
+  overlay.id='adminPwdOverlay';
+  overlay.innerHTML=`
+    <div class="lock-bg-decor" id="adminBgDecor"></div>
+    <div class="lock-body" id="adminLockBody">
+      <div class="lock-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+        </svg>
+      </div>
+      <div class="lock-title">管理员验证</div>
+      <div class="lock-subtitle">输入管理员密码继续操作</div>
+      <div class="pin-display" id="adminPinDisplay">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="num-pad" id="adminNumPad">
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="num-btn" data-num="${n}">${n}</button>`).join('')}
+        <button class="num-btn fn" id="adminNumClear">清除</button>
+        <button class="num-btn" data-num="0">0</button>
+        <button class="num-btn fn confirm" id="adminNumConfirm">♥</button>
+      </div>
+      <div class="lock-msg-bubble" id="adminLockMsg"></div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  // Background decorations
+  const bgDecor=document.getElementById('adminBgDecor');
+  for(let i=0;i<12;i++){
+    const b=document.createElement('div');
+    b.className='lock-bubble';
+    const sz=20+Math.random()*50;
+    b.style.width=sz+'px'; b.style.height=sz+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.animationDuration=(10+Math.random()*15)+'s';
+    b.style.animationDelay=Math.random()*10+'s';
+    bgDecor.appendChild(b);
+  }
+  const petals=['🌸','🌺','🌷','💮'];
+  for(let i=0;i<8;i++){
+    const p=document.createElement('div');
+    p.className='lock-petal';
+    p.textContent=petals[Math.floor(Math.random()*petals.length)];
+    p.style.left=Math.random()*100+'%';
+    p.style.animationDuration=(8+Math.random()*8)+'s';
+    p.style.animationDelay=Math.random()*8+'s';
+    p.style.fontSize=(14+Math.random()*8)+'px';
+    bgDecor.appendChild(p);
+  }
+  for(let i=0;i<15;i++){
+    const s=document.createElement('div');
+    s.className='lock-sparkle';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.animationDuration=(2+Math.random()*3)+'s';
+    s.style.animationDelay=Math.random()*3+'s';
+    const sz=3+Math.random()*4;
+    s.style.width=sz+'px'; s.style.height=sz+'px';
+    bgDecor.appendChild(s);
+  }
+
+  let pinInput='';
+  const pinDots=overlay.querySelectorAll('#adminPinDisplay .pin-dot');
+  const pinDisplay=document.getElementById('adminPinDisplay');
+  const lockMsg=document.getElementById('adminLockMsg');
+  const lockBody=document.getElementById('adminLockBody');
+
+  function updateDisplay(){
+    pinDots.forEach((d,i)=>d.classList.toggle('filled',i<pinInput.length));
+  }
+  function tryVerify(){
+    if(pinInput===GALLERY_PASSWORD){
+      // Success
+      const r=lockBody.getBoundingClientRect();
+      const cx=r.left+r.width/2, cy=r.top+r.height/2;
+      const glow=document.createElement('div');
+      glow.className='heart-glow';
+      glow.style.left=cx+'px'; glow.style.top=cy+'px';
+      document.body.appendChild(glow);
+      setTimeout(()=>glow.remove(),1000);
+      const hearts=['💕','💖','💗','💝','🌸','✨'];
+      for(let i=0;i<25;i++){
+        const p=document.createElement('div');
+        p.style.cssText='position:fixed;font-size:'+(14+Math.random()*16)+'px;pointer-events:none;z-index:10001;left:'+cx+'px;top:'+cy+'px;transition:all '+(.8+Math.random()*.6)+'s cubic-bezier(.25,.46,.45,.94)';
+        p.textContent=hearts[Math.floor(Math.random()*hearts.length)];
+        document.body.appendChild(p);
+        const ang=Math.random()*Math.PI*2;
+        const dist=80+Math.random()*200;
+        requestAnimationFrame(()=>{
+          p.style.transform='translate('+Math.cos(ang)*dist+'px,'+(Math.sin(ang)*dist-60)+'px) scale(.3) rotate('+(Math.random()*360)+'deg)';
+          p.style.opacity='0';
+        });
+        setTimeout(()=>p.remove(),1500);
+      }
+      setTimeout(()=>{ overlay.classList.add('unlocking'); },500);
+      setTimeout(()=>{ overlay.remove(); onSuccess&&onSuccess(); },1200);
+    }else{
+      lockBody.classList.add('shake-sweet');
+      pinDisplay.classList.add('error');
+      lockMsg.textContent='密码不正确哦～';
+      lockMsg.classList.add('show');
+      setTimeout(()=>{
+        lockBody.classList.remove('shake-sweet');
+        pinDisplay.classList.remove('error');
+        lockMsg.classList.remove('show');
+      },1500);
+      pinInput=''; updateDisplay();
+      setTimeout(()=>{ lockMsg.textContent=''; },1500);
+    }
+  }
+  overlay.querySelectorAll('#adminNumPad .num-btn[data-num]').forEach(btn=>{
+    btn.onclick=()=>{
+      if(pinInput.length<4){
+        pinInput+=btn.dataset.num;
+        updateDisplay();
+        if(pinInput.length===4) setTimeout(tryVerify,250);
+      }
+    };
+  });
+  document.getElementById('adminNumClear').onclick=()=>{
+    pinInput=''; updateDisplay(); lockMsg.classList.remove('show'); lockMsg.textContent='';
+  };
+  document.getElementById('adminNumConfirm').onclick=()=>{
+    if(pinInput.length===4) tryVerify();
+  };
+}
+
+/* ---------- Avatar Upload (file picker) ---------- */
+function uploadAvatar(){
+  const input=document.createElement('input');
+  input.type='file'; input.accept='image/*';
+  input.onchange=(e)=>{
+    const file=e.target.files[0];
+    if(!file) return;
+    if(file.size>20*1024*1024){ toast('图片不能超过20MB','error'); return; }
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        canvas.width=120; canvas.height=120;
+        const ctx=canvas.getContext('2d');
+        const minDim=Math.min(img.width,img.height);
+        const sx=(img.width-minDim)/2, sy=(img.height-minDim)/2;
+        ctx.drawImage(img,sx,sy,minDim,minDim,0,0,120,120);
+        state.profile.avatar=canvas.toDataURL('image/jpeg',0.85);
+        persist(true);
+        renderProfile();
+        toast('头像已更新','success');
+      };
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
+/* ---------- Phone Number Input Overlay (shown after admin password verification) ---------- */
+function showPhoneInputOverlay(onConfirm){
+  const existing=document.getElementById('phoneInputOverlay');
+  if(existing) existing.remove();
+  const overlay=document.createElement('div');
+  overlay.className='lock-overlay';
+  overlay.id='phoneInputOverlay';
+  overlay.innerHTML=`
+    <div class="lock-bg-decor" id="phoneBgDecor"></div>
+    <div class="lock-body" id="phoneLockBody">
+      <div class="lock-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+        </svg>
+      </div>
+      <div class="lock-title">客户账号验证</div>
+      <div class="lock-subtitle">请输入需要解锁的手机号</div>
+      <div style="margin:20px 0;width:100%">
+        <input type="tel" id="phoneInputField" placeholder="请输入11位手机号" maxlength="11"
+          style="width:100%;padding:14px 16px;font-size:18px;text-align:center;border-radius:14px;border:2px solid rgba(255,182,193,.4);background:rgba(255,255,255,.9);color:var(--ink);outline:none;letter-spacing:2px;box-sizing:border-box"
+          inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+      </div>
+      <div class="lock-msg-bubble" id="phoneInputMsg"></div>
+      <div style="display:flex;gap:10px;width:100%;margin-top:8px">
+        <button class="num-btn fn" id="phoneInputCancel" style="flex:1;font-size:14px;height:46px;border-radius:14px">返回</button>
+        <button class="num-btn fn confirm" id="phoneInputConfirm" style="flex:1;font-size:14px;height:46px;border-radius:14px">确认</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  // Background decorations
+  const bgDecor=document.getElementById('phoneBgDecor');
+  for(let i=0;i<12;i++){
+    const b=document.createElement('div');
+    b.className='lock-bubble';
+    const sz=20+Math.random()*50;
+    b.style.width=sz+'px'; b.style.height=sz+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.animationDuration=(10+Math.random()*15)+'s';
+    b.style.animationDelay=Math.random()*10+'s';
+    bgDecor.appendChild(b);
+  }
+  const petals=['🌸','🌺','🌷','💮'];
+  for(let i=0;i<8;i++){
+    const p=document.createElement('div');
+    p.className='lock-petal';
+    p.textContent=petals[Math.floor(Math.random()*petals.length)];
+    p.style.left=Math.random()*100+'%';
+    p.style.animationDuration=(8+Math.random()*8)+'s';
+    p.style.animationDelay=Math.random()*8+'s';
+    p.style.fontSize=(14+Math.random()*8)+'px';
+    bgDecor.appendChild(p);
+  }
+
+  const phoneInput=document.getElementById('phoneInputField');
+  const phoneMsg=document.getElementById('phoneInputMsg');
+  const lockBody=document.getElementById('phoneLockBody');
+
+  // Auto-focus
+  setTimeout(()=>phoneInput.focus(),300);
+
+  function closeOverlay(){
+    overlay.classList.add('unlocking');
+    setTimeout(()=>overlay.remove(),400);
+  }
+
+  function handleSubmit(){
+    const phone=phoneInput.value.trim();
+    if(!phone){
+      lockBody.classList.add('shake-sweet');
+      phoneMsg.textContent='请输入手机号';
+      phoneMsg.classList.add('show');
+      setTimeout(()=>{ lockBody.classList.remove('shake-sweet'); phoneMsg.classList.remove('show'); },1500);
+      return;
+    }
+    if(!/^1\d{10}$/.test(phone)){
+      lockBody.classList.add('shake-sweet');
+      phoneMsg.textContent='请输入正确的11位手机号';
+      phoneMsg.classList.add('show');
+      setTimeout(()=>{ lockBody.classList.remove('shake-sweet'); phoneMsg.classList.remove('show'); },1500);
+      return;
+    }
+    closeOverlay();
+    if(onConfirm) onConfirm(phone);
+  }
+
+  document.getElementById('phoneInputConfirm').onclick=handleSubmit;
+  document.getElementById('phoneInputCancel').onclick=()=>{ closeOverlay(); };
+  phoneInput.onkeydown=(e)=>{ if(e.key==='Enter'){ e.preventDefault(); handleSubmit(); } };
+
+  // Tap outside to close
+  overlay.addEventListener('click',(e)=>{
+    if(e.target===overlay) closeOverlay();
+  });
+}
+
+/* ---------- Recipe Permission Panel (admin sets per-device) ---------- */
+function showRecipePermissionPanel(deviceId,deviceName,devicePhone){
+  const allRecipes=state.recipes;
+  const auth=getAuthState();
+  const url=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json?access_token='+encodeURIComponent(auth.token);
+
+  // Lock body scroll
+  document.body.style.overflow='hidden';
+
+  const overlay=document.createElement('div');
+  overlay.className='lock-overlay';
+  overlay.id='permPanelOverlay';
+  overlay.style.overflowY='auto';
+  overlay.style.webkitOverflowScrolling='touch';
+  overlay.innerHTML=`
+    <div class="lock-bg-decor"></div>
+    <div class="lock-body" style="max-width:420px;width:94%;padding:28px 20px;margin:auto;min-height:90vh;display:flex;flex-direction:column;justify-content:center">
+      <div class="lock-title" style="font-size:22px;margin-bottom:6px">配方权限管理</div>
+      <div class="lock-subtitle" style="margin-bottom:14px;font-size:18px">客户账号 ${esc(devicePhone||'')}</div>
+      <div id="permList" style="flex:1;overflow-y:auto;max-height:68vh;margin-bottom:14px;-webkit-overflow-scrolling:touch">
+        <div style="text-align:center;color:rgba(210,105,30,.5);padding:20px;font-size:16px">加载中...</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="num-btn" id="permSelectAll" style="flex:1;font-size:14px;height:46px;border-radius:14px;color:rgba(210,105,30,.5)">全选</button>
+        <button class="num-btn" id="permSelectNone" style="flex:1;font-size:14px;height:46px;border-radius:14px;color:rgba(210,105,30,.5)">全不选</button>
+        <button class="num-btn fn" id="permCancel" style="flex:1;font-size:14px;height:46px;border-radius:14px;color:rgba(210,105,30,.5)">取消</button>
+        <button class="num-btn fn confirm" id="permConfirm" style="flex:1;font-size:14px;height:46px;border-radius:14px;color:rgba(210,105,30,.5)">确认</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  // Cleanup function — restore body scroll
+  function closePanel(){
+    document.body.style.overflow='';
+    overlay.classList.add('unlocking');
+    setTimeout(()=>overlay.remove(),400);
+  }
+
+  let selectedIds=new Set();
+
+  // Fetch current permissions
+  fetch(url).then(res=>res.json()).then(data=>{
+    const content=decodeURIComponent(escape(atob(data.content)));
+    const users=JSON.parse(content);
+    let currentPerms=[];
+    users.forEach(u=>{
+      const dev=(u.devices||[]).find(d=>d.deviceId===deviceId);
+      if(dev) currentPerms=dev.recipePermissions||[];
+    });
+    selectedIds=new Set(currentPerms);
+
+    const listEl=document.getElementById('permList');
+    if(allRecipes.length===0){
+      listEl.innerHTML='<div style="text-align:center;color:rgba(210,105,30,.5);padding:20px;font-size:16px">暂无配方</div>';
+      return;
+    }
+    listEl.innerHTML=allRecipes.map(r=>`
+      <div class="perm-item" data-rid="${r.id}" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.1);margin-bottom:6px;cursor:pointer;transition:background .2s">
+        <div class="perm-check" style="width:26px;height:26px;border-radius:50%;border:2px solid rgba(210,105,30,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="opacity:0;transform:scale(.5);transition:all .18s"><path d="M5 12l5 5 9-12"/></svg>
+        </div>
+        <span style="color:rgba(210,105,30,.5);font-size:16px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.name)}</span>
+      </div>
+    `).join('');
+
+    function updateCheck(el){
+      const rid=el.dataset.rid;
+      const chk=el.querySelector('.perm-check');
+      if(selectedIds.has(rid)){
+        chk.style.background='var(--brand)';
+        chk.style.borderColor='var(--brand)';
+        chk.querySelector('svg').style.opacity='1';
+        chk.querySelector('svg').style.transform='scale(1)';
+        el.style.background='rgba(255,182,193,.2)';
+      }else{
+        chk.style.background='';
+        chk.style.borderColor='rgba(210,105,30,.3)';
+        chk.querySelector('svg').style.opacity='0';
+        chk.querySelector('svg').style.transform='scale(.5)';
+        el.style.background='rgba(255,255,255,.1)';
+      }
+    }
+
+    listEl.querySelectorAll('.perm-item').forEach(el=>{
+      updateCheck(el);
+      el.onclick=()=>{
+        const rid=el.dataset.rid;
+        if(selectedIds.has(rid)) selectedIds.delete(rid);
+        else selectedIds.add(rid);
+        updateCheck(el);
+      };
+    });
+
+    document.getElementById('permSelectAll').onclick=()=>{
+      allRecipes.forEach(r=>selectedIds.add(r.id));
+      listEl.querySelectorAll('.perm-item').forEach(el=>updateCheck(el));
+    };
+    document.getElementById('permSelectNone').onclick=()=>{
+      selectedIds.clear();
+      listEl.querySelectorAll('.perm-item').forEach(el=>updateCheck(el));
+    };
+  }).catch(()=>{
+    document.getElementById('permList').innerHTML='<div style="text-align:center;color:rgba(210,105,30,.5);padding:20px;font-size:16px">加载失败</div>';
+  });
+
+  document.getElementById('permCancel').onclick=()=>{ closePanel(); };
+  document.getElementById('permConfirm').onclick=async()=>{
+    const btn=document.getElementById('permConfirm');
+    btn.textContent='保存中...'; btn.disabled=true;
+    const ok=await setDeviceRecipePermissions(deviceId,Array.from(selectedIds));
+    if(ok){
+      toast('配方权限已更新','success');
+      closePanel();
+    }else{
+      toast('保存失败，请重试','error');
+      btn.textContent='确认'; btn.disabled=false;
+    }
+  };
+}
+
+// ---------- URL param: force_sw_clear=1 (auto clear SW + cache on every visit) ----------
+if(new URLSearchParams(window.location.search).get('force_sw_clear')==='1'){
+  (async()=>{
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      for(const r of regs) await r.unregister();
+    }
+    if('caches' in window){
+      const keys=await caches.keys();
+      for(const k of keys) await caches.delete(k);
+    }
+    sessionStorage.removeItem('sw_reloaded');
+    // Reload without the param to avoid loop
+    const url=new URL(window.location.href);
+    url.searchParams.delete('force_sw_clear');
+    window.location.replace(url.toString());
+  })();
 }
 
 // ---------- PWA Service Worker Registration ----------
@@ -4064,7 +5770,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v49';
+const APP_VERSION='v76';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
