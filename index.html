@@ -6062,7 +6062,7 @@ if(!_forceSwClear && 'serviceWorker' in navigator){
 
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
-// Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
+// Uses jsDelivr CDN (China-friendly) instead of GitHub Pages for version checking
 const APP_VERSION='v82';
 async function checkRemoteVersion(){
   try{
