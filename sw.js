@@ -1,7 +1,7 @@
 // Service Worker — 甜品配方工作台 PWA
 // 缓存策略：network-first for HTML, cache-first for static assets
 
-const CACHE_NAME = 'recipe-atelier-v75';
+const CACHE_NAME = 'recipe-atelier-v76';
 const MAIN_URL = './';
 
 // 安装时预缓存主页面
@@ -28,6 +28,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   // GitHub API 请求不缓存
   if (url.hostname === 'api.github.com') return;
+  // sw.js 请求不缓存（确保 checkRemoteVersion 能获取最新版本）
+  if (url.pathname.endsWith('/sw.js')) return;
 
   if (url.origin === self.location.origin) {
     // HTML 请求：network-first，确保用户总是获取最新版本
