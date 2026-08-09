@@ -93,7 +93,12 @@
   .cat .art .cat-edit svg{width:13px;height:13px;stroke:var(--ink);stroke-width:2;fill:none}
   .cat .meta{padding:10px 12px 14px;background:rgba(255,255,255,.5)}
   .cat .meta .nm{font-size:14px;font-weight:700;color:var(--ink);line-height:1.25}
+  .cat .meta .nm-en{font-size:10px;color:var(--sub);margin-top:1px;opacity:.7;letter-spacing:.3px}
   .cat .meta .ct{font-size:11px;color:var(--sub);margin-top:3px}
+  .cat-group{margin-bottom:20px}
+  .cat-group-header{display:flex;align-items:baseline;gap:8px;padding:0 2px 10px;margin-top:4px}
+  .cat-group-name{font-size:16px;font-weight:800;color:var(--ink);letter-spacing:.5px}
+  .cat-group-en{font-size:11px;color:var(--sub);opacity:.6;letter-spacing:.3px}
   .g1{background:linear-gradient(135deg,#E8B894,#D48C5C)}
   .g2{background:linear-gradient(135deg,#D48C5C,#B5673C)}
   .g3{background:linear-gradient(135deg,#F0C9A0,#D89A6A)}
@@ -1151,6 +1156,42 @@ function seedRecipes(){
   ];
 }
 
+/* ---------- Migrate categories to new grouped structure ---------- */
+function migrateCategories(){
+  let changed=false;
+  // 1. Rename old English category names to Chinese
+  state.categories.forEach(c=>{
+    if(OLD_TO_NEW[c.name]){
+      c.name=OLD_TO_NEW[c.name];
+      changed=true;
+    }
+    // 2. Add nameEn and group fields from lookup
+    const meta=CATEGORY_LOOKUP[c.name];
+    if(meta){
+      if(!c.nameEn){ c.nameEn=meta.nameEn; changed=true; }
+      if(!c.group){ c.group=meta.group; changed=true; }
+    }
+  });
+  // 3. Add missing categories from the defined list
+  const existing=new Set(state.categories.map(c=>c.name));
+  CATEGORY_GROUPS.forEach(g=>{
+    g.items.forEach(item=>{
+      if(!existing.has(item.name)){
+        state.categories.push({
+          id:'cat-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),
+          name:item.name, nameEn:item.nameEn, group:g.name, image:''
+        });
+        changed=true;
+      }
+    });
+  });
+  if(changed){
+    state.sync.localUpdatedAt=Date.now();
+    writeLocal();
+  }
+  return changed;
+}
+
 /* ---------- Inject reference recipes for existing users ---------- */
 function ensureReferenceRecipes(){
   let added=false;
@@ -1213,6 +1254,50 @@ const GIST_DESC = '甜品配方工作台 — 云同步数据';
 const DEFAULT_SYNC = { token:'', gistId:'', giteeToken:'', giteeRepo:'', autoSync:true, lastSyncedAt:0, localUpdatedAt:0 };
 const DEFAULT_AI = { apiKey:'sk-ws-H.ERMLHDH.xhJ8.MEUCIQCBGExi5HRzX2j5KDwDXlbiMloZcAIbTTHanMN9Hkv41gIgbzOYbi_2bBGWVkZsThzCJPIHD01qb9Mpf6EzSckhr9w', model:'wan2.6-t2i' };
 const DEFAULT_PROFILE = { name:'XiaFei', avatar:'', tagline:'与木&Kimiko' };
+
+// Recipe category groups — defines display order and major category headers
+const CATEGORY_GROUPS = [
+  { name:'经典法式甜品', nameEn:'Classic French Desserts', items:[
+    {name:'马卡龙',nameEn:'Macaron'},
+    {name:'牛角包',nameEn:'Croissant'},
+    {name:'玛德琳蛋糕',nameEn:'Madeleine'},
+    {name:'可露丽',nameEn:'Canelé'},
+    {name:'千层酥/拿破仑蛋糕',nameEn:'Mille-feuille'},
+    {name:'布雷斯特泡芙',nameEn:'Paris-Brest'},
+    {name:'焦糖奶油酥',nameEn:'Kouign-amann'},
+    {name:'闪电泡芙',nameEn:'Éclair'},
+    {name:'舒芙蕾',nameEn:'Soufflé'},
+  ]},
+  { name:'整块/切块蛋糕', nameEn:'Whole & Slice Cakes', items:[
+    {name:'巴斯克',nameEn:'Basque'},
+    {name:'戚风',nameEn:'Chiffon'},
+    {name:'慕斯',nameEn:'Mousse'},
+    {name:'红丝绒',nameEn:'Red Velvet'},
+    {name:'黑森林',nameEn:'Black Forest'},
+    {name:'提拉米苏',nameEn:'Tiramisu'},
+  ]},
+  { name:'小蛋糕/茶点', nameEn:'Small Cakes & Tea Time', items:[
+    {name:'麦芬',nameEn:'Muffin'},
+    {name:'费南雪',nameEn:'Financier'},
+  ]},
+  { name:'面包类', nameEn:'Bread', items:[
+    {name:'可颂/牛角包',nameEn:'Croissant'},
+    {name:'丹麦酥皮面包',nameEn:'Danish Pastry'},
+    {name:'贝果',nameEn:'Bagel'},
+  ]},
+  { name:'其他常见', nameEn:'Other Common', items:[
+    {name:'泡芙',nameEn:'Cream Puff'},
+    {name:'蛋挞',nameEn:'Egg Tart'},
+    {name:'曲奇饼干',nameEn:'Cookies'},
+    {name:'布丁',nameEn:'Pudding'},
+  ]},
+];
+// Flat lookup: Chinese name → { nameEn, group, groupEn }
+const CATEGORY_LOOKUP={};
+CATEGORY_GROUPS.forEach(g=>{g.items.forEach(it=>{if(!CATEGORY_LOOKUP[it.name])CATEGORY_LOOKUP[it.name]={nameEn:it.nameEn,group:g.name,groupEn:g.nameEn};});});
+// Old English category names → new Chinese names
+const OLD_TO_NEW={'Yeast Bread':'丹麦酥皮面包','Artisan Bread':'贝果','Cakes & Sponge':'戚风','Cookies':'曲奇饼干','Laminated Pastry':'千层酥/拿破仑蛋糕','Tarts & Pies':'蛋挞','Quick Bread & Scones':'麦芬','Choux & Meringue':'泡芙'};
+
 let state = { recipes:[], pantry:[], wiki:{}, categories:[], showcases:[], sync:{...DEFAULT_SYNC}, aiImage:{...DEFAULT_AI}, profile:{...DEFAULT_PROFILE}, activeTab:'gallery', wikiCat:'面粉类', gView:'home', catId:null, recipeId:null };
 
 // pure local write — no side effects, no toast, no sync trigger
@@ -1278,6 +1363,8 @@ function load(){
     state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
     writeLocal();
   }
+  // migrate categories to new grouped Chinese structure
+  migrateCategories();
   // seed showcase defaults if empty
   if(!state.showcases || state.showcases.length===0){
     state.showcases = JSON.parse(JSON.stringify(DEFAULT_SHOWCASES));
@@ -1636,6 +1723,8 @@ async function syncPull(silent){
       // Ensure reference recipes and wiki ingredients exist
       ensureReferenceRecipes();
       ensureWikiIngredients();
+      // Migrate categories to new grouped Chinese structure
+      migrateCategories();
       // Re-lock recipes after cloud merge (cloud data may lack 'locked' field)
       let relockChanged=false;
       if(state.recipes && state.recipes.length>0){
@@ -2093,22 +2182,7 @@ function renderGalleryHome(){
           </div>
         </div>
       </div>
-      <div class="grid">
-        ${state.categories.map(c=>`
-          <div class="cat" data-cat="${c.id}">
-            <div class="art">
-              ${c.image?`<img src="${c.image}" alt="">`:`<span class="cat-placeholder">${esc(c.name.charAt(0))}</span>`}
-              ${isAdmin?`
-              <button class="cat-check" data-cid="${c.id}">${svg('check')}</button>
-              <button class="cat-edit" data-cid="${c.id}">${svg('pencil')}</button>
-              `:''}
-            </div>
-            <div class="meta">
-              <div class="nm">${esc(c.name)}</div>
-              <div class="ct">${recipeCount(c.id)} 个配方</div>
-            </div>
-          </div>`).join('')}
-      </div>
+      ${(()=>{const grouped={};const uncategorized=[];state.categories.forEach(c=>{if(c.group&&CATEGORY_LOOKUP[c.name]){if(!grouped[c.group])grouped[c.group]=[];grouped[c.group].push(c);}else{uncategorized.push(c);}});let html='';CATEGORY_GROUPS.forEach(g=>{const cats=grouped[g.name]||[];if(cats.length===0)return;cats.sort((a,b)=>{const ai=g.items.findIndex(it=>it.name===a.name);const bi=g.items.findIndex(it=>it.name===b.name);return(ai===-1?999:ai)-(bi===-1?999:bi);});html+=`<div class="cat-group"><div class="cat-group-header"><span class="cat-group-name">${g.name}</span><span class="cat-group-en">${g.nameEn}</span></div><div class="grid">${cats.map(c=>`<div class="cat" data-cat="${c.id}"><div class="art">${c.image?`<img src="${c.image}" alt="">`:`<span class="cat-placeholder">${esc(c.name.charAt(0))}</span>`}${isAdmin?`<button class="cat-check" data-cid="${c.id}">${svg('check')}</button><button class="cat-edit" data-cid="${c.id}">${svg('pencil')}</button>`:''}</div><div class="meta"><div class="nm">${esc(c.name)}</div><div class="nm-en">${esc(c.nameEn||'')}</div><div class="ct">${recipeCount(c.id)} 个配方</div></div></div>`).join('')}</div></div>`;});if(uncategorized.length>0){html+=`<div class="cat-group"><div class="cat-group-header"><span class="cat-group-name">其他</span><span class="cat-group-en">Other</span></div><div class="grid">${uncategorized.map(c=>`<div class="cat" data-cat="${c.id}"><div class="art">${c.image?`<img src="${c.image}" alt="">`:`<span class="cat-placeholder">${esc(c.name.charAt(0))}</span>`}${isAdmin?`<button class="cat-check" data-cid="${c.id}">${svg('check')}</button><button class="cat-edit" data-cid="${c.id}">${svg('pencil')}</button>`:''}</div><div class="meta"><div class="nm">${esc(c.name)}</div><div class="nm-en">${esc(c.nameEn||'')}</div><div class="ct">${recipeCount(c.id)} 个配方</div></div></div>`).join('')}</div></div>`;}return html;})()}
     </div>`;
   // card click -> open category list
   document.querySelectorAll('.cat').forEach(b=>{
@@ -5183,7 +5257,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v67';
+const APP_VERSION='v68';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
