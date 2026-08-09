@@ -1043,7 +1043,7 @@ function svg(name,sw){return `<svg viewBox="0 0 24 24" width="24" height="24" fi
 /* ---------- English reference recipes (one per category) ---------- */
 const REFERENCE_RECIPES = [
   {
-    id:'r-ref-yeast', cat:'yeast', name:'Hokkaido Milk Bread (Shokupan)',
+    id:'r-ref-yeast', cat:'yeast', name:'Hokkaido Milk Bread (Shokupan)', image:'recipe-images/r-ref-yeast.jpg',
     ingredients:[
       {name:'Bread flour', gram:'300'},
       {name:'Whole milk', gram:'180'},
@@ -1057,7 +1057,7 @@ const REFERENCE_RECIPES = [
     notes:'For extra softness, add a tangzhong roux: whisk 20g flour with 100g water over low heat until it reaches 65C, cool, then mix into the dough.'
   },
   {
-    id:'r-ref-artisan', cat:'artisan', name:'Classic Sourdough Boule',
+    id:'r-ref-artisan', cat:'artisan', name:'Classic Sourdough Boule', image:'recipe-images/r-ref-artisan.jpg',
     ingredients:[
       {name:'Bread flour', gram:'400'},
       {name:'Whole wheat flour', gram:'50'},
@@ -1069,7 +1069,7 @@ const REFERENCE_RECIPES = [
     notes:'Feed your starter 12 hours before baking. Higher hydration (75 to 80 percent) creates a more open crumb but is harder to handle.'
   },
   {
-    id:'r-ref-cakes', cat:'cakes', name:'Classic Victoria Sponge',
+    id:'r-ref-cakes', cat:'cakes', name:'Classic Victoria Sponge', image:'recipe-images/r-ref-cakes.jpg',
     ingredients:[
       {name:'Unsalted butter (room temp)', gram:'200'},
       {name:'Caster sugar', gram:'200'},
@@ -1085,7 +1085,7 @@ const REFERENCE_RECIPES = [
     notes:'All ingredients should be at room temperature for the best emulsion. Avoid overmixing once flour is added or the cake will be tough.'
   },
   {
-    id:'r-ref-cookies', cat:'cookies', name:'Brown Butter Chocolate Chip Cookies',
+    id:'r-ref-cookies', cat:'cookies', name:'Brown Butter Chocolate Chip Cookies', image:'recipe-images/r-ref-cookies.jpg',
     ingredients:[
       {name:'Unsalted butter', gram:'170'},
       {name:'Dark brown sugar', gram:'150'},
@@ -1102,7 +1102,7 @@ const REFERENCE_RECIPES = [
     notes:'Chilling the dough is essential for deep flavor and to prevent excessive spreading. The cookies will continue to set as they cool.'
   },
   {
-    id:'r-ref-laminated', cat:'laminated', name:'Classic Croissants',
+    id:'r-ref-laminated', cat:'laminated', name:'Classic Croissants', image:'recipe-images/r-ref-laminated.jpg',
     ingredients:[
       {name:'Bread flour', gram:'500'},
       {name:'Water', gram:'250'},
@@ -1117,7 +1117,7 @@ const REFERENCE_RECIPES = [
     notes:'Keep butter and dough at similar temperatures (12 to 14C) throughout lamination. If the butter gets too warm, return to the fridge for 20 minutes before continuing.'
   },
   {
-    id:'r-ref-tarts', cat:'tarts', name:'Classic Lemon Tart',
+    id:'r-ref-tarts', cat:'tarts', name:'Classic Lemon Tart', image:'recipe-images/r-ref-tarts.jpg',
     ingredients:[
       {name:'Plain flour (pastry)', gram:'200'},
       {name:'Icing sugar (pastry)', gram:'60'},
@@ -1134,7 +1134,7 @@ const REFERENCE_RECIPES = [
     notes:'For a professional finish, brulee the top with a blowtorch and a thin layer of sugar. The curd will continue to set as it cools.'
   },
   {
-    id:'r-ref-quick', cat:'quick', name:'Buttermilk Scones',
+    id:'r-ref-quick', cat:'quick', name:'Buttermilk Scones', image:'recipe-images/r-ref-quick.jpg',
     ingredients:[
       {name:'Plain flour', gram:'350'},
       {name:'Baking powder', gram:'15'},
@@ -1150,7 +1150,7 @@ const REFERENCE_RECIPES = [
     notes:'Cold butter and minimal handling are the secrets to tall, flaky scones. Press straight down when cutting; twisting seals the edges and prevents rising.'
   },
   {
-    id:'r-ref-choux', cat:'choux', name:'Cream Puffs (Choux a la Creme)',
+    id:'r-ref-choux', cat:'choux', name:'Cream Puffs (Choux a la Creme)', image:'recipe-images/r-ref-choux.jpg',
     ingredients:[
       {name:'Water', gram:'250'},
       {name:'Unsalted butter', gram:'100'},
@@ -1172,7 +1172,7 @@ const REFERENCE_RECIPES = [
 // New reference recipes for Chinese-named categories (catName → lookup at runtime)
 const NEW_REFERENCE_RECIPES = [
   {
-    id:'r-ref-macaron', catName:'马卡龙', name:'法式马卡龙',
+    id:'r-ref-macaron', catName:'马卡龙', name:'法式马卡龙', image:'recipe-images/r-ref-macaron.jpg',
     ingredients:[
       {name:'杏仁粉', gram:'110'},
       {name:'糖粉', gram:'200'},
@@ -1185,7 +1185,7 @@ const NEW_REFERENCE_RECIPES = [
     notes:'面糊翻拌是关键：过少则表面开裂，过多则塌陷。晾皮要充分，表面形成一层薄膜才能烤出裙边。'
   },
   {
-    id:'r-ref-madeleine', catName:'玛德琳蛋糕', name:'经典玛德琳',
+    id:'r-ref-madeleine', catName:'玛德琳蛋糕', name:'经典玛德琳', image:'recipe-images/r-ref-madeleine.jpg',
     ingredients:[
       {name:'低筋面粉', gram:'80'},
       {name:'鸡蛋', gram:'2'},
@@ -1199,7 +1199,7 @@ const NEW_REFERENCE_RECIPES = [
     notes:'面糊冷藏后烤出的鼓包更明显。模具一定要涂油撒粉否则脱模困难。'
   },
   {
-    id:'r-ref-canele', catName:'可露丽', name:'波尔多可露丽',
+    id:'r-ref-canele', catName:'可露丽', name:'波尔多可露丽', image:'recipe-images/r-ref-canele.jpg',
     ingredients:[
       {name:'全脂牛奶', gram:'500'},
       {name:'蛋黄', gram:'4'},
@@ -1215,7 +1215,7 @@ const NEW_REFERENCE_RECIPES = [
     notes:'面糊必须熟化24小时以上。蜂蜡涂层是形成外壳的关键，不能用黄油替代。烤温要足够高才能形成焦糖外壳。'
   },
   {
-    id:'r-ref-mousse', catName:'慕斯', name:'巧克力慕斯',
+    id:'r-ref-mousse', catName:'慕斯', name:'巧克力慕斯', image:'recipe-images/r-ref-mousse.jpg',
     ingredients:[
       {name:'黑巧克力（70%）', gram:'120'},
       {name:'蛋黄', gram:'3'},
@@ -1229,7 +1229,7 @@ const NEW_REFERENCE_RECIPES = [
     notes:'翻拌要轻柔，保持气泡。巧克力温度不能太高否则会使吉利丁失效。'
   },
   {
-    id:'r-ref-redvelvet', catName:'红丝绒', name:'红丝绒蛋糕',
+    id:'r-ref-redvelvet', catName:'红丝绒', name:'红丝绒蛋糕', image:'recipe-images/r-ref-redvelvet.jpg',
     ingredients:[
       {name:'低筋面粉', gram:'250'},
       {name:'可可粉', gram:'15'},
@@ -1248,7 +1248,7 @@ const NEW_REFERENCE_RECIPES = [
     notes:'红丝绒的红来自可可粉与酸的反应，色素是加强效果。酪乳不可用普通牛奶替代。'
   },
   {
-    id:'r-ref-blackforest', catName:'黑森林', name:'黑森林蛋糕',
+    id:'r-ref-blackforest', catName:'黑森林', name:'黑森林蛋糕', image:'recipe-images/r-ref-blackforest.jpg',
     ingredients:[
       {name:'低筋面粉', gram:'150'},
       {name:'可可粉', gram:'30'},
@@ -1264,7 +1264,7 @@ const NEW_REFERENCE_RECIPES = [
     notes:'正宗黑森林蛋糕必须使用Kirsch樱桃酒。蛋糕胚要刷足樱桃酒才能体现风味。'
   },
   {
-    id:'r-ref-financier', catName:'费南雪', name:'焦糖费南雪',
+    id:'r-ref-financier', catName:'费南雪', name:'焦糖费南雪', image:'recipe-images/r-ref-financier.jpg',
     ingredients:[
       {name:'蛋白', gram:'120'},
       {name:'细砂糖', gram:'100'},
@@ -1277,7 +1277,7 @@ const NEW_REFERENCE_RECIPES = [
     notes:'焦化黄油是费南雪的灵魂，一定要炒至深琥珀色。蛋白不需要打发，轻轻打散即可。'
   },
   {
-    id:'r-ref-pudding', catName:'布丁', name:'焦糖布丁（Crème Brûlée）',
+    id:'r-ref-pudding', catName:'布丁', name:'焦糖布丁（Crème Brûlée）', image:'recipe-images/r-ref-pudding.jpg',
     ingredients:[
       {name:'淡奶油', gram:'500'},
       {name:'蛋黄', gram:'5'},
@@ -1296,7 +1296,7 @@ function seedRecipes(){
   return [
     ...REFERENCE_RECIPES.map((r,i)=>({...r, updated:now - i*3600000})),
     {
-      id:'r-seed-1', cat:'cakes', name:'Basque Cheesecake',
+      id:'r-seed-1', cat:'cakes', name:'Basque Cheesecake', image:'recipe-images/r-seed-1.jpg',
       updated: now - 86400000*2,
       ingredients:[
         {name:'奶油奶酪（室温）', gram:'250'},
@@ -1310,7 +1310,7 @@ function seedRecipes(){
       notes:'焦黑的裂纹表面是有意为之——这就是"焦香"的特色。不要过度烘烤否则会变干；冷藏后中心会凝固。'
     },
     {
-      id:'r-seed-2', cat:'cakes', name:'经典提拉米苏',
+      id:'r-seed-2', cat:'cakes', name:'经典提拉米苏', image:'recipe-images/r-seed-2.jpg',
       updated: now - 86400000,
       ingredients:[
         {name:'马斯卡彭芝士', gram:'250'},
@@ -5770,7 +5770,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v74';
+const APP_VERSION='v75';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
