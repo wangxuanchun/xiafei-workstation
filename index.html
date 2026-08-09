@@ -1576,6 +1576,48 @@ function migrateRecipeCats(){
   return changed;
 }
 
+/* ---------- Migrate category images: set image by category name ---------- */
+const CATEGORY_IMAGE_MAP={
+  '马卡龙':'recipe-images/r-ref-macaron.jpg',
+  '牛角包':'recipe-images/r-ref-croissant2.jpg',
+  '玛德琳蛋糕':'recipe-images/r-ref-madeleine.jpg',
+  '可露丽':'recipe-images/r-ref-canele.jpg',
+  '千层酥/拿破仑蛋糕':'recipe-images/r-ref-laminated.jpg',
+  '布雷斯特泡芙':'recipe-images/r-ref-parisbrest.jpg',
+  '焦糖奶油酥':'recipe-images/r-ref-kouign.jpg',
+  '闪电泡芙':'recipe-images/r-ref-eclair.jpg',
+  '舒芙蕾':'recipe-images/r-ref-souffle.jpg',
+  '巴斯克':'recipe-images/r-seed-1.jpg',
+  '戚风':'recipe-images/r-ref-chiffon.jpg',
+  '慕斯':'recipe-images/r-ref-mousse.jpg',
+  '红丝绒':'recipe-images/r-ref-redvelvet.jpg',
+  '黑森林':'recipe-images/r-ref-blackforest.jpg',
+  '提拉米苏':'recipe-images/r-seed-2.jpg',
+  '麦芬':'recipe-images/r-ref-muffin.jpg',
+  '费南雪':'recipe-images/r-ref-financier.jpg',
+  '可颂/牛角包':'recipe-images/r-ref-laminated.jpg',
+  '丹麦酥皮面包':'recipe-images/r-ref-yeast.jpg',
+  '贝果':'recipe-images/r-ref-bagel.jpg',
+  '泡芙':'recipe-images/r-ref-choux.jpg',
+  '蛋挞':'recipe-images/r-ref-eggtart.jpg',
+  '曲奇饼干':'recipe-images/r-ref-cookies.jpg',
+  '布丁':'recipe-images/r-ref-pudding.jpg'
+};
+function migrateCategoryImages(){
+  let changed=false;
+  state.categories.forEach(c=>{
+    if((!c.image || c.image==='') && CATEGORY_IMAGE_MAP[c.name]){
+      c.image=CATEGORY_IMAGE_MAP[c.name];
+      changed=true;
+    }
+  });
+  if(changed){
+    state.sync.localUpdatedAt=Date.now();
+    writeLocal();
+  }
+  return changed;
+}
+
 /* ---------- Migrate wiki: add missing categories and ingredients ---------- */
 function ensureWikiIngredients(){
   let changed=false;
@@ -1761,6 +1803,8 @@ function load(){
     }
   });
   if(catChanged) writeLocal();
+  // migrate: set category images by name (for categories created by migrateCategories with random IDs)
+  migrateCategoryImages();
   // migrate: auto-lock all recipes that don't have locked field set
   let recipeLockChanged=false;
   if(state.recipes && state.recipes.length>0){
@@ -2152,6 +2196,8 @@ async function syncPull(silent){
       migrateRecipeCats();
       // Ensure reference recipes exist (after categories are migrated)
       ensureReferenceRecipes();
+      // Set category images by name
+      migrateCategoryImages();
       // Re-lock recipes after cloud merge (cloud data may lack 'locked' field)
       let relockChanged=false;
       if(state.recipes && state.recipes.length>0){
@@ -5964,7 +6010,7 @@ if(!_forceSwClear && 'serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v78';
+const APP_VERSION='v79';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
