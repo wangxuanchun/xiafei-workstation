@@ -3063,87 +3063,6 @@ async function autoFillSimple(missing){
   else{ toast('搜索失败','error'); }
 }
 
-/* ---------- Auto supplement images for categories + recipes (fully automatic) ---------- */
-let autoSupplementStarted = false;
-async function autoSupplementImages(){
-  if(autoSupplementStarted) return;
-  autoSupplementStarted = true;
-  const missingCats = state.categories.filter(c=>!c.image);
-  const missingRecipes = state.recipes.filter(r=>!r.image);
-  const total = missingCats.length + missingRecipes.length;
-  if(total===0) return;
-
-  const hasApiKey = !!state.aiImage.apiKey;
-  toast(`自动补充 ${total} 个图片中...`, 'info');
-  await doSupplementAll(missingCats, missingRecipes, hasApiKey);
-}
-
-async function doSupplementAll(missingCats, missingRecipes, hasApiKey){
-  const total = missingCats.length + missingRecipes.length;
-  let done=0, failed=0;
-
-  // Process categories first — background, no blocking overlay
-  for(const cat of missingCats){
-    done++;
-    try{
-      const query = cat.nameEn || cat.name;
-      const results = await searchFoodImages(query);
-      if(results.length>0){
-        const imgUrl = results[0].url;
-        let finalImage;
-        try{
-          const base64 = await fetchImageAsBase64(imgUrl);
-          if(hasApiKey){
-            const editedUrl = await editImageWithReference(base64);
-            finalImage = await downloadAndProcessAI(editedUrl);
-          } else {
-            finalImage = await downloadAndProcessAI(imgUrl);
-          }
-        }catch(e){
-          finalImage = await downloadAndProcessAI(imgUrl);
-        }
-        cat.image = finalImage;
-        persist(true);
-        if(state.activeTab==='gallery' && state.gView==='home') renderGalleryHome();
-      } else { failed++; }
-    }catch(e){ console.warn('supplement cat error',cat.name,e); failed++; }
-    await new Promise(r=>setTimeout(r,500));
-  }
-
-  // Process recipes
-  for(const recipe of missingRecipes){
-    done++;
-    try{
-      const cat = state.categories.find(c=>c.id===recipe.cat);
-      const query = (recipe.name && recipe.name!=='未命名配方') ? recipe.name : (cat ? (cat.nameEn || cat.name) : recipe.name);
-      const results = await searchFoodImages(query);
-      if(results.length>0){
-        const imgUrl = results[0].url;
-        let finalImage;
-        try{
-          const base64 = await fetchImageAsBase64(imgUrl);
-          if(hasApiKey){
-            const editedUrl = await editImageWithReference(base64);
-            finalImage = await downloadAndProcessAI(editedUrl);
-          } else {
-            finalImage = await downloadAndProcessAI(imgUrl);
-          }
-        }catch(e){
-          finalImage = await downloadAndProcessAI(imgUrl);
-        }
-        recipe.image = finalImage;
-        persist(true);
-        if(state.activeTab==='gallery' && state.gView==='list') renderRecipeList();
-      } else { failed++; }
-    }catch(e){ console.warn('supplement recipe error',recipe.name,e); failed++; }
-    await new Promise(r=>setTimeout(r,500));
-  }
-
-  const successCount = total - failed;
-  if(successCount>0){
-    toast(`自动补充完成：${successCount} 个图片${failed>0?`，${failed}个失败`:''}`,'success');
-  }
-}
 function openSearchModal(initialQuery, onConfirm){
   let searchResults=[];
   let selectedUrl=null;
@@ -5228,16 +5147,7 @@ if(urlSyncApplied){
 if(syncConfigured()){
   syncPull(true).then(()=>{
     if(state.sync.localUpdatedAt > state.sync.lastSyncedAt) syncPush(true);
-    // Auto-supplement missing images for admin users after data is loaded
-    if(isLoggedIn() && isAdminPhone()){
-      setTimeout(()=>autoSupplementImages(), 2000);
-    }
   });
-}else{
-  // No sync configured — still auto-supplement for admin
-  if(isLoggedIn() && isAdminPhone()){
-    setTimeout(()=>autoSupplementImages(), 2000);
-  }
 }
 // pull when the tab regains focus or becomes visible again (cross-device freshness)
 let lastPullTs=0;
@@ -5860,7 +5770,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v72';
+const APP_VERSION='v73';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
