@@ -1213,6 +1213,16 @@ const GIST_DESC = '甜品配方工作台 — 云同步数据';
 const DEFAULT_SYNC = { token:'', gistId:'', giteeToken:'', giteeRepo:'', autoSync:true, lastSyncedAt:0, localUpdatedAt:0 };
 const DEFAULT_AI = { apiKey:'sk-ws-H.ERMLHDH.xhJ8.MEUCIQCBGExi5HRzX2j5KDwDXlbiMloZcAIbTTHanMN9Hkv41gIgbzOYbi_2bBGWVkZsThzCJPIHD01qb9Mpf6EzSckhr9w', model:'wan2.6-t2i' };
 const DEFAULT_PROFILE = { name:'XiaFei', avatar:'', tagline:'与木&Kimiko' };
+
+// Avatar library — preset avatars for selection (placeholder, images to be added later)
+const AVATAR_LIBRARY = [
+  './default-avatar.jpg',
+  './default-avatar.jpg',
+  './default-avatar.jpg',
+  './default-avatar.jpg',
+  './default-avatar.jpg',
+  './default-avatar.jpg'
+];
 let state = { recipes:[], pantry:[], wiki:{}, categories:[], showcases:[], sync:{...DEFAULT_SYNC}, aiImage:{...DEFAULT_AI}, profile:{...DEFAULT_PROFILE}, activeTab:'gallery', wikiCat:'面粉类', gView:'home', catId:null, recipeId:null };
 
 // pure local write — no side effects, no toast, no sync trigger
@@ -3441,10 +3451,7 @@ function renderProfile(){
       <div class="dm-card" style="margin-top:16px">
         <div class="h">
           <span>📱 设备管理</span>
-          <div style="display:flex;gap:6px;align-items:center">
-            <input type="tel" id="phonePermInput" placeholder="输入手机号" maxlength="11" style="font-size:12px;padding:5px 10px;border-radius:10px;border:1px solid var(--line);width:120px;background:var(--bg2);color:var(--ink);outline:none">
-            <button id="phonePermBtn" style="font-size:11px;padding:5px 10px;border-radius:10px;border:none;background:var(--brand);color:#fff;cursor:pointer;font-weight:700;white-space:nowrap">解锁配方权限</button>
-          </div>
+          <button id="phonePermBtn" style="font-size:11px;padding:5px 12px;border-radius:10px;border:none;background:var(--brand);color:#fff;cursor:pointer;font-weight:700;white-space:nowrap">🔑 解锁配方权限</button>
         </div>
         <div id="deviceList" style="padding:12px 14px">
           <div style="text-align:center;padding:12px;color:var(--sub);font-size:13px">加载中...</div>
@@ -3457,7 +3464,7 @@ function renderProfile(){
         ${adminUser?`<button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>`:''}
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v63</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v64</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>`;
@@ -3525,38 +3532,12 @@ function renderProfile(){
       });
     };
   }
-  // Profile editing — avatar upload + name editing
+  // Profile editing — avatar library + upload + name editing
   const profAvatar=document.getElementById('profAvatar');
   const profName=document.getElementById('profName');
   profAvatar.style.cursor='pointer';
   profAvatar.onclick=()=>{
-    const input=document.createElement('input');
-    input.type='file'; input.accept='image/*';
-    input.onchange=(e)=>{
-      const file=e.target.files[0];
-      if(!file) return;
-      if(file.size>20*1024*1024){ toast('图片不能超过20MB','error'); return; }
-      const reader=new FileReader();
-      reader.onload=()=>{
-        // Resize avatar to 120x120
-        const img=new Image();
-        img.onload=()=>{
-          const canvas=document.createElement('canvas');
-          canvas.width=120; canvas.height=120;
-          const ctx=canvas.getContext('2d');
-          const minDim=Math.min(img.width,img.height);
-          const sx=(img.width-minDim)/2, sy=(img.height-minDim)/2;
-          ctx.drawImage(img,sx,sy,minDim,minDim,0,0,120,120);
-          state.profile.avatar=canvas.toDataURL('image/jpeg',0.85);
-          persist(true);
-          renderProfile();
-          toast('头像已更新','success');
-        };
-        img.src=reader.result;
-      };
-      reader.readAsDataURL(file);
-    };
-    input.click();
+    showAvatarLibrary();
   };
   profName.addEventListener('blur',()=>{
     const val=profName.textContent.trim()||'XiaFei';
@@ -3758,30 +3739,33 @@ function renderProfile(){
     });
   }
 
-  // Phone number permission search — admin enters a phone number to manage recipe permissions
+  // Phone number permission search — button → admin password → phone input → recipe permission panel
   if(isLoggedIn()&&isAdminPhone()){
     const phonePermBtn=document.getElementById('phonePermBtn');
-    const phonePermInput=document.getElementById('phonePermInput');
-    if(phonePermBtn&&phonePermInput){
-      const handlePhonePerm=async()=>{
-        const phone=phonePermInput.value.trim();
-        if(!phone){ toast('请输入手机号','error'); return; }
-        if(!/^1\d{10}$/.test(phone)){ toast('请输入正确的11位手机号','error'); return; }
-        phonePermBtn.disabled=true; phonePermBtn.textContent='查找中...';
-        try{
-          const devices=await getDevicesList();
-          const dev=devices.find(d=>d.phone===phone);
-          if(!dev){ toast('未找到该手机号的设备','error'); phonePermBtn.disabled=false; phonePermBtn.textContent='解锁配方权限'; return; }
-          showAdminPasswordPrompt(()=>{
-            showRecipePermissionPanel(dev.deviceId,dev.deviceName||'未知设备',dev.phone||'');
+    if(phonePermBtn){
+      phonePermBtn.onclick=()=>{
+        // Step 1: Admin password verification
+        showAdminPasswordPrompt(()=>{
+          // Step 2: Show phone number input overlay
+          showPhoneInputOverlay(async(phone)=>{
+            phonePermBtn.disabled=true; phonePermBtn.textContent='查找中...';
+            try{
+              const devices=await getDevicesList();
+              const dev=devices.find(d=>d.phone===phone);
+              if(!dev){
+                toast('未找到该手机号的设备','error');
+                phonePermBtn.disabled=false; phonePermBtn.textContent='🔑 解锁配方权限';
+                return;
+              }
+              // Step 3: Show recipe permission panel
+              showRecipePermissionPanel(dev.deviceId,dev.deviceName||'未知设备',dev.phone||'');
+            }catch(e){
+              toast('查找失败，请重试','error');
+            }
+            phonePermBtn.disabled=false; phonePermBtn.textContent='🔑 解锁配方权限';
           });
-        }catch(e){
-          toast('查找失败，请重试','error');
-        }
-        phonePermBtn.disabled=false; phonePermBtn.textContent='解锁配方权限';
+        });
       };
-      phonePermBtn.onclick=handlePhonePerm;
-      phonePermInput.onkeydown=(e)=>{ if(e.key==='Enter'){ e.preventDefault(); handlePhonePerm(); } };
     }
   }
 }
@@ -4919,6 +4903,228 @@ function showAdminPasswordPrompt(onSuccess){
   };
 }
 
+/* ---------- Avatar Library Overlay ---------- */
+function showAvatarLibrary(){
+  const existing=document.getElementById('avatarLibOverlay');
+  if(existing) existing.remove();
+  const overlay=document.createElement('div');
+  overlay.className='lock-overlay';
+  overlay.id='avatarLibOverlay';
+  overlay.style.overflowY='auto';
+  overlay.style.webkitOverflowScrolling='touch';
+  overlay.innerHTML=`
+    <div class="lock-bg-decor"></div>
+    <div class="lock-body" style="max-width:380px;width:90%;padding:28px 20px;margin:auto;min-height:auto;display:flex;flex-direction:column">
+      <div class="lock-title" style="font-size:20px;margin-bottom:4px">选择头像</div>
+      <div class="lock-subtitle" style="margin-bottom:20px;font-size:14px">从头像库选择或上传自定义图片</div>
+      <div id="avatarGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
+        ${AVATAR_LIBRARY.map((src,i)=>`
+          <div class="avatar-option" data-src="${src}" data-idx="${i}" style="aspect-ratio:1;border-radius:50%;background-image:url(${src});background-size:cover;background-position:center;cursor:pointer;border:3px solid transparent;transition:all .2s;box-shadow:0 2px 10px rgba(255,182,193,.15)"></div>
+        `).join('')}
+        <div id="avatarUploadOption" style="aspect-ratio:1;border-radius:50%;background:var(--fill);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:3px solid transparent;transition:all .2s">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--sub)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          <span style="font-size:10px;color:var(--sub)">上传</span>
+        </div>
+      </div>
+      <button class="num-btn fn" id="avatarLibClose" style="width:100%;font-size:14px;height:46px;border-radius:14px">关闭</button>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  // Background decorations
+  const bgDecor=overlay.querySelector('.lock-bg-decor');
+  for(let i=0;i<8;i++){
+    const b=document.createElement('div');
+    b.className='lock-bubble';
+    const sz=20+Math.random()*40;
+    b.style.width=sz+'px'; b.style.height=sz+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.animationDuration=(10+Math.random()*15)+'s';
+    b.style.animationDelay=Math.random()*10+'s';
+    bgDecor.appendChild(b);
+  }
+
+  function closeOverlay(){
+    overlay.classList.add('unlocking');
+    setTimeout(()=>overlay.remove(),400);
+  }
+
+  // Select from library
+  overlay.querySelectorAll('.avatar-option').forEach(el=>{
+    el.onmouseenter=function(){ this.style.borderColor='var(--brand)'; this.style.transform='scale(1.08)' };
+    el.onmouseleave=function(){ this.style.borderColor='transparent'; this.style.transform='scale(1)' };
+    el.onclick=()=>{
+      const src=el.dataset.src;
+      // Fetch image and convert to base64
+      const img=new Image();
+      img.crossOrigin='anonymous';
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        canvas.width=120; canvas.height=120;
+        const ctx=canvas.getContext('2d');
+        const minDim=Math.min(img.width,img.height);
+        const sx=(img.width-minDim)/2, sy=(img.height-minDim)/2;
+        ctx.drawImage(img,sx,sy,minDim,minDim,0,0,120,120);
+        try{
+          state.profile.avatar=canvas.toDataURL('image/jpeg',0.85);
+        }catch(e){
+          // CORS fallback: use URL directly
+          state.profile.avatar=src;
+        }
+        persist(true);
+        renderProfile();
+        toast('头像已更新','success');
+        closeOverlay();
+      };
+      img.onerror=()=>{
+        // Fallback: use URL directly
+        state.profile.avatar=src;
+        persist(true);
+        renderProfile();
+        toast('头像已更新','success');
+        closeOverlay();
+      };
+      img.src=src;
+    };
+  });
+
+  // Upload custom image
+  const uploadOption=document.getElementById('avatarUploadOption');
+  if(uploadOption){
+    uploadOption.onmouseenter=function(){ this.style.borderColor='var(--brand)'; this.style.transform='scale(1.08)' };
+    uploadOption.onmouseleave=function(){ this.style.borderColor='transparent'; this.style.transform='scale(1)' };
+    uploadOption.onclick=()=>{
+      const input=document.createElement('input');
+      input.type='file'; input.accept='image/*';
+      input.onchange=(e)=>{
+        const file=e.target.files[0];
+        if(!file) return;
+        if(file.size>20*1024*1024){ toast('图片不能超过20MB','error'); return; }
+        const reader=new FileReader();
+        reader.onload=()=>{
+          const img=new Image();
+          img.onload=()=>{
+            const canvas=document.createElement('canvas');
+            canvas.width=120; canvas.height=120;
+            const ctx=canvas.getContext('2d');
+            const minDim=Math.min(img.width,img.height);
+            const sx=(img.width-minDim)/2, sy=(img.height-minDim)/2;
+            ctx.drawImage(img,sx,sy,minDim,minDim,0,0,120,120);
+            state.profile.avatar=canvas.toDataURL('image/jpeg',0.85);
+            persist(true);
+            renderProfile();
+            toast('头像已更新','success');
+            closeOverlay();
+          };
+          img.src=reader.result;
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    };
+  }
+
+  document.getElementById('avatarLibClose').onclick=()=>{ closeOverlay(); };
+  overlay.addEventListener('click',(e)=>{
+    if(e.target===overlay) closeOverlay();
+  });
+}
+
+/* ---------- Phone Number Input Overlay (shown after admin password verification) ---------- */
+function showPhoneInputOverlay(onConfirm){
+  const existing=document.getElementById('phoneInputOverlay');
+  if(existing) existing.remove();
+  const overlay=document.createElement('div');
+  overlay.className='lock-overlay';
+  overlay.id='phoneInputOverlay';
+  overlay.innerHTML=`
+    <div class="lock-bg-decor" id="phoneBgDecor"></div>
+    <div class="lock-body" id="phoneLockBody">
+      <div class="lock-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+        </svg>
+      </div>
+      <div class="lock-title">客户账号验证</div>
+      <div class="lock-subtitle">请输入需要解锁的手机号</div>
+      <div style="margin:20px 0;width:100%">
+        <input type="tel" id="phoneInputField" placeholder="请输入11位手机号" maxlength="11"
+          style="width:100%;padding:14px 16px;font-size:18px;text-align:center;border-radius:14px;border:2px solid rgba(255,182,193,.4);background:rgba(255,255,255,.9);color:var(--ink);outline:none;letter-spacing:2px;box-sizing:border-box"
+          inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+      </div>
+      <div class="lock-msg-bubble" id="phoneInputMsg"></div>
+      <div style="display:flex;gap:10px;width:100%;margin-top:8px">
+        <button class="num-btn fn" id="phoneInputCancel" style="flex:1;font-size:14px;height:46px;border-radius:14px">返回</button>
+        <button class="num-btn fn confirm" id="phoneInputConfirm" style="flex:1;font-size:14px;height:46px;border-radius:14px">确认</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  // Background decorations
+  const bgDecor=document.getElementById('phoneBgDecor');
+  for(let i=0;i<12;i++){
+    const b=document.createElement('div');
+    b.className='lock-bubble';
+    const sz=20+Math.random()*50;
+    b.style.width=sz+'px'; b.style.height=sz+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.animationDuration=(10+Math.random()*15)+'s';
+    b.style.animationDelay=Math.random()*10+'s';
+    bgDecor.appendChild(b);
+  }
+  const petals=['🌸','🌺','🌷','💮'];
+  for(let i=0;i<8;i++){
+    const p=document.createElement('div');
+    p.className='lock-petal';
+    p.textContent=petals[Math.floor(Math.random()*petals.length)];
+    p.style.left=Math.random()*100+'%';
+    p.style.animationDuration=(8+Math.random()*8)+'s';
+    p.style.animationDelay=Math.random()*8+'s';
+    p.style.fontSize=(14+Math.random()*8)+'px';
+    bgDecor.appendChild(p);
+  }
+
+  const phoneInput=document.getElementById('phoneInputField');
+  const phoneMsg=document.getElementById('phoneInputMsg');
+  const lockBody=document.getElementById('phoneLockBody');
+
+  // Auto-focus
+  setTimeout(()=>phoneInput.focus(),300);
+
+  function closeOverlay(){
+    overlay.classList.add('unlocking');
+    setTimeout(()=>overlay.remove(),400);
+  }
+
+  function handleSubmit(){
+    const phone=phoneInput.value.trim();
+    if(!phone){
+      lockBody.classList.add('shake-sweet');
+      phoneMsg.textContent='请输入手机号';
+      phoneMsg.classList.add('show');
+      setTimeout(()=>{ lockBody.classList.remove('shake-sweet'); phoneMsg.classList.remove('show'); },1500);
+      return;
+    }
+    if(!/^1\d{10}$/.test(phone)){
+      lockBody.classList.add('shake-sweet');
+      phoneMsg.textContent='请输入正确的11位手机号';
+      phoneMsg.classList.add('show');
+      setTimeout(()=>{ lockBody.classList.remove('shake-sweet'); phoneMsg.classList.remove('show'); },1500);
+      return;
+    }
+    closeOverlay();
+    if(onConfirm) onConfirm(phone);
+  }
+
+  document.getElementById('phoneInputConfirm').onclick=handleSubmit;
+  document.getElementById('phoneInputCancel').onclick=()=>{ closeOverlay(); };
+  phoneInput.onkeydown=(e)=>{ if(e.key==='Enter'){ e.preventDefault(); handleSubmit(); } };
+
+  // Tap outside to close
+  overlay.addEventListener('click',(e)=>{
+    if(e.target===overlay) closeOverlay();
+  });
+}
+
 /* ---------- Recipe Permission Panel (admin sets per-device) ---------- */
 function showRecipePermissionPanel(deviceId,deviceName,devicePhone){
   const allRecipes=state.recipes;
@@ -5077,7 +5283,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v63';
+const APP_VERSION='v64';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
