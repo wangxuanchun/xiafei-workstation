@@ -671,8 +671,8 @@
   .add-ing,.add-ing-small,.wk-add{border-color:rgba(255,182,193,.5)!important;color:#D2691E!important;background:rgba(255,255,255,.3)!important}
   /* Toggle switch */
   .toggle.on{background:linear-gradient(135deg,#FFB6C1,#E8A0BF)!important}
-  /* Profile avatar */
-  .avatar{background:linear-gradient(135deg,#FFDAB9,#FFB6C1,#E8A0BF)!important;box-shadow:0 0 0 4px rgba(255,182,193,.2),0 4px 16px rgba(255,182,193,.3)}
+  /* Profile avatar — no !important on background so inline background-image can override */
+  .avatar{box-shadow:0 0 0 4px rgba(255,182,193,.2),0 4px 16px rgba(255,182,193,.3)}
   /* Rcard arrow */
   .rcard .arrow{color:#E8A0BF!important}
   /* Del recipe button */
@@ -5283,7 +5283,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v64';
+const APP_VERSION='v65';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
