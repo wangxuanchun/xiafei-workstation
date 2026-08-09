@@ -5733,7 +5733,8 @@ function showRecipePermissionPanel(deviceId,deviceName,devicePhone){
 }
 
 // ---------- URL param: force_sw_clear=1 (auto clear SW + cache on every visit) ----------
-if(new URLSearchParams(window.location.search).get('force_sw_clear')==='1'){
+const _forceSwClear = new URLSearchParams(window.location.search).get('force_sw_clear')==='1';
+if(_forceSwClear){
   (async()=>{
     if('serviceWorker' in navigator){
       const regs=await navigator.serviceWorker.getRegistrations();
@@ -5744,16 +5745,20 @@ if(new URLSearchParams(window.location.search).get('force_sw_clear')==='1'){
       for(const k of keys) await caches.delete(k);
     }
     sessionStorage.removeItem('sw_reloaded');
-    // Reload without the param to avoid loop
+    // Wait to ensure unregistration is fully processed by browser
+    await new Promise(r=>setTimeout(r, 500));
+    // Reload without the param, add cache-busting to force fresh fetch
     const url=new URL(window.location.href);
     url.searchParams.delete('force_sw_clear');
+    url.searchParams.set('_t', Date.now());
     window.location.replace(url.toString());
   })();
 }
 
 // ---------- PWA Service Worker Registration ----------
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').then(reg=>{
+// Skip registration when force_sw_clear is active to prevent re-registering old SW
+if(!_forceSwClear && 'serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js', {updateViaCache: 'none'}).then(reg=>{
     // Check for SW updates every 60 seconds
     setInterval(()=>{ reg.update().catch(()=>{}); }, 60000);
   }).catch(()=>{});
@@ -5770,7 +5775,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v76';
+const APP_VERSION='v77';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
