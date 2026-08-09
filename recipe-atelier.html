@@ -5041,8 +5041,8 @@ function loadNumberAuthSDK(){
     return Promise.resolve(_pnvsSDK);
   }
   const urls=[
-    'https://unpkg.com/aliyun_numberauthsdk_web@2.1.15/',
-    'https://cdn.jsdelivr.net/npm/aliyun_numberauthsdk_web@2.1.15/'
+    'https://cdn.jsdelivr.net/npm/aliyun_numberauthsdk_web@2.1.15/',
+    'https://unpkg.com/aliyun_numberauthsdk_web@2.1.15/'
   ];
   let idx=0;
   function tryLoad(){
@@ -6063,16 +6063,16 @@ if(!_forceSwClear && 'serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v81';
+const APP_VERSION='v82';
 async function checkRemoteVersion(){
   try{
-    // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
+    // Try jsDelivr CDN first (China-friendly), fallback to GitHub Pages
     let res;
     try{
-      res=await fetch('https://wangxuanchun.github.io/xiafei-workstation/sw.js?_t='+Date.now(),{cache:'no-store'});
+      res=await fetch('https://cdn.jsdelivr.net/gh/wangxuanchun/xiafei-workstation@main/sw.js?_t='+Date.now(),{cache:'no-store'});
     }catch(e1){
-      // Fallback: try raw.githubusercontent.com (may work with VPN)
-      res=await fetch('https://raw.githubusercontent.com/wangxuanchun/xiafei-workstation/main/sw.js?_t='+Date.now(),{cache:'no-store'});
+      // Fallback: try GitHub Pages
+      res=await fetch('https://wangxuanchun.github.io/xiafei-workstation/sw.js?_t='+Date.now(),{cache:'no-store'});
     }
     if(!res || !res.ok) return;
     const text=await res.text();
