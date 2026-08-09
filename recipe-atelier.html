@@ -3445,21 +3445,21 @@ function renderProfile(){
         </div>
       </div>` : '';
 
-  // Footer HTML
+  // Footer HTML — trash button only for admin
   const footerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 0 8px">
-        <button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
+        ${adminUser?`<button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
-        </button>
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v59</div>
+        </button>`:''}
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v60</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>`;
 
-  // Build layout: admin keeps original order, non-admin puts brand philosophy before memo
+  // Build layout: admin gets device management above sync, non-admin puts brand philosophy before memo
   let sectionsAfterProfile;
   if(adminUser){
-    sectionsAfterProfile = memoHTML + syncHTML + deviceHTML + brandPhilosophyHTML + footerHTML;
+    sectionsAfterProfile = memoHTML + deviceHTML + syncHTML + brandPhilosophyHTML + footerHTML;
   }else{
     sectionsAfterProfile = brandPhilosophyHTML + memoHTML + syncHTML + footerHTML;
   }
@@ -3479,19 +3479,23 @@ function renderProfile(){
       ${sectionsAfterProfile}
     </div>`;
 
-  document.getElementById('backupTrashBtn').onmouseenter=function(){this.style.opacity='1'};
-  document.getElementById('backupTrashBtn').onmouseleave=function(){this.style.opacity='.5'};
-  document.getElementById('backupTrashBtn').onclick=()=>{
-    openActionSheet('本地备份','选择操作',[
-      {label:'导出备份',action:exportData},
-      {label:'导入备份',action:()=>document.getElementById('fileImport').click()},
-      {label:'锁定配方画廊',variant:'danger',action:()=>{
-        localStorage.removeItem(GALLERY_LOCK_KEY);
-        toast('配方画廊已锁定','success');
-        setTimeout(()=>{ state.activeTab='gallery'; state.gView='home'; render(); },500);
-      }}
-    ]);
-  };
+  const backupTrashBtnEl=document.getElementById('backupTrashBtn');
+  if(backupTrashBtnEl){
+    backupTrashBtnEl.onmouseenter=function(){this.style.opacity='1'};
+    backupTrashBtnEl.onmouseleave=function(){this.style.opacity='.5'};
+    backupTrashBtnEl.onclick=()=>{
+      openActionSheet('本地备份','选择操作',[
+        {label:'导出备份',action:exportData},
+        {label:'导入备份',action:()=>document.getElementById('fileImport').click()},
+        {label:'锁定配方画廊',variant:'danger',action:()=>{
+          localStorage.removeItem(GALLERY_LOCK_KEY);
+          localStorage.removeItem(ALL_RECIPES_UNLOCKED_KEY);
+          toast('配方画廊已锁定','success');
+          setTimeout(()=>{ state.activeTab='gallery'; state.gView='home'; render(); },500);
+        }}
+      ]);
+    };
+  }
   document.getElementById('forceUpdateBtn').onclick=async function(){
     this.textContent='更新中...'; this.disabled=true;
     try{
@@ -3738,7 +3742,7 @@ function renderProfile(){
           const dev=devices.find(d=>d.deviceId===card.dataset.id);
           if(!dev) return;
           showAdminPasswordPrompt(()=>{
-            showRecipePermissionPanel(dev.deviceId,dev.deviceName||'未知设备');
+            showRecipePermissionPanel(dev.deviceId,dev.deviceName||'未知设备',dev.phone||'');
           });
         });
       });
@@ -4572,6 +4576,9 @@ function renderGalleryLock(){
   overlay.id='lockOverlay';
   overlay.innerHTML=`
     <div class="lock-bg-decor" id="lockBgDecor"></div>
+    <button id="lockBackBtn" style="position:fixed;top:20px;left:20px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10001;transition:all .2s">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
     <div class="lock-body" id="lockBody">
       <div class="lock-icon">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -4592,6 +4599,12 @@ function renderGalleryLock(){
       <div class="lock-msg-bubble" id="lockMsg"></div>
     </div>`;
   document.body.appendChild(overlay);
+
+  // Back button — remove overlay
+  document.getElementById('lockBackBtn').onclick=()=>{
+    overlay.classList.add('unlocking');
+    setTimeout(()=>overlay.remove(),400);
+  };
 
   // === Generate dreamy background decorations ===
   const bgDecor=document.getElementById('lockBgDecor');
@@ -4874,34 +4887,43 @@ function showAdminPasswordPrompt(onSuccess){
 }
 
 /* ---------- Recipe Permission Panel (admin sets per-device) ---------- */
-function showRecipePermissionPanel(deviceId,deviceName){
+function showRecipePermissionPanel(deviceId,deviceName,devicePhone){
   const allRecipes=state.recipes;
-  // Fetch current permissions for this device
   const auth=getAuthState();
   const url=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json?access_token='+encodeURIComponent(auth.token);
 
-  // Show loading overlay
+  // Lock body scroll
+  document.body.style.overflow='hidden';
+
   const overlay=document.createElement('div');
   overlay.className='lock-overlay';
   overlay.id='permPanelOverlay';
+  overlay.style.overflowY='auto';
+  overlay.style.webkitOverflowScrolling='touch';
   overlay.innerHTML=`
     <div class="lock-bg-decor"></div>
-    <div class="lock-body" style="max-width:380px;width:90%;padding:24px 20px">
+    <div class="lock-body" style="max-width:400px;width:92%;padding:36px 22px;margin:auto;min-height:75vh;display:flex;flex-direction:column;justify-content:center">
       <div class="lock-title" style="font-size:18px;margin-bottom:4px">配方权限管理</div>
-      <div class="lock-subtitle" style="margin-bottom:16px">${esc(deviceName||'未知设备')}</div>
-      <div id="permList" style="max-height:300px;overflow-y:auto;margin-bottom:12px">
+      <div class="lock-subtitle" style="margin-bottom:4px">${esc(deviceName||'未知设备')}</div>
+      ${devicePhone?`<div style="font-size:17px;font-weight:700;color:#1a1a1a;margin-bottom:20px;letter-spacing:.5px">${esc(devicePhone)}</div>`:'<div style="margin-bottom:20px"></div>'}
+      <div id="permList" style="flex:1;overflow-y:auto;max-height:45vh;margin-bottom:16px;-webkit-overflow-scrolling:touch">
         <div style="text-align:center;color:white;opacity:.7;padding:20px">加载中...</div>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <button class="num-btn" id="permSelectAll" style="flex:1;font-size:12px;height:36px;border-radius:12px">全选</button>
-        <button class="num-btn" id="permSelectNone" style="flex:1;font-size:12px;height:36px;border-radius:12px">全不选</button>
-      </div>
       <div style="display:flex;gap:8px">
-        <button class="num-btn fn" id="permCancel" style="flex:1;height:40px;border-radius:14px">取消</button>
-        <button class="num-btn fn confirm" id="permConfirm" style="flex:1;height:40px;border-radius:14px">确认</button>
+        <button class="num-btn" id="permSelectAll" style="flex:1;font-size:12px;height:38px;border-radius:12px;color:white">全选</button>
+        <button class="num-btn" id="permSelectNone" style="flex:1;font-size:12px;height:38px;border-radius:12px;color:white">全不选</button>
+        <button class="num-btn fn" id="permCancel" style="flex:1;font-size:12px;height:38px;border-radius:12px;color:white">取消</button>
+        <button class="num-btn fn confirm" id="permConfirm" style="flex:1;font-size:12px;height:38px;border-radius:12px;color:white">确认</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
+
+  // Cleanup function — restore body scroll
+  function closePanel(){
+    document.body.style.overflow='';
+    overlay.classList.add('unlocking');
+    setTimeout(()=>overlay.remove(),400);
+  }
 
   let selectedIds=new Set();
 
@@ -4922,7 +4944,7 @@ function showRecipePermissionPanel(deviceId,deviceName){
       return;
     }
     listEl.innerHTML=allRecipes.map(r=>`
-      <div class="perm-item" data-rid="${r.id}" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.1);margin-bottom:6px;cursor:pointer;transition:background .2s">
+      <div class="perm-item" data-rid="${r.id}" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.1);margin-bottom:6px;cursor:pointer;transition:background .2s">
         <div class="perm-check" style="width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="opacity:0;transform:scale(.5);transition:all .18s"><path d="M5 12l5 5 9-12"/></svg>
         </div>
@@ -4970,14 +4992,14 @@ function showRecipePermissionPanel(deviceId,deviceName){
     document.getElementById('permList').innerHTML='<div style="text-align:center;color:white;opacity:.7;padding:20px">加载失败</div>';
   });
 
-  document.getElementById('permCancel').onclick=()=>{ overlay.remove(); };
+  document.getElementById('permCancel').onclick=()=>{ closePanel(); };
   document.getElementById('permConfirm').onclick=async()=>{
     const btn=document.getElementById('permConfirm');
     btn.textContent='保存中...'; btn.disabled=true;
     const ok=await setDeviceRecipePermissions(deviceId,Array.from(selectedIds));
     if(ok){
       toast('配方权限已更新','success');
-      overlay.remove();
+      closePanel();
     }else{
       toast('保存失败，请重试','error');
       btn.textContent='确认'; btn.disabled=false;
@@ -5023,7 +5045,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v59';
+const APP_VERSION='v60';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
