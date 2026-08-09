@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>清理缓存中...</title>
+<style>
+body{margin:0;padding:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#FFF5EE;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',sans-serif;color:#5C3D3D}
+.box{text-align:center;padding:40px}
+.spinner{width:50px;height:50px;border:4px solid #FFDAB9;border-top-color:#E8A0BF;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+h2{font-size:18px;font-weight:600;margin:0 0 8px}
+p{font-size:14px;color:#A0826D;margin:0}
+.status{margin-top:16px;font-size:13px;color:#B5EAD7;min-height:20px}
+</style>
+</head>
+<body>
+<div class="box">
+<div class="spinner"></div>
+<h2>正在清理缓存...</h2>
+<p>请稍候，即将跳转到最新版本</p>
+<div class="status" id="status"></div>
+</div>
+<script>
+(async()=>{
+  const status=document.getElementById('status');
+  try{
+    // Step 1: Unregister ALL Service Workers
+    status.textContent='正在注销 Service Worker...';
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      for(const r of regs){
+        await r.unregister();
+        console.log('Unregistered:',r.scope);
+      }
+    }
+    status.textContent='Service Worker 已注销 ✓';
+
+    // Step 2: Clear ALL Cache Storage
+    status.textContent='正在清除缓存...';
+    if('caches' in window){
+      const keys=await caches.keys();
+      for(const k of keys){
+        await caches.delete(k);
+        console.log('Cache deleted:',k);
+      }
+    }
+    status.textContent='缓存已清除 ✓';
+
+    // Step 3: Clear localStorage session flags (keep user data)
+    sessionStorage.clear();
+    status.textContent='会话数据已清除 ✓';
+
+    // Step 4: Wait for browser to fully process unregistration
+    status.textContent='等待浏览器处理...';
+    await new Promise(r=>setTimeout(r,1000));
+
+    // Step 5: Redirect to main app with cache-busting
+    status.textContent='正在跳转...';
+    const url=new URL(location.href);
+    const basePath=url.pathname.replace(/clear\.html$/,'');
+    const target=basePath+'recipe-atelier.html?force_sw_clear=1&_t='+Date.now();
+    
+    // Use window.location.replace to avoid back button issues
+    window.location.replace(target);
+  }catch(e){
+    status.textContent='错误: '+e.message;
+    console.error('Clear cache error:',e);
+    // Still try to redirect after 3 seconds
+    setTimeout(()=>{
+      const url=new URL(location.href);
+      const basePath=url.pathname.replace(/clear\.html$/,'');
+      window.location.replace(basePath+'recipe-atelier.html?force_sw_clear=1&_t='+Date.now());
+    },3000);
+  }
+})();
+</script>
+</body>
+</html>
