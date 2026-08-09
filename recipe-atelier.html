@@ -1343,7 +1343,8 @@ function buildPayload(){
     categories: state.categories,
     showcases: state.showcases,
     aiImage: state.aiImage,
-    profile: state.profile
+    // avatar is device-local only — never sync to cloud
+    profile: { name: state.profile.name, tagline: state.profile.tagline }
   };
 }
 // create a new secret gist, return its id
@@ -1623,7 +1624,12 @@ async function syncPull(silent){
       state.wiki = mergeByKey(state.wiki, remote.wiki);
       // Settings: remote wins
       if(remote.aiImage) state.aiImage = Object.assign({...DEFAULT_AI}, remote.aiImage);
-      if(remote.profile) state.profile = Object.assign({...DEFAULT_PROFILE}, remote.profile);
+      // Profile: sync name/tagline but preserve device-local avatar
+      if(remote.profile){
+        const localAvatar = state.profile.avatar;
+        state.profile = Object.assign({...DEFAULT_PROFILE}, remote.profile);
+        state.profile.avatar = localAvatar;
+      }
 
       // Repair any garbled text that came from cloud
       repairAllData();
@@ -5177,7 +5183,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v66';
+const APP_VERSION='v67';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
