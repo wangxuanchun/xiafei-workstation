@@ -184,7 +184,7 @@
   .stat{flex:1;background:var(--fill);border-radius:14px;padding:12px}
   .stat .v{font-size:20px;font-weight:800;color:var(--brand-deep)}
   .stat .l{font-size:11px;color:var(--sub);margin-top:2px}
-  .dm-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .dm-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px}
   .dm-card .h{padding:14px 16px;font-size:13px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--sub);border-bottom:1px solid var(--line)}
   .dm-item{display:flex;align-items:center;gap:12px;padding:15px 16px;border-bottom:1px solid var(--line);text-align:left;width:100%}
   .dm-item:last-child{border-bottom:none}
@@ -3439,7 +3439,13 @@ function renderProfile(){
   // Device management HTML (admin only)
   const deviceHTML = adminUser ? `
       <div class="dm-card" style="margin-top:16px">
-        <div class="h"><span>📱 设备管理</span></div>
+        <div class="h">
+          <span>📱 设备管理</span>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="tel" id="phonePermInput" placeholder="输入手机号" maxlength="11" style="font-size:12px;padding:5px 10px;border-radius:10px;border:1px solid var(--line);width:120px;background:var(--bg2);color:var(--ink);outline:none">
+            <button id="phonePermBtn" style="font-size:11px;padding:5px 10px;border-radius:10px;border:none;background:var(--brand);color:#fff;cursor:pointer;font-weight:700;white-space:nowrap">解锁配方权限</button>
+          </div>
+        </div>
         <div id="deviceList" style="padding:12px 14px">
           <div style="text-align:center;padding:12px;color:var(--sub);font-size:13px">加载中...</div>
         </div>
@@ -3451,7 +3457,7 @@ function renderProfile(){
         ${adminUser?`<button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>`:''}
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v61</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v62</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>`;
@@ -3750,6 +3756,33 @@ function renderProfile(){
       const listEl=document.getElementById('deviceList');
       if(listEl) listEl.innerHTML='<div style="text-align:center;padding:12px;color:var(--sub);font-size:13px">无法加载设备列表</div>';
     });
+  }
+
+  // Phone number permission search — admin enters a phone number to manage recipe permissions
+  if(isLoggedIn()&&isAdminPhone()){
+    const phonePermBtn=document.getElementById('phonePermBtn');
+    const phonePermInput=document.getElementById('phonePermInput');
+    if(phonePermBtn&&phonePermInput){
+      const handlePhonePerm=async()=>{
+        const phone=phonePermInput.value.trim();
+        if(!phone){ toast('请输入手机号','error'); return; }
+        if(!/^1\d{10}$/.test(phone)){ toast('请输入正确的11位手机号','error'); return; }
+        phonePermBtn.disabled=true; phonePermBtn.textContent='查找中...';
+        try{
+          const devices=await getDevicesList();
+          const dev=devices.find(d=>d.phone===phone);
+          if(!dev){ toast('未找到该手机号的设备','error'); phonePermBtn.disabled=false; phonePermBtn.textContent='解锁配方权限'; return; }
+          showAdminPasswordPrompt(()=>{
+            showRecipePermissionPanel(dev.deviceId,dev.deviceName||'未知设备',dev.phone||'');
+          });
+        }catch(e){
+          toast('查找失败，请重试','error');
+        }
+        phonePermBtn.disabled=false; phonePermBtn.textContent='解锁配方权限';
+      };
+      phonePermBtn.onclick=handlePhonePerm;
+      phonePermInput.onkeydown=(e)=>{ if(e.key==='Enter'){ e.preventDefault(); handlePhonePerm(); } };
+    }
   }
 }
 function exportData(){
@@ -5044,7 +5077,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v61';
+const APP_VERSION='v62';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
