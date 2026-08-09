@@ -2413,7 +2413,6 @@ function renderGalleryHome(){
           </div>
           <div class="hd-actions">
             ${isAdmin?`<button class="hd-btn brand" id="catSortBtn" title="排序">${svg('sort',2)}</button>`:''}
-            ${isAdmin?`<button class="hd-btn brand" id="suppImgBtn" title="补充图片" style="font-size:11px;width:auto;padding:0 10px;gap:3px">${svg('image',1.5)}<span>补充</span></button>`:''}
             ${showLockBtn?`<button class="hd-btn brand" id="lockAllBtn" title="解锁全部" style="font-size:11px;width:auto;padding:0 10px;gap:3px">${svg('lock',1.5)}<span>${lockBtnText}</span></button>`:''}
             ${isAdmin?`
             <button class="hd-btn brand" id="catAdd">${svg('plus',2)}</button>
@@ -2512,8 +2511,6 @@ function renderGalleryHome(){
   if(isAdmin){
     const sortBtn=document.getElementById('catSortBtn');
     if(sortBtn) sortBtn.onclick=()=>openSortPanel();
-    const suppBtn=document.getElementById('suppImgBtn');
-    if(suppBtn) suppBtn.onclick=()=>supplementAllImages();
   }
 }
 
@@ -2704,7 +2701,7 @@ function openCardSort(){
   cards.forEach(c=>c.classList.add('shaking'));
 
   // Hide admin buttons during sort mode
-  document.querySelectorAll('.cat-check, .cat-edit, #catAdd, #catDel, #catSortBtn, #suppImgBtn, #lockAllBtn').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.cat-check, .cat-edit, #catAdd, #catDel, #catSortBtn, #lockAllBtn').forEach(el=>el.style.display='none');
 
   // Show exit bar
   const exitBar = document.createElement('div');
@@ -2732,7 +2729,7 @@ function openCardSort(){
     cards.forEach(c=>{c.classList.remove('shaking');c.classList.remove('sort-dragging');c.classList.remove('sort-placeholder');});
     exitBar.remove();
     // Restore admin buttons
-    document.querySelectorAll('.cat-check, .cat-edit, #catAdd, #catDel, #catSortBtn, #suppImgBtn, #lockAllBtn').forEach(el=>el.style.display='');
+    document.querySelectorAll('.cat-check, .cat-edit, #catAdd, #catDel, #catSortBtn, #lockAllBtn').forEach(el=>el.style.display='');
     renderGalleryHome();
     toast('排序已保存','success');
   };
@@ -3066,38 +3063,28 @@ async function autoFillSimple(missing){
   else{ toast('搜索失败','error'); }
 }
 
-/* ---------- Batch supplement images for categories + recipes ---------- */
-async function supplementAllImages(){
+/* ---------- Auto supplement images for categories + recipes (fully automatic) ---------- */
+let autoSupplementStarted = false;
+async function autoSupplementImages(){
+  if(autoSupplementStarted) return;
+  autoSupplementStarted = true;
   const missingCats = state.categories.filter(c=>!c.image);
   const missingRecipes = state.recipes.filter(r=>!r.image);
   const total = missingCats.length + missingRecipes.length;
-  if(total===0){ toast('所有分类和配方都已有图片','info'); return; }
+  if(total===0) return;
 
   const hasApiKey = !!state.aiImage.apiKey;
-  openActionSheet('补充图片',`将搜索并补充 ${total} 个缺失图片（${missingCats.length}个分类 + ${missingRecipes.length}个配方）${hasApiKey?'，统一宝丽来暖色调风格':''}`,[
-    {label:'开始补充',variant:'brand',action:()=>doSupplementAll(missingCats, missingRecipes, hasApiKey)},
-    {label:'取消'}
-  ]);
+  toast(`自动补充 ${total} 个图片中...`, 'info');
+  await doSupplementAll(missingCats, missingRecipes, hasApiKey);
 }
 
 async function doSupplementAll(missingCats, missingRecipes, hasApiKey){
   const total = missingCats.length + missingRecipes.length;
   let done=0, failed=0;
 
-  // Create progress overlay
-  const progOverlay=document.createElement('div');
-  progOverlay.className='sm-gen-overlay';
-  progOverlay.style.cssText='position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center';
-  progOverlay.innerHTML='<div style="background:var(--bg);border-radius:20px;padding:28px 32px;text-align:center;max-width:320px"><div class="spinner" style="margin:0 auto 14px"></div><div id="progText" style="font-size:14px;font-weight:700;color:var(--ink)">准备中...</div><div id="progDetail" style="font-size:12px;color:var(--sub);margin-top:6px"></div></div>';
-  document.body.appendChild(progOverlay);
-  const progText=progOverlay.querySelector('#progText');
-  const progDetail=progOverlay.querySelector('#progDetail');
-
-  // Process categories first
+  // Process categories first — background, no blocking overlay
   for(const cat of missingCats){
     done++;
-    progText.textContent=`正在补充分类图片 ${done}/${total}`;
-    progDetail.textContent=cat.name;
     try{
       const query = cat.nameEn || cat.name;
       const results = await searchFoodImages(query);
@@ -3116,6 +3103,8 @@ async function doSupplementAll(missingCats, missingRecipes, hasApiKey){
           finalImage = await downloadAndProcessAI(imgUrl);
         }
         cat.image = finalImage;
+        persist(true);
+        if(state.activeTab==='gallery' && state.gView==='home') renderGalleryHome();
       } else { failed++; }
     }catch(e){ console.warn('supplement cat error',cat.name,e); failed++; }
     await new Promise(r=>setTimeout(r,500));
@@ -3124,10 +3113,7 @@ async function doSupplementAll(missingCats, missingRecipes, hasApiKey){
   // Process recipes
   for(const recipe of missingRecipes){
     done++;
-    progText.textContent=`正在补充配方图片 ${done}/${total}`;
-    progDetail.textContent=recipe.name;
     try{
-      // Use recipe name, or fall back to category name
       const cat = state.categories.find(c=>c.id===recipe.cat);
       const query = (recipe.name && recipe.name!=='未命名配方') ? recipe.name : (cat ? (cat.nameEn || cat.name) : recipe.name);
       const results = await searchFoodImages(query);
@@ -3146,19 +3132,16 @@ async function doSupplementAll(missingCats, missingRecipes, hasApiKey){
           finalImage = await downloadAndProcessAI(imgUrl);
         }
         recipe.image = finalImage;
+        persist(true);
+        if(state.activeTab==='gallery' && state.gView==='list') renderRecipeList();
       } else { failed++; }
     }catch(e){ console.warn('supplement recipe error',recipe.name,e); failed++; }
     await new Promise(r=>setTimeout(r,500));
   }
 
-  progOverlay.remove();
   const successCount = total - failed;
   if(successCount>0){
-    persist(true);
-    renderGalleryHome();
-    toast(`完成！成功补充 ${successCount} 个图片${failed>0?`，${failed}个失败`:''}`,'success');
-  } else {
-    toast('搜索失败，请检查网络','error');
+    toast(`自动补充完成：${successCount} 个图片${failed>0?`，${failed}个失败`:''}`,'success');
   }
 }
 function openSearchModal(initialQuery, onConfirm){
@@ -5245,7 +5228,16 @@ if(urlSyncApplied){
 if(syncConfigured()){
   syncPull(true).then(()=>{
     if(state.sync.localUpdatedAt > state.sync.lastSyncedAt) syncPush(true);
+    // Auto-supplement missing images for admin users after data is loaded
+    if(isLoggedIn() && isAdminPhone()){
+      setTimeout(()=>autoSupplementImages(), 2000);
+    }
   });
+}else{
+  // No sync configured — still auto-supplement for admin
+  if(isLoggedIn() && isAdminPhone()){
+    setTimeout(()=>autoSupplementImages(), 2000);
+  }
 }
 // pull when the tab regains focus or becomes visible again (cross-device freshness)
 let lastPullTs=0;
@@ -5868,7 +5860,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v71';
+const APP_VERSION='v72';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
