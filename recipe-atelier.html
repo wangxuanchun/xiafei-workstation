@@ -96,7 +96,7 @@
   .cat-group-en{font-size:11px;color:var(--sub);opacity:.6;letter-spacing:.3px}
 
   /* ---- Sort Panel ---- */
-  .sort-overlay{position:fixed;inset:0;z-index:9000;background:var(--bg);display:flex;flex-direction:column;animation:fadeIn .2s ease}
+  .sort-overlay{position:fixed;inset:0;z-index:9000;background:linear-gradient(160deg,#FFF5EE 0%,#FFE4E1 20%,#FFDAB9 45%,#F0E6F6 75%,#E6D0F0 100%);display:flex;flex-direction:column;animation:fadeIn .2s ease}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   .sort-overlay .sort-hd{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
   .sort-overlay .sort-hd h2{font-size:18px;font-weight:800;color:var(--ink);margin:0}
@@ -343,8 +343,8 @@
   .cat-modal .cm-aigen.loading{border-style:solid;border-color:var(--brand);color:var(--brand);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   /* ===== Search Modal (AI image search → pick → edit) ===== */
-  .sm-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
-  .sm-sheet{background:var(--bg);width:100%;max-width:480px;border-radius:20px 20px 0 0;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .25s ease}
+  .sm-overlay{position:fixed;inset:0;z-index:300;background:linear-gradient(160deg,#FFF5EE 0%,#FFE4E1 20%,#FFDAB9 45%,#F0E6F6 75%,#E6D0F0 100%);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
+  .sm-sheet{background:linear-gradient(160deg,#FFF5EE 0%,#FFE4E1 20%,#FFDAB9 45%,#F0E6F6 75%,#E6D0F0 100%);width:100%;max-width:480px;border-radius:20px 20px 0 0;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .25s ease}
   @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
   .sm-header{padding:16px 18px 10px;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
   .sm-header .sm-title{font-size:17px;font-weight:800;color:var(--ink)}
@@ -698,7 +698,7 @@
     box-shadow:0 0 0 3px rgba(255,182,193,.15)!important;
   }
   /* Modal */
-  #modal{background:rgba(255,182,193,.3)!important;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  #modal{background:linear-gradient(160deg,#FFF5EE 0%,#FFE4E1 20%,#FFDAB9 45%,#F0E6F6 75%,#E6D0F0 100%)!important;backdrop-filter:none;-webkit-backdrop-filter:none}
   .msheet,.cat-modal{border-radius:24px!important}
   .msheet .mt,.cat-modal .cm-title{color:var(--ink)!important}
   /* Toast */
@@ -5770,7 +5770,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v73';
+const APP_VERSION='v74';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
