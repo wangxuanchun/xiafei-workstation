@@ -3457,7 +3457,7 @@ function renderProfile(){
         ${adminUser?`<button id="backupTrashBtn" style="width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s" title="本地备份">
           ${svg('trash').replace('width="24" height="24"','width="22" height="22"')}
         </button>`:''}
-        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v62</div>
+        <div style="font-size:10px;color:var(--sub);opacity:.4;user-select:none" id="verTag">v63</div>
         <button id="forceUpdateBtn" style="font-size:10px;color:var(--brand);background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px">检查更新</button>
         <button id="logoutBtn" style="font-size:11px;color:#c45c48;background:none;border:none;cursor:pointer;opacity:.5;text-decoration:underline;padding:2px 8px;margin-top:4px">退出登录</button>
       </div>`;
@@ -4935,17 +4935,17 @@ function showRecipePermissionPanel(deviceId,deviceName,devicePhone){
   overlay.style.webkitOverflowScrolling='touch';
   overlay.innerHTML=`
     <div class="lock-bg-decor"></div>
-    <div class="lock-body" style="max-width:400px;width:92%;padding:36px 22px;margin:auto;min-height:75vh;display:flex;flex-direction:column;justify-content:center">
-      <div class="lock-title" style="font-size:18px;margin-bottom:4px">配方权限管理</div>
-      <div class="lock-subtitle" style="margin-bottom:20px;font-size:15px">${esc(devicePhone||'')}</div>
-      <div id="permList" style="flex:1;overflow-y:auto;max-height:45vh;margin-bottom:16px;-webkit-overflow-scrolling:touch">
-        <div style="text-align:center;color:rgba(210,105,30,.5);padding:20px">加载中...</div>
+    <div class="lock-body" style="max-width:420px;width:94%;padding:28px 20px;margin:auto;min-height:90vh;display:flex;flex-direction:column;justify-content:center">
+      <div class="lock-title" style="font-size:22px;margin-bottom:6px">配方权限管理</div>
+      <div class="lock-subtitle" style="margin-bottom:14px;font-size:18px">客户账号 ${esc(devicePhone||'')}</div>
+      <div id="permList" style="flex:1;overflow-y:auto;max-height:68vh;margin-bottom:14px;-webkit-overflow-scrolling:touch">
+        <div style="text-align:center;color:rgba(210,105,30,.5);padding:20px;font-size:16px">加载中...</div>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="num-btn" id="permSelectAll" style="flex:1;font-size:12px;height:38px;border-radius:12px;color:rgba(210,105,30,.5)">全选</button>
-        <button class="num-btn" id="permSelectNone" style="flex:1;font-size:12px;height:38px;border-radius:12px;color:rgba(210,105,30,.5)">全不选</button>
-        <button class="num-btn fn" id="permCancel" style="flex:1;font-size:12px;height:38px;border-radius:12px;color:rgba(210,105,30,.5)">取消</button>
-        <button class="num-btn fn confirm" id="permConfirm" style="flex:1;font-size:12px;height:38px;border-radius:12px;color:rgba(210,105,30,.5)">确认</button>
+        <button class="num-btn" id="permSelectAll" style="flex:1;font-size:14px;height:46px;border-radius:14px;color:rgba(210,105,30,.5)">全选</button>
+        <button class="num-btn" id="permSelectNone" style="flex:1;font-size:14px;height:46px;border-radius:14px;color:rgba(210,105,30,.5)">全不选</button>
+        <button class="num-btn fn" id="permCancel" style="flex:1;font-size:14px;height:46px;border-radius:14px;color:rgba(210,105,30,.5)">取消</button>
+        <button class="num-btn fn confirm" id="permConfirm" style="flex:1;font-size:14px;height:46px;border-radius:14px;color:rgba(210,105,30,.5)">确认</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
@@ -4972,15 +4972,15 @@ function showRecipePermissionPanel(deviceId,deviceName,devicePhone){
 
     const listEl=document.getElementById('permList');
     if(allRecipes.length===0){
-      listEl.innerHTML='<div style="text-align:center;color:rgba(210,105,30,.5);padding:20px">暂无配方</div>';
+      listEl.innerHTML='<div style="text-align:center;color:rgba(210,105,30,.5);padding:20px;font-size:16px">暂无配方</div>';
       return;
     }
     listEl.innerHTML=allRecipes.map(r=>`
-      <div class="perm-item" data-rid="${r.id}" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.1);margin-bottom:6px;cursor:pointer;transition:background .2s">
-        <div class="perm-check" style="width:22px;height:22px;border-radius:50%;border:2px solid rgba(210,105,30,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="opacity:0;transform:scale(.5);transition:all .18s"><path d="M5 12l5 5 9-12"/></svg>
+      <div class="perm-item" data-rid="${r.id}" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.1);margin-bottom:6px;cursor:pointer;transition:background .2s">
+        <div class="perm-check" style="width:26px;height:26px;border-radius:50%;border:2px solid rgba(210,105,30,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="opacity:0;transform:scale(.5);transition:all .18s"><path d="M5 12l5 5 9-12"/></svg>
         </div>
-        <span style="color:rgba(210,105,30,.5);font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.name)}</span>
+        <span style="color:rgba(210,105,30,.5);font-size:16px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.name)}</span>
       </div>
     `).join('');
 
@@ -5021,7 +5021,7 @@ function showRecipePermissionPanel(deviceId,deviceName,devicePhone){
       listEl.querySelectorAll('.perm-item').forEach(el=>updateCheck(el));
     };
   }).catch(()=>{
-    document.getElementById('permList').innerHTML='<div style="text-align:center;color:rgba(210,105,30,.5);padding:20px">加载失败</div>';
+    document.getElementById('permList').innerHTML='<div style="text-align:center;color:rgba(210,105,30,.5);padding:20px;font-size:16px">加载失败</div>';
   });
 
   document.getElementById('permCancel').onclick=()=>{ closePanel(); };
@@ -5077,7 +5077,7 @@ if('serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses github.io (accessible in China) instead of raw.githubusercontent.com (blocked)
-const APP_VERSION='v62';
+const APP_VERSION='v63';
 async function checkRemoteVersion(){
   try{
     // Try GitHub Pages first (accessible in China), fallback to raw.githubusercontent.com
