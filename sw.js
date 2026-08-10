@@ -1,7 +1,7 @@
 // Service Worker — 甜品配方工作台 PWA
 // 缓存策略：network-first for HTML, cache-first for static assets
 
-const CACHE_NAME = 'recipe-atelier-v2';
+const CACHE_NAME = 'recipe-atelier-v3';
 const MAIN_URL = './';
 
 // 安装时预缓存主页面

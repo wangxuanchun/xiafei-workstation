@@ -5911,7 +5911,8 @@ if(_forceSwClear){
 
 // ---------- PWA Service Worker Registration ----------
 // Skip registration when force_sw_clear is active to prevent re-registering old SW
-if(!_forceSwClear && 'serviceWorker' in navigator){
+const ENABLE_SERVICE_WORKER=false; // 临时关闭，避免旧缓存导致页面卡住
+if(ENABLE_SERVICE_WORKER && !_forceSwClear && 'serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js', {updateViaCache: 'none'}).then(reg=>{
     // Check for SW updates every 60 seconds
     setInterval(()=>{ reg.update().catch(()=>{}); }, 60000);
@@ -5928,7 +5929,7 @@ if(!_forceSwClear && 'serviceWorker' in navigator){
 
 // ---------- Remote Version Check ----------
 // 只从阿里云 OSS 获取版本信息，避免海外 CDN 造成卡顿
-const APP_VERSION='v2';
+const APP_VERSION='v3';
 async function checkRemoteVersion(){
   try{
     const res=await fetch('./sw.js?_t='+Date.now(),{cache:'no-store'});
