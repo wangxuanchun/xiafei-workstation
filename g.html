@@ -22,43 +22,10 @@ p{font-size:13px;color:#A0826D;margin:0}
 <p id="msg">请稍候</p>
 </div>
 <script>
-// Smart redirect: try GitHub Pages first, fallback to jsDelivr CDN
+// Redirect to OSS (China-based, fastest access)
 (function(){
-  var msg=document.getElementById('msg');
-  var GH_PAGES='https://wangxuanchun.github.io/xiafei-workstation/clear.html';
-  var JSDELIVR='https://cdn.jsdelivr.net/gh/wangxuanchun/xiafei-workstation@main/clear.html';
-  var redirected=false;
-
-  function go(url){
-    if(redirected) return;
-    redirected=true;
-    location.replace(url);
-  }
-
-  // Try GitHub Pages first (preserves localStorage data)
-  msg.textContent='正在连接主服务器...';
-
-  // Test if GitHub Pages is reachable (3 second timeout)
-  var testImg=new Image();
-  testImg.onload=function(){
-    // GitHub Pages is reachable, use it
-    msg.textContent='正在跳转...';
-    go(GH_PAGES);
-  };
-  testImg.onerror=function(){
-    // GitHub Pages failed, try jsDelivr
-    msg.textContent='正在切换到CDN加速...';
-    go(JSDELIVR);
-  };
-  testImg.src='https://wangxuanchun.github.io/xiafei-workstation/sw.js?_t='+Date.now();
-
-  // Fallback: if neither fires in 5 seconds, try jsDelivr directly
-  setTimeout(function(){
-    if(!redirected){
-      msg.textContent='正在切换到CDN加速...';
-      go(JSDELIVR);
-    }
-  },5000);
+  var OSS_URL='https://xiafei-recipe.oss-cn-hangzhou.aliyuncs.com/clear.html';
+  location.replace(OSS_URL);
 })();
 </script>
 </body>
