@@ -22,10 +22,11 @@ p{font-size:13px;color:#A0826D;margin:0}
 <p id="msg">请稍候</p>
 </div>
 <script>
-// Redirect to OSS (China-based, fastest access)
+// 跳转到 GitHub Pages 的 loader.html
+// loader.html 会从 OSS (国内) 获取实际内容并渲染
 (function(){
-  var OSS_URL='https://xiafei-recipe.oss-cn-hangzhou.aliyuncs.com/clear.html';
-  location.replace(OSS_URL);
+  var LOADER_URL = 'https://wangxuanchun.github.io/xiafei-workstation/loader.html';
+  location.replace(LOADER_URL);
 })();
 </script>
 </body>
