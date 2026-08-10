@@ -5928,7 +5928,7 @@ if(!_forceSwClear && 'serviceWorker' in navigator){
 
 // ---------- Remote Version Check ----------
 // 只从阿里云 OSS 获取版本信息，避免海外 CDN 造成卡顿
-const APP_VERSION='v87';
+const APP_VERSION='v1';
 async function checkRemoteVersion(){
   try{
     const res=await fetch('./sw.js?_t='+Date.now(),{cache:'no-store'});
