@@ -1,1 +1,65 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>跳转中...</title><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"></head><body><script>location.replace('clear.html')</script></body></html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>跳转中...</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<style>
+body{margin:0;padding:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#FFF5EE;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',sans-serif;color:#5C3D3D}
+.box{text-align:center;padding:40px}
+.spinner{width:40px;height:40px;border:3px solid #FFDAB9;border-top-color:#E8A0BF;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+h2{font-size:16px;font-weight:600;margin:0 0 6px}
+p{font-size:13px;color:#A0826D;margin:0}
+</style>
+</head>
+<body>
+<div class="box">
+<div class="spinner"></div>
+<h2>正在加载...</h2>
+<p id="msg">请稍候</p>
+</div>
+<script>
+// Smart redirect: try GitHub Pages first, fallback to jsDelivr CDN
+(function(){
+  var msg=document.getElementById('msg');
+  var GH_PAGES='https://wangxuanchun.github.io/xiafei-workstation/clear.html';
+  var JSDELIVR='https://cdn.jsdelivr.net/gh/wangxuanchun/xiafei-workstation@main/clear.html';
+  var redirected=false;
+
+  function go(url){
+    if(redirected) return;
+    redirected=true;
+    location.replace(url);
+  }
+
+  // Try GitHub Pages first (preserves localStorage data)
+  msg.textContent='正在连接主服务器...';
+
+  // Test if GitHub Pages is reachable (3 second timeout)
+  var testImg=new Image();
+  testImg.onload=function(){
+    // GitHub Pages is reachable, use it
+    msg.textContent='正在跳转...';
+    go(GH_PAGES);
+  };
+  testImg.onerror=function(){
+    // GitHub Pages failed, try jsDelivr
+    msg.textContent='正在切换到CDN加速...';
+    go(JSDELIVR);
+  };
+  testImg.src='https://wangxuanchun.github.io/xiafei-workstation/sw.js?_t='+Date.now();
+
+  // Fallback: if neither fires in 5 seconds, try jsDelivr directly
+  setTimeout(function(){
+    if(!redirected){
+      msg.textContent='正在切换到CDN加速...';
+      go(JSDELIVR);
+    }
+  },5000);
+})();
+</script>
+</body>
+</html>
