@@ -77,7 +77,7 @@
   .cat:active{transform:scale(.97)}
   .cat.flip-anim{transition:transform .32s cubic-bezier(.2,.9,.3,1)}
   .cat .art{aspect-ratio:4/3;height:auto;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:linear-gradient(145deg,#F7EEDC 0%,#F3E5CE 55%,#FAF3E8 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.45)}
-  .cat .art img{width:86%;height:86%;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(92,61,61,.10))}
+  .cat .art img{width:100%;height:100%;object-fit:cover;display:block}
   .cat .art .cat-placeholder{font-size:32px;color:var(--brand-soft);font-weight:800}
   .cat .art .cat-check{position:absolute;top:8px;left:8px;width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s;z-index:2}
   .cat .art .cat-check svg{width:13px;height:13px;stroke:#fff;stroke-width:3;fill:none;opacity:0;transform:scale(.5);transition:all .18s}
@@ -2299,6 +2299,19 @@ function fmtSyncTime(ts){
   if(diff<1440) return Math.floor(diff/60)+'小时前';
   return d.toLocaleDateString('zh-CN',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
 }
+function fmtDeviceOnlineTime(ts){
+  if(!ts) return '未知';
+  const d=new Date(ts), now=new Date();
+  const diff=Math.floor((now-d)/60000);
+  if(diff<1) return '刚刚';
+  if(diff<60) return diff+'分钟前';
+  if(diff<1440) return Math.floor(diff/60)+'小时前';
+  const days=Math.floor(diff/1440);
+  if(days<30) return days+'天前';
+  const months=Math.floor(days/30);
+  if(months<12) return months+'个月前';
+  return Math.floor(months/12)+'年前';
+}
 function updateSyncStatusUI(){
   const el=document.getElementById('syncStatusLine');
   if(el) el.textContent = syncConfigured()
@@ -4361,7 +4374,7 @@ function renderProfile(){
               ${isAdmin?'<span class="device-badge ok" style="background:rgba(196,140,92,.2);color:var(--brand)">管理员</span>':''}
               ${isLocked?'<span class="device-badge locked">已锁定</span>':'<span class="device-badge ok">正常</span>'}
             </div>
-            <div class="device-meta">${esc(dev.phone||'')} · ${esc(dev.platform||'Unknown')} · ${dev.lastLogin?fmtSyncTime(new Date(dev.lastLogin).getTime()):'未知'}</div>
+            <div class="device-meta">${esc(dev.phone||'')} · ${esc(dev.platform||'Unknown')} · ${fmtDeviceOnlineTime(dev.lastLogin)}</div>
           </div>
           ${isCurrent?'':`<button class="device-lock-btn ${isLocked?'unlock':'lock'}" data-id="${esc(dev.deviceId)}">${isLocked?'解锁':'锁定'}</button>`}`;
         if(isCurrent){
@@ -4608,7 +4621,13 @@ async function getDevicesList(){
         dedupMap[key]=d;
       }
     });
-    return Object.values(dedupMap);
+    return Object.values(dedupMap).sort((a,b)=>{
+      const aAdmin=ADMIN_PHONES.includes(a.phone), bAdmin=ADMIN_PHONES.includes(b.phone);
+      if(aAdmin!==bAdmin) return aAdmin ? -1 : 1;
+      const at=a.lastLogin?new Date(a.lastLogin).getTime():0;
+      const bt=b.lastLogin?new Date(b.lastLogin).getTime():0;
+      return bt-at;
+    });
   }catch(e){return[];}
 }
 
@@ -5876,7 +5895,7 @@ if(ENABLE_SERVICE_WORKER && !_forceSwClear && 'serviceWorker' in navigator){
 
 // ---------- Remote Version Check ----------
 // 只从阿里云 OSS 获取版本信息，避免海外 CDN 造成卡顿
-const APP_VERSION='v6';
+const APP_VERSION='v7';
 async function checkRemoteVersion(){
   try{
     const res=await fetch('./sw.js?_t='+Date.now(),{cache:'no-store'});
