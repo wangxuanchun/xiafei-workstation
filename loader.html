@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>甜品配方工作台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{display:flex;justify-content:center;align-items:center;min-height:100vh;background:#FFF5EE;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',sans-serif;color:#5C3D3D}
+.box{text-align:center;padding:40px}
+.spinner{width:50px;height:50px;border:4px solid #FFDAB9;border-top-color:#E8A0BF;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+h2{font-size:18px;font-weight:600;margin:0 0 8px}
+p{font-size:14px;color:#A0826D;margin:0}
+.status{margin-top:16px;font-size:13px;color:#B5EAD7;min-height:20px}
+.error{color:#E8A0BF;font-size:13px;margin-top:12px;display:none}
+.retry-btn{margin-top:16px;padding:8px 24px;background:#E8A0BF;color:#fff;border:none;border-radius:20px;font-size:14px;cursor:pointer;display:none}
+.retry-btn:active{transform:scale(0.95)}
+</style>
+</head>
+<body>
+<div class="box">
+<div class="spinner" id="spinner"></div>
+<h2>正在加载甜品配方工作台</h2>
+<p>请稍候，正在从服务器获取最新版本</p>
+<div class="status" id="status">连接中...</div>
+<div class="error" id="error"></div>
+<button class="retry-btn" id="retry" onclick="loadApp()">重试</button>
+</div>
+<script>
+// OSS内容地址 (国内速度快)
+var OSS_BASE = 'https://xiafei-recipe.oss-cn-hangzhou.aliyuncs.com';
+var TARGET_FILE = 'recipe-atelier.html';
+
+// GitHub Pages 备用地址
+var GITHUB_PAGES = 'https://wangxuanchun.github.io/xiafei-workstation/recipe-atelier.html';
+
+function loadApp() {
+  var status = document.getElementById('status');
+  var error = document.getElementById('error');
+  var retry = document.getElementById('retry');
+  var spinner = document.getElementById('spinner');
+  
+  status.textContent = '正在从国内服务器获取...';
+  error.style.display = 'none';
+  retry.style.display = 'none';
+  spinner.style.display = 'block';
+
+  // 尝试从OSS获取 (Content-Disposition不影响fetch)
+  fetch(OSS_BASE + '/' + TARGET_FILE + '?_t=' + Date.now(), {
+    cache: 'no-store',
+    mode: 'cors',
+  })
+  .then(function(res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    status.textContent = '正在解析内容...';
+    return res.text();
+  })
+  .then(function(html) {
+    if (!html || html.length < 100) throw new Error('内容为空');
+    status.textContent = '正在渲染...';
+    
+    // 用 document.write 渲染完整页面 (会执行所有script标签)
+    document.open();
+    document.write(html);
+    document.close();
+  })
+  .catch(function(e) {
+    console.error('OSS加载失败:', e.message);
+    status.textContent = '正在尝试备用线路...';
+    
+    // 备用: 从GitHub Pages获取
+    fetch(GITHUB_PAGES + '?_t=' + Date.now(), {
+      cache: 'no-store',
+    })
+    .then(function(res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text();
+    })
+    .then(function(html) {
+      if (!html || html.length < 100) throw new Error('备用内容为空');
+      document.open();
+      document.write(html);
+      document.close();
+    })
+    .catch(function(e2) {
+      console.error('GitHub加载也失败:', e2.message);
+      spinner.style.display = 'none';
+      status.textContent = '';
+      error.textContent = '加载失败: ' + e2.message;
+      error.style.display = 'block';
+      retry.style.display = 'inline-block';
+    });
+  });
+}
+
+// 自动开始加载
+loadApp();
+</script>
+</body>
+</html>
