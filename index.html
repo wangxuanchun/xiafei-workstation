@@ -816,14 +816,14 @@ initBgDecor();
 
 /* ---------- Data: default categories (can be customized by user) ---------- */
 const DEFAULT_CATEGORIES = [
-  {id:'yeast',     name:'Yeast Bread',     image:'embedded-images/eimg-2469676a4014.jpg'},
-  {id:'artisan',   name:'Artisan Bread',     image:'embedded-images/eimg-155e9434b261.jpg'},
-  {id:'cakes',     name:'Cakes & Sponge',   image:'embedded-images/eimg-ff03558a4c38.jpg'},
-  {id:'cookies',   name:'Cookies',     image:'embedded-images/eimg-23ede16a8e9d.jpg'},
-  {id:'laminated', name:'Laminated Pastry',     image:'embedded-images/eimg-2f1bf8c56b58.jpg'},
-  {id:'tarts',     name:'Tarts & Pies',       image:'embedded-images/eimg-750f6610a9b4.jpg'},
-  {id:'quick',     name:'Quick Bread & Scones', image:'embedded-images/eimg-07ec1b776b84.jpg'},
-  {id:'choux',     name:'Choux & Meringue',  image:'embedded-images/eimg-9014b9c7e2c3.jpg'},
+  {id:'yeast',     name:'Yeast Bread',     image:'cat-yeast.jpg'},
+  {id:'artisan',   name:'Artisan Bread',     image:'cat-artisan.jpg'},
+  {id:'cakes',     name:'Cakes & Sponge',   image:'cat-cakes.jpg'},
+  {id:'cookies',   name:'Cookies',     image:'cat-cookies.jpg'},
+  {id:'laminated', name:'Laminated Pastry',     image:'cat-laminated.jpg'},
+  {id:'tarts',     name:'Tarts & Pies',       image:'cat-tarts.jpg'},
+  {id:'quick',     name:'Quick Bread & Scones', image:'cat-quick.jpg'},
+  {id:'choux',     name:'Choux & Meringue',  image:'cat-choux.jpg'},
 ];
 
 const DEFAULT_SHOWCASES = [
@@ -1582,34 +1582,64 @@ function migrateRecipeCats(){
 /* ---------- Migrate category images: set image by category name ---------- */
 const CATEGORY_IMAGE_MAP={
   '马卡龙':'embedded-images/eimg-0f4fa2ce8b2b.jpg',
-  '牛角包':'embedded-images/eimg-c3a2ae1a6043.jpg',
+  '牛角包':'recipe-images/r-ref-croissant2.jpg',
   '玛德琳蛋糕':'embedded-images/eimg-f13f0996b44c.jpg',
   '可露丽':'embedded-images/eimg-ec445ea7b033.jpg',
-  '千层酥/拿破仑蛋糕':'embedded-images/eimg-84396a278b5d.jpg',
-  '布雷斯特泡芙':'embedded-images/eimg-b46964fe0416.jpg',
-  '焦糖奶油酥':'embedded-images/eimg-f060d8b73025.jpg',
-  '闪电泡芙':'embedded-images/eimg-c11ddb4652c5.jpg',
-  '舒芙蕾':'embedded-images/eimg-de89ce925e51.jpg',
-  '巴斯克':'embedded-images/eimg-5490044c3f98.jpg',
-  '戚风':'embedded-images/eimg-476729b958cc.jpg',
+  '千层酥/拿破仑蛋糕':'cat-laminated.jpg',
+  '布雷斯特泡芙':'recipe-images/r-ref-parisbrest.jpg',
+  '焦糖奶油酥':'recipe-images/r-ref-kouign.jpg',
+  '闪电泡芙':'recipe-images/r-ref-eclair.jpg',
+  '舒芙蕾':'recipe-images/r-ref-souffle.jpg',
+  '巴斯克':'showcase-cake.jpg',
+  '戚风':'recipe-images/r-ref-chiffon.jpg',
   '慕斯':'embedded-images/eimg-3443b26237e3.jpg',
   '红丝绒':'embedded-images/eimg-85f1a570ad55.jpg',
   '黑森林':'embedded-images/eimg-2c53f3829d44.jpg',
-  '提拉米苏':'embedded-images/eimg-b3b870f81576.jpg',
-  '麦芬':'embedded-images/eimg-4995753d4252.jpg',
+  '提拉米苏':'showcase-cake.jpg',
+  '麦芬':'recipe-images/r-ref-muffin.jpg',
   '费南雪':'embedded-images/eimg-03b392a5f28d.jpg',
-  '可颂/牛角包':'embedded-images/eimg-84396a278b5d.jpg',
-  '丹麦酥皮面包':'embedded-images/eimg-20ddbc9be711.jpg',
-  '贝果':'embedded-images/eimg-ba6a48acea32.jpg',
-  '泡芙':'embedded-images/eimg-ec05f7ab0e7c.jpg',
-  '蛋挞':'embedded-images/eimg-9d3afb168765.jpg',
-  '曲奇饼干':'embedded-images/eimg-3220306fa4d1.jpg',
+  '可颂/牛角包':'recipe-images/r-ref-croissant2.jpg',
+  '丹麦酥皮面包':'cat-yeast.jpg',
+  '贝果':'recipe-images/r-ref-bagel.jpg',
+  '泡芙':'cat-choux.jpg',
+  '蛋挞':'recipe-images/r-ref-eggtart.jpg',
+  '曲奇饼干':'cat-cookies.jpg',
   '布丁':'embedded-images/eimg-367d034e3ed2.jpg',
+};
+const CLEAR_CATEGORY_IMAGE_MAP={
+  'Yeast Bread':'cat-yeast.jpg',
+  'Artisan Bread':'cat-artisan.jpg',
+  'Cakes & Sponge':'cat-cakes.jpg',
+  'Cookies':'cat-cookies.jpg',
+  'Laminated Pastry':'cat-laminated.jpg',
+  'Tarts & Pies':'cat-tarts.jpg',
+  'Quick Bread & Scones':'cat-quick.jpg',
+  'Choux & Meringue':'cat-choux.jpg',
+  '牛角包':'recipe-images/r-ref-croissant2.jpg',
+  '可颂/牛角包':'recipe-images/r-ref-croissant2.jpg',
+  '丹麦酥皮面包':'cat-yeast.jpg',
+  '贝果':'recipe-images/r-ref-bagel.jpg',
+  '泡芙':'cat-choux.jpg',
+  '蛋挞':'recipe-images/r-ref-eggtart.jpg',
+  '麦芬':'recipe-images/r-ref-muffin.jpg',
+  '布雷斯特泡芙':'recipe-images/r-ref-parisbrest.jpg',
+  '焦糖奶油酥':'recipe-images/r-ref-kouign.jpg',
+  '闪电泡芙':'recipe-images/r-ref-eclair.jpg',
+  '舒芙蕾':'recipe-images/r-ref-souffle.jpg',
+  '戚风':'recipe-images/r-ref-chiffon.jpg',
+  '曲奇饼干':'cat-cookies.jpg',
+  '巴斯克':'showcase-cake.jpg',
+  '千层酥/拿破仑蛋糕':'cat-laminated.jpg',
+  '提拉米苏':'showcase-cake.jpg',
 };
 function migrateCategoryImages(){
   let changed=false;
   state.categories.forEach(c=>{
-    if((!c.image || c.image==='') && CATEGORY_IMAGE_MAP[c.name]){
+    const clearImg=CLEAR_CATEGORY_IMAGE_MAP[c.name];
+    if(clearImg && (!c.image || c.image==='' || c.image.startsWith('embedded-images/') || c.image.startsWith('recipe-images/r-ref-') && clearImg!==c.image)){
+      c.image=clearImg;
+      changed=true;
+    }else if((!c.image || c.image==='') && CATEGORY_IMAGE_MAP[c.name]){
       c.image=CATEGORY_IMAGE_MAP[c.name];
       changed=true;
     }
@@ -2521,7 +2551,7 @@ function openShowcaseEditor(existing){
         imgProcessing=true;
         okBtn.disabled=true; okBtn.style.opacity='0.5';
         uploadArea.innerHTML='<span style="color:var(--brand);font-size:13px">压缩中...</span>';
-        image=await compressImageFile(file,{maxSize:720,quality:.72,square:true,warm:true});
+        image=await compressImageFile(file,{maxSize:900,quality:.78,square:true,warm:true});
         uploadArea.classList.add('has-img');
         uploadArea.innerHTML=`<img src="${image}" alt="">`;
       }catch(err){
@@ -3160,7 +3190,7 @@ async function compressImageFile(file, options={}){
 
 /* ---------- Image processor: center-crop + subtle warm tone ---------- */
 function processCatImage(dataUrl, callback){
-  compressImageDataUrl(dataUrl,{maxSize:520,quality:.72,square:true,warm:true})
+  compressImageDataUrl(dataUrl,{maxSize:720,quality:.78,square:true,warm:true})
     .then(callback)
     .catch(()=>toast('图片处理失败，请重试','error'));
 }
@@ -3384,7 +3414,7 @@ function openCatEditor(existing){
     const file=e.target.files[0];
     if(!file) return;
     try{
-      image=await compressImageFile(file,{maxSize:520,quality:.72,square:true,warm:true});
+      image=await compressImageFile(file,{maxSize:720,quality:.78,square:true,warm:true});
       uploadArea.classList.add('has-img');
       uploadArea.innerHTML=`<img src="${image}" alt=""><span class="up-change">更换图片</span>`;
     }catch(err){
@@ -3651,7 +3681,7 @@ function renderEditor(){
       const file=e.target.files[0];
       if(!file) return;
       try{
-        const processed=await compressImageFile(file,{maxSize:720,quality:.72,square:true,warm:true});
+        const processed=await compressImageFile(file,{maxSize:900,quality:.78,square:true,warm:true});
         r.image=processed;
         persist(true);
         edImgUpload.classList.add('has-img');
@@ -5951,7 +5981,7 @@ if(ENABLE_SERVICE_WORKER && !_forceSwClear && 'serviceWorker' in navigator){
 
 // ---------- Remote Version Check ----------
 // 只从阿里云 OSS 获取版本信息，避免海外 CDN 造成卡顿
-const APP_VERSION='v8';
+const APP_VERSION='v9';
 async function checkRemoteVersion(){
   try{
     const res=await fetch('./sw.js?_t='+Date.now(),{cache:'no-store'});
