@@ -6063,16 +6063,16 @@ if(!_forceSwClear && 'serviceWorker' in navigator){
 // ---------- Remote Version Check ----------
 // Fetch latest sw.js from GitHub Pages to compare versions
 // Uses jsDelivr CDN (China-friendly) instead of GitHub Pages for version checking
-const APP_VERSION='v82';
+const APP_VERSION='v83';
 async function checkRemoteVersion(){
   try{
-    // Try jsDelivr CDN first (China-friendly), fallback to GitHub Pages
+    // Check OSS first (China-based, fastest), fallback to jsDelivr CDN
     let res;
     try{
-      res=await fetch('https://cdn.jsdelivr.net/gh/wangxuanchun/xiafei-workstation@main/sw.js?_t='+Date.now(),{cache:'no-store'});
+      res=await fetch('https://xiafei-recipe.oss-cn-hangzhou.aliyuncs.com/sw.js?_t='+Date.now(),{cache:'no-store'});
     }catch(e1){
-      // Fallback: try GitHub Pages
-      res=await fetch('https://wangxuanchun.github.io/xiafei-workstation/sw.js?_t='+Date.now(),{cache:'no-store'});
+      // Fallback: try jsDelivr CDN
+      res=await fetch('https://cdn.jsdelivr.net/gh/wangxuanchun/xiafei-workstation@main/sw.js?_t='+Date.now(),{cache:'no-store'});
     }
     if(!res || !res.ok) return;
     const text=await res.text();
