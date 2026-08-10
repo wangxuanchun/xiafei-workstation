@@ -4090,6 +4090,8 @@ function initMemo(){
 function renderProfile(){
   const totalRecipes=state.recipes.length;
   const totalShowcases=(state.showcases||[]).length;
+  // 非管理员：计算已解锁配方数量
+  const unlockedRecipesCount = isAllRecipesUnlocked() ? totalRecipes : state.recipes.filter(r=>canAccessRecipe(r)).length;
   const connected=syncConfigured();
   const backend=syncBackend();
   const giteeConnected = backend==='gitee';
@@ -4239,8 +4241,11 @@ function renderProfile(){
         <div class="un" id="profName" contenteditable="plaintext-only" spellcheck="false">${esc(state.profile.name)}</div>
         <div class="us" id="profTagline" contenteditable="true" spellcheck="false">${esc(state.profile.tagline||'与木&Kimiko')}</div>
         <div class="stat-row">
-          <div class="stat"><div class="v">${totalShowcases}</div><div class="l">Showcase</div></div>
-          <div class="stat"><div class="v">${totalRecipes}</div><div class="l">配方</div></div>
+          ${adminUser
+            ? `<div class="stat"><div class="v">${totalShowcases}</div><div class="l">Showcase</div></div>
+               <div class="stat"><div class="v">${totalRecipes}</div><div class="l">配方</div></div>`
+            : `<div class="stat"><div class="v">${totalRecipes}</div><div class="l">配方总数</div></div>
+               <div class="stat"><div class="v">${unlockedRecipesCount}</div><div class="l">已解锁</div></div>`}
         </div>
       </div>
       ${sectionsAfterProfile}
@@ -5981,7 +5986,7 @@ if(ENABLE_SERVICE_WORKER && !_forceSwClear && 'serviceWorker' in navigator){
 
 // ---------- Remote Version Check ----------
 // 只从阿里云 OSS 获取版本信息，避免海外 CDN 造成卡顿
-const APP_VERSION='v9';
+const APP_VERSION='v10';
 async function checkRemoteVersion(){
   try{
     const res=await fetch('./sw.js?_t='+Date.now(),{cache:'no-store'});
