@@ -28,7 +28,7 @@ p{font-size:14px;color:#A0826D;margin:0}
 (async()=>{
   const status=document.getElementById('status');
   try{
-    // Step 1: Unregister ALL Service Workers
+    // Step 1: 注销所有 Service Worker
     status.textContent='正在注销 Service Worker...';
     if('serviceWorker' in navigator){
       const regs=await navigator.serviceWorker.getRegistrations();
@@ -39,7 +39,7 @@ p{font-size:14px;color:#A0826D;margin:0}
     }
     status.textContent='Service Worker 已注销 ✓';
 
-    // Step 2: Clear ALL Cache Storage
+    // Step 2: 清除所有缓存
     status.textContent='正在清除缓存...';
     if('caches' in window){
       const keys=await caches.keys();
@@ -50,30 +50,28 @@ p{font-size:14px;color:#A0826D;margin:0}
     }
     status.textContent='缓存已清除 ✓';
 
-    // Step 3: Clear localStorage session flags (keep user data)
+    // Step 3: 清除会话数据
     sessionStorage.clear();
     status.textContent='会话数据已清除 ✓';
 
-    // Step 4: Wait for browser to fully process unregistration
+    // Step 4: 等待浏览器处理
     status.textContent='等待浏览器处理...';
     await new Promise(r=>setTimeout(r,1000));
 
-    // Step 5: Redirect to main app with cache-busting
+    // Step 5: 跳转到 loader.html (会从OSS获取最新内容)
     status.textContent='正在跳转...';
     const url=new URL(location.href);
     const basePath=url.pathname.replace(/clear\.html$/,'');
-    const target=basePath+'recipe-atelier.html?force_sw_clear=1&_t='+Date.now();
+    const target=basePath+'loader.html?force_sw_clear=1&_t='+Date.now();
     
-    // Use window.location.replace to avoid back button issues
     window.location.replace(target);
   }catch(e){
     status.textContent='错误: '+e.message;
     console.error('Clear cache error:',e);
-    // Still try to redirect after 3 seconds
     setTimeout(()=>{
       const url=new URL(location.href);
       const basePath=url.pathname.replace(/clear\.html$/,'');
-      window.location.replace(basePath+'recipe-atelier.html?force_sw_clear=1&_t='+Date.now());
+      window.location.replace(basePath+'loader.html?force_sw_clear=1&_t='+Date.now());
     },3000);
   }
 })();
