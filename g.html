@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>跳转中...</title>
+<title>甜品配方工作台</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <style>
 body{margin:0;padding:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#FFF5EE;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',sans-serif;color:#5C3D3D}
 .box{text-align:center;padding:40px}
@@ -17,13 +18,14 @@ p{font-size:13px;color:#A0826D;margin:0}
 <body>
 <div class="box">
 <div class="spinner"></div>
-<h2>正在加载...</h2>
-<p>请稍候</p>
+<h2>正在加载甜品配方工作台</h2>
+<p>请稍候...</p>
 </div>
 <script>
-// 直接跳转到 GitHub Pages recipe-atelier.html
-// GitHub Pages 正确返回 text/html，不会触发下载
-window.location.replace('https://wangxuanchun.github.io/xiafei-workstation/recipe-atelier.html?v=85&_t=' + Date.now());
+// 跳转到 GitHub Pages（无强制下载问题，国内可正常访问）
+var v='87';
+var url='https://wangxuanchun.github.io/xiafei-workstation/recipe-atelier.html?v='+v+'&_t='+Date.now();
+window.location.replace(url);
 </script>
 </body>
 </html>
