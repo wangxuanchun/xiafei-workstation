@@ -2435,7 +2435,7 @@ function renderShowcase(){
         ${items.map(item=>`
           <div class="sc-card" data-id="${item.id}">
             <div class="sc-img">
-              ${item.image ? `<img src="${item.image}" alt="" style="width:100%;height:100%;object-fit:cover">` : svg('cake')}
+              ${item.image ? `<img src="${item.image}" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy">` : svg('cake')}
             </div>
             <div class="sc-info">
               <div class="sc-name">${esc(item.name||'未命名')}</div>
@@ -2514,7 +2514,7 @@ function openShowcaseEditor(existing){
     <div class="cm-body">
       <div class="cm-title">${isEdit?'编辑成品':'添加成品'}</div>
       <div class="sc-upload ${image?'has-img':''}" id="scUpload">
-        ${image?`<img src="${image}" alt="">`:svg('upload')}
+        ${image?`<img src="${image}" alt="" loading="lazy">`:svg('upload')}
         <span class="up-text">${image?'':'点击上传成品图片'}</span>
       </div>
       <div class="cm-label">成品名称</div>
@@ -2567,7 +2567,7 @@ function openShowcaseEditor(existing){
               ctx.drawImage(img,sx,sy,minDim,minDim,0,0,size,size);
               image=canvas.toDataURL('image/jpeg',0.85);
               uploadArea.classList.add('has-img');
-              uploadArea.innerHTML=`<img src="${image}" alt="">`;
+              uploadArea.innerHTML=`<img src="${image}" alt="" loading="lazy">`;
               imgProcessing=false;
               okBtn.disabled=false; okBtn.style.opacity='1';
             }catch(err){
@@ -3393,7 +3393,7 @@ function openCatEditor(existing){
       <div class="cm-title">${isEdit?'编辑分类':'新建分类'}</div>
       <div class="cm-label">分类图片</div>
       <div class="cm-upload ${image?'has-img':''}" id="cmUpload">
-        ${image?`<img src="${image}" alt="">`:''}
+        ${image?`<img src="${image}" alt="" loading="lazy">`:''}
         <svg class="up-icon" viewBox="0 0 24 24"><path d="M12 20V8M7 13l5-5 5 5"/><path d="M5 20h14"/></svg>
         <span class="up-text">${image?'':'点击上传图片'}</span>
         ${image?`<span class="up-change">更换图片</span>`:''}
@@ -3423,7 +3423,7 @@ function openCatEditor(existing){
       processCatImage(reader.result, (processed)=>{
         image=processed;
         uploadArea.classList.add('has-img');
-        uploadArea.innerHTML=`<img src="${image}" alt=""><span class="up-change">更换图片</span>`;
+        uploadArea.innerHTML=`<img src="${image}" alt="" loading="lazy"><span class="up-change">更换图片</span>`;
       });
     };
     reader.readAsDataURL(file);
@@ -3474,7 +3474,7 @@ function renderRecipeList(){
         list.map(r=>`
           <div class="rcard" data-recipe="${r.id}">
             ${isAdmin?`<button class="rcard-check" data-rid="${r.id}">${svg('check')}</button>`:''}
-            ${r.image?`<img class="rcard-thumb" src="${r.image}" alt="">`:`<div class="rcard-thumb-placeholder">${esc(r.name.charAt(0))}</div>`}
+            ${r.image?`<img class="rcard-thumb" src="${r.image}" alt="" loading="lazy">`:`<div class="rcard-thumb-placeholder">${esc(r.name.charAt(0))}</div>`}
             <div class="rcard-info"><div class="rt">${esc(r.name)}</div><div class="rd">${fmtDate(r.updated)}</div></div>
             ${!canAccessRecipe(r)?'<span class="rcard-lock">'+svg('lock')+'</span>':''}
             <span class="arrow">${svg('chevR')}</span>
@@ -3619,7 +3619,7 @@ function renderEditor(){
       <div class="ed-block">
         <div class="ed-label">配方图片</div>
         <div class="ed-img-upload ${r.image?'has-img':''}" id="edImgUpload">
-          ${r.image?`<img src="${r.image}" alt="">`:''}
+          ${r.image?`<img src="${r.image}" alt="" loading="lazy">`:''}
           <svg class="up-icon" viewBox="0 0 24 24"><path d="M12 20V8M7 13l5-5 5 5"/><path d="M5 20h14"/></svg>
           <span class="up-text">${r.image?'':'点击上传图片'}</span>
           ${r.image?`<span class="up-change">更换图片</span>`:''}
@@ -3693,7 +3693,7 @@ function renderEditor(){
           r.image=processed;
           persist(true);
           edImgUpload.classList.add('has-img');
-          edImgUpload.innerHTML=`<img src="${processed}" alt=""><span class="up-change">更换图片</span>`;
+          edImgUpload.innerHTML=`<img src="${processed}" alt="" loading="lazy"><span class="up-change">更换图片</span>`;
         });
       };
       reader.readAsDataURL(file);
@@ -5929,7 +5929,7 @@ if(ENABLE_SERVICE_WORKER && !_forceSwClear && 'serviceWorker' in navigator){
 
 // ---------- Remote Version Check ----------
 // 只从阿里云 OSS 获取版本信息，避免海外 CDN 造成卡顿
-const APP_VERSION='v4';
+const APP_VERSION='v5';
 async function checkRemoteVersion(){
   try{
     const res=await fetch('./sw.js?_t='+Date.now(),{cache:'no-store'});
