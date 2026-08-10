@@ -529,7 +529,10 @@
   .device-icon{width:38px;height:38px;border-radius:10px;background:rgba(196,140,92,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0}
   .device-icon svg{width:20px;height:20px;color:var(--brand)}
   .device-info{flex:1;min-width:0}
-  .device-name{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+  .device-name{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .device-name-edit{display:inline-flex;align-items:center;max-width:140px;padding:2px 5px;border-radius:6px;cursor:pointer;line-height:1.25;word-break:break-all;transition:background .15s,color .15s}
+  .device-name-edit:active{background:rgba(196,140,92,.14);color:var(--brand)}
+  .device-name-edit::after{content:'✎';font-size:10px;color:var(--brand);opacity:.55;margin-left:4px}
   .device-meta{font-size:11px;color:var(--sub);margin-top:2px}
   .device-badge{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600}
   .device-badge.ok{background:rgba(107,142,78,.12);color:#6B8E4E}
@@ -4369,7 +4372,7 @@ function renderProfile(){
           <div class="device-icon">${svg('phone').replace('width="24" height="24"','width="20" height="20"')}</div>
           <div class="device-info">
             <div class="device-name">
-              ${esc(dev.deviceName||'未知设备')}
+              <span class="device-name-edit" data-id="${esc(dev.deviceId)}" data-name="${esc(dev.deviceName||'未知设备')}">${esc(dev.deviceName||'未知设备')}</span>
               ${isCurrent?'<span class="device-badge current">当前</span>':''}
               ${isAdmin?'<span class="device-badge ok" style="background:rgba(196,140,92,.2);color:var(--brand)">管理员</span>':''}
               ${isLocked?'<span class="device-badge locked">已锁定</span>':'<span class="device-badge ok">正常</span>'}
@@ -4392,6 +4395,28 @@ function renderProfile(){
           <div class="device-swipe-content" data-id="${esc(dev.deviceId)}">${cardInner}</div>
         </div>`;
       }).join('');
+      // Bind device name editing (admin only)
+      listEl.querySelectorAll('.device-name-edit').forEach(el=>{
+        el.onclick=async(e)=>{
+          e.stopPropagation();
+          const deviceId=el.dataset.id;
+          const oldName=el.dataset.name||'未知设备';
+          const newName=window.prompt('修改设备名称（可填写客户姓名备注）', oldName);
+          if(newName===null) return;
+          const val=newName.trim();
+          if(!val){ toast('设备名称不能为空','error'); return; }
+          if(val===oldName) return;
+          el.style.opacity='0.55';
+          const ok=await updateDeviceName(deviceId,val);
+          if(ok){
+            toast('设备名称已更新','success');
+            renderProfile();
+          }else{
+            toast('修改失败，请重试','error');
+            el.style.opacity='1';
+          }
+        };
+      });
       // Bind lock/unlock buttons
       listEl.querySelectorAll('.device-lock-btn').forEach(btn=>{
         btn.onclick=async()=>{
@@ -4413,7 +4438,7 @@ function renderProfile(){
       // Bind click on device card (admin) to manage recipe permissions
       listEl.querySelectorAll('.device-swipe-content').forEach(card=>{
         card.addEventListener('click',(e)=>{
-          if(e.target.closest('.device-lock-btn')||e.target.closest('.device-swipe-delete')) return;
+          if(e.target.closest('.device-lock-btn')||e.target.closest('.device-swipe-delete')||e.target.closest('.device-name-edit')) return;
           if(card.classList.contains('swiped')) return;
           const dev=devices.find(d=>d.deviceId===card.dataset.id);
           if(!dev) return;
@@ -4654,6 +4679,37 @@ async function lockUnlockDevice(deviceId,locked){
       method:'PUT',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({access_token:auth.token,content:newContent,sha:data.sha,message:'Update device lock'})
+    });
+    return updateRes.ok;
+  }catch(e){return false;}
+}
+
+async function updateDeviceName(deviceId,newName){
+  const auth=getAuthState();
+  if(!auth.phone||!auth.token) return false;
+  try{
+    const url=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json?access_token='+encodeURIComponent(auth.token);
+    const res=await fetch(url);
+    if(!res.ok) return false;
+    const data=await res.json();
+    const content=decodeURIComponent(escape(atob(data.content)));
+    const users=JSON.parse(content);
+    let found=false;
+    users.forEach(u=>{
+      (u.devices||[]).forEach(d=>{
+        if(d.deviceId===deviceId){
+          d.deviceName=newName;
+          found=true;
+        }
+      });
+    });
+    if(!found) return false;
+    const newContent=btoa(unescape(encodeURIComponent(JSON.stringify(users,null,2))));
+    const updateUrl=GITEE_API+'/repos/'+auth.giteeOwner+'/'+auth.giteeRepo+'/contents/users.json';
+    const updateRes=await fetch(updateUrl,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({access_token:auth.token,content:newContent,sha:data.sha,message:'Update device name'})
     });
     return updateRes.ok;
   }catch(e){return false;}
@@ -5895,7 +5951,7 @@ if(ENABLE_SERVICE_WORKER && !_forceSwClear && 'serviceWorker' in navigator){
 
 // ---------- Remote Version Check ----------
 // 只从阿里云 OSS 获取版本信息，避免海外 CDN 造成卡顿
-const APP_VERSION='v7';
+const APP_VERSION='v8';
 async function checkRemoteVersion(){
   try{
     const res=await fetch('./sw.js?_t='+Date.now(),{cache:'no-store'});
